@@ -135,6 +135,55 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .rtab tr:nth-child(even) td{background:var(--surface)}
 .rtab .num{text-align:right;font-variant-numeric:tabular-nums}
 @media(max-width:640px){.frow{grid-template-columns:105px 1fr 64px}}
+
+/* ===== Login ===== */
+.login{position:fixed;inset:0;background:var(--surface);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.login.off{display:none}
+.lbox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 26px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 30px rgba(26,26,26,.08)}
+.lbrand{display:flex;align-items:baseline;gap:8px;justify-content:center;margin-bottom:6px}
+.lbrand .cna{font-family:'Poppins';font-weight:700;font-size:28px;color:var(--red)}
+.lbrand .sub{font-family:'Poppins';font-weight:600;font-size:14px;color:var(--blue)}
+.lmsg{font-size:13px;color:var(--gray);margin:10px 0 14px}
+.lusers{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.lusers button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-family:'Poppins';font-weight:600;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:7px}
+.lusers button.on{border-color:var(--uc);background:var(--uc);color:#fff}
+.lusers .ldot{width:10px;height:10px;border-radius:50%;background:var(--uc)}
+.lusers button.on .ldot{background:#fff}
+.lpin{display:flex;gap:8px;justify-content:center}
+.lpin input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:120px;text-align:center;font-size:18px;letter-spacing:4px}
+.lerr{color:var(--redDark);font-size:12.5px;min-height:16px;margin-top:10px;font-weight:600}
+
+/* ===== Tela de relatórios ===== */
+.rscreen{flex:1;overflow-y:auto;padding:4px 18px 30px}
+.rwrap{max-width:860px;margin:0 auto}
+.rtitle{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+.rtitle h1{font-family:'Poppins';font-size:19px;color:var(--red)}
+.rcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.rcard>h3{font-family:'Poppins';font-size:13.5px;color:var(--red);margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px}
+.fnl{display:flex;flex-direction:column}
+.fnlrow{display:grid;grid-template-columns:1fr 190px;gap:12px;align-items:center}
+.fnlbarwrap{display:flex;justify-content:center}
+.fnlbar{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:'Poppins';min-width:70px}
+.fnlbar b{font-size:15px;line-height:1.1}
+.fnlbar span{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;opacity:.92}
+.fnlinfo{font-size:11.5px;color:var(--gray);line-height:1.45}
+.fnlinfo b{color:var(--redDark)}
+.fnlinfo i{font-style:normal;color:var(--blue);font-weight:600}
+.mgrid{display:flex;gap:10px;align-items:flex-end;overflow-x:auto;padding-top:6px}
+.mcol{flex:1;min-width:64px;text-align:center}
+.mbars{display:flex;gap:4px;align-items:flex-end;justify-content:center;height:110px}
+.mbars i{display:block;width:20px;border-radius:4px 4px 0 0}
+.mbars .ml{background:var(--blue)}
+.mbars .mf{background:var(--ok)}
+.mcol .mn{font-size:10.5px;color:var(--gray);margin-top:5px}
+.mcol .mv{font-size:11px;font-weight:600;color:var(--ink)}
+.mleg{display:flex;gap:14px;font-size:11px;color:var(--gray);margin-top:8px}
+.mleg i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.alert{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.alert:last-child{border-bottom:none}
+.alert .an{font-weight:600}
+.alert .ad{color:var(--redDark);font-weight:600;white-space:nowrap}
+@media(max-width:640px){.fnlrow{grid-template-columns:1fr 130px}}
 .loading{padding:40px;text-align:center;color:var(--gray);font-size:13px;width:100%}
 
 @media(max-width:640px){
@@ -154,12 +203,14 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
     <button data-t="escolas">Escolas</button>
     <button data-t="empresas">Empresas</button>
     <button data-t="leads">Clientes B2C</button>
+    <button data-t="relatorios">Relatórios</button>
   </div>
   <div class="hright">
     <div class="stats" id="stats"></div>
     <div class="userbox">
-      <label for="user">Você</label>
-      <select id="user"></select>
+      <span class="avatar" id="uav" style="background:#5A5A5A">?</span>
+      <b id="unome" style="font-size:13px;color:var(--blue)"></b>
+      <button class="btn" id="logout" style="padding:5px 10px;font-size:12px">Sair</button>
     </div>
   </div>
 </header>
@@ -170,7 +221,6 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
   <div class="chips" id="chipsTipo"></div>
   <div class="chips" id="chipsResp"></div>
   <div class="spacer"></div>
-  <button class="btn" id="report" style="display:none">📊 Relatório de funil</button>
   <button class="btn" id="csv">Exportar CSV</button>
   <button class="btn" id="reload" title="Recarregar dados">↻</button>
   <button class="btn primary" id="add">+ Nova</button>
@@ -209,17 +259,16 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
   </div>
 </div>
 
-<div class="ov" id="rov">
-  <div class="modal rmodal">
-    <h2>Relatório de funil · Clientes B2C</h2>
-    <div class="msub">Distribuição do funil, conversão por consultor, origem dos leads e motivos de perda</div>
-    <div class="rhead">
-      <label style="font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px">Período</label>
-      <select id="rperiodo"></select>
-      <div class="spacer"></div>
-      <button class="btn" id="rclose">Fechar</button>
+<div class="login" id="login">
+  <div class="lbox">
+    <div class="lbrand"><span class="cna">CNA</span><span class="sub">CRM · Taquara</span></div>
+    <p class="lmsg">Quem está entrando?</p>
+    <div class="lusers" id="lusers"><div class="loading">Carregando equipe...</div></div>
+    <div class="lpin" id="lpin" style="display:none">
+      <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN">
+      <button class="btn primary" id="entrar">Entrar</button>
     </div>
-    <div id="rbody"></div>
+    <p class="lerr" id="lerr"></p>
   </div>
 </div>
 
@@ -243,8 +292,9 @@ async function api(path,opt){
 }
 
 /* ================= Config ================= */
-const RESP=['Pedro','Marlon','Sabrina','Camila'];
-const RESPC={Pedro:'#E6143C',Marlon:'#19408B',Sabrina:'#B87500',Camila:'#7A3E9D'};
+let RESP=[];          // preenchido a partir de crm_usuarios no login
+let RESPC={};
+const PALETA=['#E6143C','#19408B','#B87500','#7A3E9D','#1E7A46','#C2410C','#0E7490'];
 const ITIPOS={nota:'Nota',whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
 
 const CFG={
@@ -267,7 +317,7 @@ const CFG={
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'tipo',l:'Tipo',t:'select',opts:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']]},
       {k:'prioridade',l:'Prioridade',t:'select',opts:[['alta','Alta'],['media','Média'],['baixa','Baixa']]},
-      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:RESP.map(function(r){return [r,r];})},
+      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'status',l:'Etapa',t:'stage'},
       {k:'bairro',l:'Bairro',t:'text'},
       {k:'endereco',l:'Endereço',t:'text'},
@@ -304,7 +354,7 @@ const CFG={
       {k:'categoria',l:'Categoria',t:'text'},
       {k:'tipo',l:'Tipo',t:'select',opts:[['in_company','CNA na Empresa'],['multiempresa','Multiempresa']]},
       {k:'potencial',l:'Potencial',t:'select',opts:[['alto','Alto'],['medio','Médio'],['baixo','Baixo']]},
-      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:RESP.map(function(r){return [r,r];})},
+      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'status',l:'Etapa',t:'stage'},
       {k:'porte',l:'Porte',t:'text'},
       {k:'funcionarios',l:'Funcionários',t:'text'},
@@ -345,7 +395,7 @@ const CFG={
       {k:'whatsapp',l:'WhatsApp',t:'text'},
       {k:'origem',l:'Origem',t:'select',opts:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
-      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:RESP.map(function(r){return [r,r];})},
+      {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
       {k:'motivo_perda',l:'Motivo da perda (se perdido)',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
@@ -368,7 +418,7 @@ function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none';},2600);}
 
-let currentUser=safeGet('crmUser')||'Pedro';
+let currentUser=null;
 function SF(cfg){return cfg.statusField||'status';}
 function TF(cfg){return cfg.tipoField||'tipo';}
 
@@ -502,6 +552,11 @@ function cardEl(s,st){
 }
 
 /* ================= Ações ================= */
+function logEtapa(leadId,etapa){
+  api('/crm_leads_etapas',{method:'POST',body:JSON.stringify({lead_id:leadId,etapa:etapa,autor:currentUser})})
+    .catch(function(){/* histórico é acessório, não bloqueia */});
+}
+
 async function moveTo(id,stage){
   const cfg=CFG[tab];
   const sf=SF(cfg);
@@ -520,6 +575,7 @@ async function moveTo(id,stage){
   render();
   try{
     await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+    if(tab==='leads')logEtapa(id,stage);
     if(tab==='leads'&&stage==='perdido'&&!s.motivo_perda){
       toast('Registre o motivo da perda na ficha.');
       openModal(id);
@@ -545,7 +601,7 @@ function openModal(id){
     if(f.t==='textarea'){
       inner+='<textarea data-k="'+f.k+'">'+esc(v)+'</textarea>';
     }else if(f.t==='select'||f.t==='stage'){
-      const opts=f.t==='stage'?cfg.stages.map(function(x){return [x.id,x.n];}):f.opts;
+      const opts=f.t==='stage'?cfg.stages.map(function(x){return [x.id,x.n];}):(typeof f.opts==='function'?f.opts():f.opts);
       inner+='<select data-k="'+f.k+'">'+opts.map(function(o){
         const dv=v||(f.t==='stage'?cfg.stages[0].id:(f.k==='responsavel'?currentUser:o[0]));
         return '<option value="'+esc(o[0])+'"'+(String(dv)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';
@@ -630,13 +686,17 @@ $('save').onclick=async function(){
   }
   try{
     if(editing){
+      const antes=(DATA[tab]||[]).find(function(x){return x.id===editing;});
+      const etapaAntes=antes?antes[SF(cfg)]:null;
       body.updated_at=new Date().toISOString();
       const res=await api('/'+cfg.table+'?id=eq.'+editing,{method:'PATCH',body:JSON.stringify(body)});
       const idx=DATA[tab].findIndex(function(x){return x.id===editing;});
       if(idx>-1&&res&&res[0])DATA[tab][idx]=res[0];
+      if(tab==='leads'&&body.etapa&&body.etapa!==etapaAntes)logEtapa(editing,body.etapa);
     }else{
       const res=await api('/'+cfg.table,{method:'POST',body:JSON.stringify(body)});
-      if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';}
+      if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';
+        if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');}
     }
     render();
     $('savedmsg').style.display='inline';
@@ -709,110 +769,277 @@ $('csv').onclick=function(){
 function setTab(t){
   tab=t;filters={q:'',prio:null,tipo:null,resp:null};$('q').value='';
   document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t);});
-  $('report').style.display=t==='leads'?'':'none';
+  document.querySelector('.toolbar').style.display=t==='relatorios'?'none':'';
+  if(t==='relatorios'){openReports();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t);};});
 
-(function initUser(){
-  const sel=$('user');
-  sel.innerHTML=RESP.map(function(r){return '<option'+(r===currentUser?' selected':'')+'>'+r+'</option>';}).join('');
-  sel.onchange=function(){currentUser=sel.value;safeSet('crmUser',currentUser);};
-})();
 
 
-/* ================= Relatório de funil (leads) ================= */
+
+/* ================= Login ================= */
+let USERS=[];
+let loginSel=null;
+
+async function sha256(txt){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+
+async function loadUsers(){
+  USERS=await api('/crm_usuarios?ativo=eq.true&select=*&order=nome.asc');
+  RESP=USERS.map(function(u){return u.nome;});
+  RESPC={};
+  USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
+}
+
+function showLogin(){
+  $('login').classList.remove('off');
+  loginSel=null;$('pin').value='';$('lerr').textContent='';$('lpin').style.display='none';
+  $('lusers').innerHTML=USERS.map(function(u){
+    return '<button data-u="'+esc(u.nome)+'" style="--uc:'+(RESPC[u.nome])+'"><span class="ldot"></span>'+esc(u.nome)+'</button>';
+  }).join('');
+  document.querySelectorAll('#lusers button').forEach(function(b){
+    b.onclick=function(){
+      loginSel=b.dataset.u;
+      document.querySelectorAll('#lusers button').forEach(function(x){x.classList.toggle('on',x===b);});
+      $('lpin').style.display='flex';$('lerr').textContent='';$('pin').value='';$('pin').focus();
+    };
+  });
+}
+
+async function tryLogin(){
+  if(!loginSel){$('lerr').textContent='Escolha seu nome.';return;}
+  const pin=$('pin').value.trim();
+  if(!pin){$('lerr').textContent='Digite seu PIN.';return;}
+  const u=USERS.find(function(x){return x.nome===loginSel;});
+  const hash=await sha256(pin);
+  if(!u||hash!==u.pin_hash){$('lerr').textContent='PIN incorreto.';$('pin').value='';return;}
+  currentUser=u.nome;
+  safeSet('crmAuth',u.nome);
+  entrar();
+}
+
+function entrar(){
+  $('login').classList.add('off');
+  $('unome').textContent=currentUser;
+  $('uav').textContent=currentUser[0];
+  $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
+  setTab('escolas');
+}
+
+$('entrar').onclick=tryLogin;
+$('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
+$('logout').onclick=function(){
+  currentUser=null;safeSet('crmAuth','');showLogin();
+};
+
+async function BOOT(){
+  try{
+    await loadUsers();
+  }catch(e){
+    $('lusers').innerHTML='<div class="empty">Não foi possível carregar a equipe.<br>Verifique a conexão e recarregue a página.</div>';
+    return;
+  }
+  const saved=safeGet('crmAuth');
+  if(saved&&RESP.indexOf(saved)>-1){
+    currentUser=saved;entrar();
+  }else{
+    showLogin();
+  }
+}
+
+/* ================= Relatórios ================= */
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function mesLabel(ym){const p=ym.split('-');return MESES[parseInt(p[1],10)-1]+' '+p[0];}
+function mesCurto(ym){const p=ym.split('-');return MESES[parseInt(p[1],10)-1].slice(0,3)+'/'+p[0].slice(2);}
 function pct(a,b){return b?(100*a/b).toFixed(1).replace('.',',')+'%':'—';}
+let ETAPAS_HIST=null;
 
-$('report').onclick=function(){
-  if(!DATA.leads){toast('Aguarde os leads carregarem.');return;}
-  const sel=$('rperiodo');
+async function openReports(){
+  $('board').innerHTML='<div class="loading">Montando os relatórios...</div>';
+  try{
+    if(!DATA.leads)DATA.leads=await api('/crm_leads?select=*&order=nome.asc');
+    ETAPAS_HIST=await api('/crm_leads_etapas?select=lead_id,etapa');
+  }catch(e){
+    if(!DATA.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados dos relatórios.</div>';return;}
+    ETAPAS_HIST=ETAPAS_HIST||[];
+  }
+  renderReports();
+}
+
+/* índice do funil: até onde cada lead chegou */
+const FUNIL=[
+  {id:'novo',n:'Novo lead',c:'#8A8A8E'},
+  {id:'contato_feito',n:'Contato feito',c:'#19408B'},
+  {id:'respondeu',n:'Respondeu',c:'#2C5AB5'},
+  {id:'experimental',n:'Experimental / Teste',c:'#B87500'},
+  {id:'negociacao',n:'Negociação',c:'#E6143C'},
+  {id:'fechado',n:'Matrícula fechada',c:'#1E7A46'}
+];
+const FIDX={novo:0,contato_feito:1,respondeu:2,experimental:3,negociacao:4,fechado:5};
+const PERDA_IDX={'Sem retorno':1,'Contato inválido':1,'Fora da região':2,'Só robótica':2,'Preço':4,'Outro':1};
+
+function maxIdx(s,histMap){
+  let m=0;
+  if(s.etapa==='perdido'){
+    m=PERDA_IDX[s.motivo_perda]!=null?PERDA_IDX[s.motivo_perda]:1;
+  }else{
+    m=FIDX[s.etapa]!=null?FIDX[s.etapa]:0;
+  }
+  const hs=histMap[s.id];
+  if(hs)hs.forEach(function(e){if(FIDX[e]!=null&&FIDX[e]>m)m=FIDX[e];});
+  return m;
+}
+
+function renderReports(){
+  const board=$('board');
+  const all=DATA.leads||[];
   const meses={};
-  DATA.leads.forEach(function(s){if(s.data_entrada)meses[s.data_entrada.slice(0,7)]=1;});
-  const list=Object.keys(meses).sort().reverse();
-  sel.innerHTML='<option value="">Todos os períodos</option>'+list.map(function(m){
-    return '<option value="'+m+'">'+mesLabel(m)+'</option>';
-  }).join('');
-  sel.onchange=renderReport;
-  renderReport();
-  $('rov').classList.add('open');
-};
-$('rclose').onclick=function(){$('rov').classList.remove('open');};
-$('rov').addEventListener('click',function(e){if(e.target===$('rov'))$('rov').classList.remove('open');});
+  all.forEach(function(s){if(s.data_entrada)meses[s.data_entrada.slice(0,7)]=1;});
+  const listaMeses=Object.keys(meses).sort().reverse();
+  const per=window._rper||'';
 
-function renderReport(){
-  const cfg=CFG.leads;
-  const per=$('rperiodo').value;
-  const leads=(DATA.leads||[]).filter(function(s){
-    return !per||(s.data_entrada||'').slice(0,7)===per;
-  });
+  const leads=all.filter(function(s){return !per||(s.data_entrada||'').slice(0,7)===per;});
+  const histMap={};
+  (ETAPAS_HIST||[]).forEach(function(e){(histMap[e.lead_id]=histMap[e.lead_id]||[]).push(e.etapa);});
+
   const total=leads.length;
-  const fech=leads.filter(function(s){return s.etapa==='fechado';}).length;
-  const perd=leads.filter(function(s){return s.etapa==='perdido';}).length;
-  const ativos=total-fech-perd;
+  const fech=leads.filter(function(s){return s.etapa==='fechado';});
+  const perd=leads.filter(function(s){return s.etapa==='perdido';});
+  const ativos=total-fech.length-perd.length;
 
-  let out='<div class="rkpis">'+
-    '<div class="rkpi"><b>'+total+'</b><span>Leads</span></div>'+
-    '<div class="rkpi"><b>'+ativos+'</b><span>Ativos no funil</span></div>'+
-    '<div class="rkpi ok"><b>'+fech+'</b><span>Matrículas</span></div>'+
-    '<div class="rkpi bad"><b>'+perd+'</b><span>Perdidos</span></div>'+
-    '<div class="rkpi"><b>'+pct(fech,total)+'</b><span>Conversão</span></div>'+
-  '</div>';
-
-  // funil por etapa
-  const cont=cfg.stages.map(function(st){
-    return {st:st,n:leads.filter(function(s){return (s.etapa||'novo')===st.id;}).length};
+  // tempo médio de fechamento
+  let tmed='—';
+  const dias=fech.filter(function(s){return s.data_entrada&&s.data_fechamento;}).map(function(s){
+    return Math.max(0,(new Date(s.data_fechamento)-new Date(s.data_entrada))/86400000);
   });
-  const mx=Math.max.apply(null,cont.map(function(c){return c.n;}).concat([1]));
-  out+='<div class="rsec"><h3>Funil por etapa</h3><div class="fun">'+cont.map(function(c){
-    return '<div class="frow"><span class="fl">'+esc(c.st.n)+'</span>'+
-      '<span class="fb"><i style="--bc:'+c.st.c+';width:'+(100*c.n/mx)+'%"></i></span>'+
-      '<span class="fn">'+c.n+' · '+pct(c.n,total)+'</span></div>';
-  }).join('')+'</div></div>';
+  if(dias.length)tmed=Math.round(dias.reduce(function(a,b){return a+b;},0)/dias.length)+' dias';
 
-  // por consultor
+  // funil real: quantos chegaram a cada etapa
+  const reached=FUNIL.map(function(f,i){
+    return leads.filter(function(s){return maxIdx(s,histMap)>=i;}).length;
+  });
+  const atAtivo=FUNIL.map(function(f,i){
+    return leads.filter(function(s){return s.etapa!=='perdido'&&s.etapa!=='fechado'&&FIDX[s.etapa]===i;}).length;
+  });
+  const perdAt=FUNIL.map(function(f,i){
+    return perd.filter(function(s){return maxIdx(s,histMap)===i;}).length;
+  });
+  const mx=Math.max(reached[0],1);
+
+  let funil='<div class="fnl">'+FUNIL.map(function(f,i){
+    const w=Math.max(100*reached[i]/mx,10);
+    const wn=i<FUNIL.length-1?Math.max(100*reached[i+1]/mx,10):w;
+    const inset=w>0?Math.max(0,(w-wn)/2/w*100):0;
+    const clip=i<FUNIL.length-1?'clip-path:polygon(0 0,100% 0,'+(100-inset)+'% 100%,'+inset+'% 100%);':'border-radius:0 0 10px 10px;';
+    const info=[];
+    if(atAtivo[i])info.push('<i>'+atAtivo[i]+' aguardando aqui</i>');
+    if(perdAt[i])info.push('<b>'+perdAt[i]+' perdidos aqui</b>');
+    return '<div class="fnlrow">'+
+      '<div class="fnlbarwrap"><div class="fnlbar" style="width:'+w+'%;background:'+f.c+';'+clip+'">'+
+        '<b>'+reached[i]+'</b><span>'+esc(f.n)+'</span></div></div>'+
+      '<div class="fnlinfo">'+pct(reached[i],total)+' chegaram até aqui'+(info.length?'<br>'+info.join(' · '):'')+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+
+  // evolução mensal
+  const evAsc=Object.keys(meses).sort();
+  let evo='';
+  if(evAsc.length){
+    const em=evAsc.map(function(m){
+      const ls=all.filter(function(s){return (s.data_entrada||'').slice(0,7)===m;});
+      return {m:m,n:ls.length,f:ls.filter(function(s){return s.etapa==='fechado';}).length};
+    });
+    const emx=Math.max.apply(null,em.map(function(x){return x.n;}).concat([1]));
+    evo='<div class="rcard"><h3>Evolução mensal · leads x matrículas</h3><div class="mgrid">'+em.map(function(x){
+      return '<div class="mcol"><div class="mv">'+x.n+' · '+x.f+'</div><div class="mbars">'+
+        '<i class="ml" style="height:'+Math.max(100*x.n/emx,3)+'%"></i>'+
+        '<i class="mf" style="height:'+Math.max(100*x.f/emx,3)+'%"></i>'+
+        '</div><div class="mn">'+mesCurto(x.m)+'</div></div>';
+    }).join('')+'</div><div class="mleg"><span><i style="background:var(--blue)"></i>Leads</span><span><i style="background:var(--ok)"></i>Matrículas</span></div></div>';
+  }
+
+  // tabelas de grupo
   function grupo(campo,titulo,rotulo){
     const g={};
     leads.forEach(function(s){
       const k=s[campo]||'—';
       if(!g[k])g[k]={n:0,f:0};
-      g[k].n++;
-      if(s.etapa==='fechado')g[k].f++;
+      g[k].n++;if(s.etapa==='fechado')g[k].f++;
     });
     const ks=Object.keys(g).sort(function(a,b){return g[b].n-g[a].n;});
     if(!ks.length)return '';
-    return '<div class="rsec"><h3>'+titulo+'</h3><table class="rtab">'+
-      '<tr><th>'+rotulo+'</th><th class="num">Atendimentos</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+    return '<div class="rcard"><h3>'+titulo+'</h3><table class="rtab">'+
+      '<tr><th>'+rotulo+'</th><th class="num">Leads</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
       ks.map(function(k){
         return '<tr><td>'+esc(k)+'</td><td class="num">'+g[k].n+'</td><td class="num">'+g[k].f+'</td><td class="num">'+pct(g[k].f,g[k].n)+'</td></tr>';
       }).join('')+'</table></div>';
   }
-  out+=grupo('responsavel','Conversão por consultor','Consultor');
-  out+=grupo('origem','Leads por origem','Origem');
 
   // motivos de perda
+  let motivos='';
   const gm={};
-  leads.forEach(function(s){
-    if(s.etapa!=='perdido')return;
-    const k=s.motivo_perda||'Não informado';
-    gm[k]=(gm[k]||0)+1;
-  });
+  perd.forEach(function(s){const k=s.motivo_perda||'Não informado';gm[k]=(gm[k]||0)+1;});
   const km=Object.keys(gm).sort(function(a,b){return gm[b]-gm[a];});
   if(km.length){
     const mm=Math.max.apply(null,km.map(function(k){return gm[k];}));
-    out+='<div class="rsec"><h3>Motivos de perda</h3><div class="fun">'+km.map(function(k){
+    motivos='<div class="rcard"><h3>Motivos de perda</h3><div class="fun">'+km.map(function(k){
       return '<div class="frow"><span class="fl">'+esc(k)+'</span>'+
         '<span class="fb"><i style="--bc:#B9B9BE;width:'+(100*gm[k]/mm)+'%"></i></span>'+
-        '<span class="fn">'+gm[k]+' · '+pct(gm[k],perd)+'</span></div>';
+        '<span class="fn">'+gm[k]+' · '+pct(gm[k],perd.length)+'</span></div>';
     }).join('')+'</div></div>';
   }
 
-  $('rbody').innerHTML=out||'<div class="empty">Sem leads no período</div>';
+  // leads esquecidos (sempre situação atual, ignora o período)
+  const hoje=new Date();
+  const esq=all.filter(function(s){
+    if(s.etapa==='fechado'||s.etapa==='perdido')return false;
+    if(!s.ultimo_contato)return true;
+    return (hoje-new Date(s.ultimo_contato))/86400000>7;
+  }).map(function(s){
+    const d=s.ultimo_contato?Math.floor((hoje-new Date(s.ultimo_contato))/86400000):null;
+    return {s:s,d:d};
+  }).sort(function(a,b){return (b.d==null?9999:b.d)-(a.d==null?9999:a.d);});
+  let alerta='';
+  if(esq.length){
+    alerta='<div class="rcard"><h3>⚠️ Precisam de follow-up · sem contato há mais de 7 dias</h3>'+esq.slice(0,15).map(function(x){
+      const wa=waLink(x.s.whatsapp);
+      return '<div class="alert"><span class="an">'+esc(x.s.nome)+' <span class="tag">'+esc(x.s.responsavel||'—')+'</span></span>'+
+        '<span class="ad">'+(x.d==null?'nunca contatado':x.d+' dias')+'</span>'+
+        (wa?'<a class="wa" style="font-size:11.5px;font-weight:600;border-radius:8px;padding:5px 9px;text-decoration:none" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':'<span></span>')+
+      '</div>';
+    }).join('')+(esq.length>15?'<div class="empty">+ '+(esq.length-15)+' outros — use o kanban pra ver todos</div>':'')+'</div>';
+  }
+
+  $('stats').innerHTML='';
+  board.innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle"><h1>Relatórios · Clientes B2C</h1><div class="spacer"></div>'+
+      '<select id="rperiodo" class="btn" style="font-weight:600;color:var(--blue)">'+
+        '<option value="">Todos os períodos</option>'+
+        listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
+      '</select></div>'+
+    '<div class="rkpis">'+
+      '<div class="rkpi"><b>'+total+'</b><span>Leads</span></div>'+
+      '<div class="rkpi"><b>'+ativos+'</b><span>Ativos</span></div>'+
+      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span></div>'+
+      '<div class="rkpi bad"><b>'+perd.length+'</b><span>Perdidos</span></div>'+
+      '<div class="rkpi"><b>'+pct(fech.length,total)+'</b><span>Conversão</span></div>'+
+      '<div class="rkpi"><b>'+tmed+'</b><span>Tempo até matrícula</span></div>'+
+    '</div>'+
+    '<div class="rcard"><h3>Funil · até onde os leads chegam</h3>'+funil+'</div>'+
+    alerta+evo+
+    grupo('responsavel','Conversão por consultor','Consultor')+
+    grupo('origem','Leads por origem','Origem')+
+    grupo('curso','Cursos procurados','Curso')+
+    motivos+
+  '</div></div>';
+  const sel=document.getElementById('rperiodo');
+  if(sel)sel.onchange=function(){window._rper=sel.value;renderReports();};
 }
 
-setTab('escolas');
+BOOT();
 </script>
 </body>
 </html>
