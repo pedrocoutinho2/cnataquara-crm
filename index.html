@@ -184,6 +184,34 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .alert .an{font-weight:600}
 .alert .ad{color:var(--redDark);font-weight:600;white-space:nowrap}
 @media(max-width:640px){.fnlrow{grid-template-columns:1fr 130px}}
+
+/* ===== Análise do andamento ===== */
+.acard{background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:14px;padding:16px;margin-bottom:14px}
+.acard h3{font-family:'Poppins';font-size:13.5px;color:var(--blue);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.acard .asub{font-size:11px;color:var(--gray);margin-bottom:10px}
+.acard ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.acard li{font-size:13px;line-height:1.5;padding-left:20px;position:relative}
+.acard li:before{content:'';position:absolute;left:4px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.acard li.pos:before{background:var(--ok)}
+.acard li.neg:before{background:var(--red)}
+.acard li b{color:var(--redDark)}
+.acard li i{font-style:normal;font-weight:600;color:var(--blue)}
+
+/* ===== Equipe ===== */
+.eq{max-width:640px;margin:0 auto;padding:4px 18px 30px;flex:1;overflow-y:auto}
+.eqrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.eqrow:last-child{border-bottom:none}
+.eqrow .en{font-family:'Poppins';font-weight:600;font-size:14px}
+.eqrow .badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:var(--blue);color:#fff;border-radius:999px;padding:2.5px 8px}
+.eqrow .badge.off{background:#B9B9BE}
+.eqrow .ebtns{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.eqrow .ebtns .btn{padding:5px 10px;font-size:11.5px}
+.eqrow.inativo{opacity:.5}
+.eqform{display:grid;grid-template-columns:1fr 110px 46px;gap:8px;margin-top:12px}
+.eqform input[type=text],.eqform input[type=password]{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px}
+.eqform input[type=color]{border:1px solid var(--line);border-radius:9px;height:38px;width:100%;padding:2px;background:#fff}
+.eqform .btn{grid-column:1/-1}
+.eqnote{font-size:11.5px;color:var(--gray);margin-top:10px;line-height:1.5}
 .loading{padding:40px;text-align:center;color:var(--gray);font-size:13px;width:100%}
 
 @media(max-width:640px){
@@ -204,6 +232,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
     <button data-t="empresas">Empresas</button>
     <button data-t="leads">Clientes B2C</button>
     <button data-t="relatorios">Relatórios</button>
+    <button data-t="equipe" id="tabEquipe" style="display:none">Equipe</button>
   </div>
   <div class="hright">
     <div class="stats" id="stats"></div>
@@ -769,8 +798,9 @@ $('csv').onclick=function(){
 function setTab(t){
   tab=t;filters={q:'',prio:null,tipo:null,resp:null};$('q').value='';
   document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t);});
-  document.querySelector('.toolbar').style.display=t==='relatorios'?'none':'';
+  document.querySelector('.toolbar').style.display=(t==='relatorios'||t==='equipe')?'none':'';
   if(t==='relatorios'){openReports();return;}
+  if(t==='equipe'){openTeam();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t);};});
@@ -821,11 +851,16 @@ async function tryLogin(){
   entrar();
 }
 
+function isAdmin(){
+  const u=USERS.find(function(x){return x.nome===currentUser;});
+  return !!(u&&u.admin);
+}
 function entrar(){
   $('login').classList.add('off');
   $('unome').textContent=currentUser;
   $('uav').textContent=currentUser[0];
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
+  $('tabEquipe').style.display=isAdmin()?'':'none';
   setTab('escolas');
 }
 
@@ -861,7 +896,7 @@ async function openReports(){
   $('board').innerHTML='<div class="loading">Montando os relatórios...</div>';
   try{
     if(!DATA.leads)DATA.leads=await api('/crm_leads?select=*&order=nome.asc');
-    ETAPAS_HIST=await api('/crm_leads_etapas?select=lead_id,etapa');
+    ETAPAS_HIST=await api('/crm_leads_etapas?select=lead_id,etapa,data');
   }catch(e){
     if(!DATA.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados dos relatórios.</div>';return;}
     ETAPAS_HIST=ETAPAS_HIST||[];
@@ -1020,6 +1055,7 @@ function renderReports(){
         '<option value="">Todos os períodos</option>'+
         listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
       '</select></div>'+
+    buildAnalise(all,histMap)+
     '<div class="rkpis">'+
       '<div class="rkpi"><b>'+total+'</b><span>Leads</span></div>'+
       '<div class="rkpi"><b>'+ativos+'</b><span>Ativos</span></div>'+
@@ -1037,6 +1073,183 @@ function renderReports(){
   '</div></div>';
   const sel=document.getElementById('rperiodo');
   if(sel)sel.onchange=function(){window._rper=sel.value;renderReports();};
+}
+
+
+/* ================= Análise do andamento ================= */
+function buildAnalise(all,histMap){
+  const hoje=new Date();
+  function diasAtras(n){const d=new Date(hoje);d.setDate(d.getDate()-n);return d;}
+  function entreDatas(campo,d1,d2){
+    return all.filter(function(s){
+      if(!s[campo])return false;
+      const d=new Date(s[campo]);
+      return d>=d1&&d<d2;
+    });
+  }
+  const itens=[];
+
+  // 1. ritmo de captação (últimos 7 dias vs 7 anteriores)
+  const n7=entreDatas('data_entrada',diasAtras(7),hoje).length;
+  const n14=entreDatas('data_entrada',diasAtras(14),diasAtras(7)).length;
+  if(n7===0&&n14===0){
+    itens.push({c:'neg',t:'<b>Nenhum lead novo nas últimas duas semanas.</b> A captação está parada — vale checar se os anúncios estão rodando e se os leads estão sendo registrados aqui no CRM.'});
+  }else if(n7>n14){
+    itens.push({c:'pos',t:'<i>'+n7+' leads novos nos últimos 7 dias</i>, acima dos '+n14+' da semana anterior. Captação acelerando.'});
+  }else if(n7<n14){
+    itens.push({c:'neg',t:'<i>'+n7+' leads novos nos últimos 7 dias</i>, contra '+n14+' na semana anterior. Ritmo de captação caindo.'});
+  }else{
+    itens.push({c:'',t:'<i>'+n7+' leads novos nos últimos 7 dias</i>, mesmo ritmo da semana anterior.'});
+  }
+
+  // 2. matrículas recentes
+  const f30=entreDatas('data_fechamento',diasAtras(30),hoje).filter(function(s){return s.etapa==='fechado';}).length;
+  if(f30>0)itens.push({c:'pos',t:'<i>'+f30+' matrícula'+(f30>1?'s':'')+'</i> fechada'+(f30>1?'s':'')+' nos últimos 30 dias.'});
+  else itens.push({c:'neg',t:'<b>Nenhuma matrícula nos últimos 30 dias.</b>'});
+
+  // 3. mês atual vs anterior
+  const ym=hoje.toISOString().slice(0,7);
+  const prev=new Date(hoje.getFullYear(),hoje.getMonth()-1,1).toISOString().slice(0,7);
+  const lm=all.filter(function(s){return (s.data_entrada||'').slice(0,7)===ym;});
+  const lp=all.filter(function(s){return (s.data_entrada||'').slice(0,7)===prev;});
+  if(lm.length||lp.length){
+    itens.push({c:lm.length>=lp.length?'':'neg',t:'Este mês: <i>'+lm.length+' leads</i> e <i>'+lm.filter(function(s){return s.etapa==='fechado';}).length+' matrículas</i>'+(lp.length?' (mês passado: '+lp.length+' leads, '+lp.filter(function(s){return s.etapa==='fechado';}).length+' matrículas)':'')+'.'});
+  }
+
+  // 4. atividade da equipe (movimentações registradas)
+  const mov7=(ETAPAS_HIST||[]).filter(function(e){return e.data&&new Date(e.data)>=diasAtras(7);}).length;
+  if(mov7>0)itens.push({c:'',t:'<i>'+mov7+' movimentaç'+(mov7>1?'ões':'ão')+' de etapa</i> registradas no funil nos últimos 7 dias.'});
+
+  // 5. onde o funil mais vaza
+  const perdTotal=all.filter(function(s){return s.etapa==='perdido';});
+  if(perdTotal.length>=5){
+    const porEtapa={};
+    perdTotal.forEach(function(s){const i=maxIdx(s,histMap);porEtapa[i]=(porEtapa[i]||0)+1;});
+    const pior=Object.keys(porEtapa).sort(function(a,b){return porEtapa[b]-porEtapa[a];})[0];
+    itens.push({c:'neg',t:'Maior vazamento do funil: <b>'+porEtapa[pior]+' leads perdidos na etapa "'+FUNIL[pior].n+'"</b> ('+pct(porEtapa[pior],perdTotal.length)+' das perdas).'});
+    const gm={};
+    perdTotal.forEach(function(s){const k=s.motivo_perda||'Não informado';gm[k]=(gm[k]||0)+1;});
+    const km=Object.keys(gm).sort(function(a,b){return gm[b]-gm[a];})[0];
+    itens.push({c:'',t:'Principal motivo de perda: <b>'+esc(km)+'</b> ('+gm[km]+' leads). '+(km==='Sem retorno'?'Vale testar variações da primeira mensagem e um segundo toque mais cedo.':'')});
+  }
+
+  // 6. follow-up pendente
+  const pend=all.filter(function(s){
+    if(s.etapa==='fechado'||s.etapa==='perdido')return false;
+    if(!s.ultimo_contato)return true;
+    return (hoje-new Date(s.ultimo_contato))/86400000>7;
+  });
+  if(pend.length>0){
+    itens.push({c:'neg',t:'<b>'+pend.length+' leads ativos sem contato há mais de 7 dias</b> — lista completa no bloco de follow-up abaixo. Lead esfriado raramente volta sozinho.'});
+  }else{
+    const at=all.filter(function(s){return s.etapa!=='fechado'&&s.etapa!=='perdido';}).length;
+    if(at>0)itens.push({c:'pos',t:'Todos os '+at+' leads ativos tiveram contato na última semana. Funil em dia.'});
+  }
+
+  // 7. melhor origem (com volume mínimo)
+  const go={};
+  all.forEach(function(s){const k=s.origem||'—';if(!go[k])go[k]={n:0,f:0};go[k].n++;if(s.etapa==='fechado')go[k].f++;});
+  const origens=Object.keys(go).filter(function(k){return go[k].n>=8;});
+  if(origens.length>1){
+    origens.sort(function(a,b){return (go[b].f/go[b].n)-(go[a].f/go[a].n);});
+    const top=origens[0];
+    if(go[top].f>0)itens.push({c:'pos',t:'Origem que melhor converte: <i>'+esc(top)+'</i> ('+pct(go[top].f,go[top].n)+' de '+go[top].n+' leads). Considere reforçar esse canal.'});
+  }
+
+  const agora=hoje.toLocaleDateString('pt-BR')+' às '+hoje.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  return '<div class="acard"><h3>Análise do andamento</h3><div class="asub">Gerada agora, com a foto atual do funil · '+agora+'</div><ul>'+
+    itens.map(function(x){return '<li class="'+x.c+'">'+x.t+'</li>';}).join('')+'</ul></div>';
+}
+
+/* ================= Equipe (admin) ================= */
+async function openTeam(){
+  if(!isAdmin()){setTab('escolas');return;}
+  $('stats').innerHTML='';
+  const board=$('board');
+  board.innerHTML='<div class="loading">Carregando equipe...</div>';
+  let users;
+  try{
+    users=await api('/crm_usuarios?select=*&order=nome.asc');
+  }catch(e){
+    board.innerHTML='<div class="loading">Não foi possível carregar a equipe.</div>';return;
+  }
+  board.innerHTML='<div class="eq">'+
+    '<div class="rcard"><h3>Equipe · quem acessa o CRM</h3><div id="eqlist">'+
+    users.map(function(u){
+      return '<div class="eqrow'+(u.ativo?'':' inativo')+'" data-id="'+u.id+'">'+
+        '<span class="avatar" style="background:'+(u.cor||'#5A5A5A')+'">'+esc(u.nome[0])+'</span>'+
+        '<span class="en">'+esc(u.nome)+'</span>'+
+        (u.admin?'<span class="badge">Admin</span>':'')+
+        (u.ativo?'':'<span class="badge off">Inativo</span>')+
+        '<span class="ebtns">'+
+          '<button class="btn" data-a="pin">Trocar PIN</button>'+
+          '<button class="btn" data-a="cor">Cor</button>'+
+          (u.nome!==currentUser?'<button class="btn" data-a="admin">'+(u.admin?'Tirar admin':'Tornar admin')+'</button>':'')+
+          (u.nome!==currentUser?'<button class="btn" data-a="ativo">'+(u.ativo?'Desativar':'Reativar')+'</button>':'')+
+        '</span>'+
+        '<input type="color" data-a="corpick" value="'+(u.cor||'#5A5A5A')+'" style="position:absolute;opacity:0;width:1px;height:1px;border:0;padding:0">'+
+      '</div>';
+    }).join('')+
+    '</div></div>'+
+    '<div class="rcard"><h3>Adicionar pessoa</h3>'+
+      '<div class="eqform">'+
+        '<input type="text" id="nun" placeholder="Nome">'+
+        '<input type="password" id="nup" inputmode="numeric" maxlength="8" placeholder="PIN">'+
+        '<input type="color" id="nuc" value="#1E7A46">'+
+        '<button class="btn primary" id="nuok">Adicionar à equipe</button>'+
+      '</div>'+
+      '<p class="eqnote">O nome é a assinatura da pessoa nos registros e não pode ser alterado depois (pra não descasar do histórico). Quem sai da equipe deve ser <b>desativado</b>, não excluído: o histórico continua no nome dela, mas o acesso é bloqueado na hora. Todas as ações aqui gravam direto no banco.</p>'+
+    '</div>'+
+  '</div>';
+
+  const list=board.querySelector('#eqlist');
+  users.forEach(function(u){
+    const row=list.querySelector('[data-id="'+u.id+'"]');
+    row.querySelectorAll('button').forEach(function(b){
+      b.onclick=async function(){
+        const a=b.dataset.a;
+        try{
+          if(a==='pin'){
+            const pin=window.prompt('Novo PIN de '+u.nome+' (números, 4 a 8 dígitos):');
+            if(pin==null)return;
+            if(!/^[0-9]{4,8}$/.test(pin.trim())){toast('PIN inválido: use de 4 a 8 números.');return;}
+            const hash=await sha256(pin.trim());
+            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({pin_hash:hash})});
+            toast('PIN de '+u.nome+' atualizado.');
+          }else if(a==='cor'){
+            const pick=row.querySelector('[data-a=corpick]');
+            pick.onchange=async function(){
+              await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({cor:pick.value})});
+              await loadUsers();openTeam();
+            };
+            pick.click();
+          }else if(a==='admin'){
+            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({admin:!u.admin})});
+            await loadUsers();openTeam();
+          }else if(a==='ativo'){
+            if(u.ativo&&!window.confirm('Desativar '+u.nome+'? A pessoa perde o acesso na hora; o histórico dela continua registrado.'))return;
+            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({ativo:!u.ativo})});
+            await loadUsers();openTeam();
+          }
+        }catch(e){toast('Não foi possível salvar. Tente de novo.');}
+      };
+    });
+  });
+
+  board.querySelector('#nuok').onclick=async function(){
+    const nome=board.querySelector('#nun').value.trim();
+    const pin=board.querySelector('#nup').value.trim();
+    const cor=board.querySelector('#nuc').value;
+    if(!nome){toast('Digite o nome.');return;}
+    if(!/^[0-9]{4,8}$/.test(pin)){toast('PIN inválido: use de 4 a 8 números.');return;}
+    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('Já existe alguém com esse nome.');return;}
+    try{
+      const hash=await sha256(pin);
+      await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,pin_hash:hash,cor:cor})});
+      toast(nome+' agora faz parte da equipe.');
+      await loadUsers();openTeam();
+    }catch(e){toast('Não foi possível adicionar. Tente de novo.');}
+  };
 }
 
 BOOT();
