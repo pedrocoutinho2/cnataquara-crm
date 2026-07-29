@@ -812,9 +812,56 @@ document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function
 let USERS=[];
 let loginSel=null;
 
+function sha256js(ascii){
+  function rr(v,c){return (v>>>c)|(v<<(32-c));}
+  var mw=Math.pow(2,32),i,j,result='';
+  var words=[],len=ascii.length*8;
+  var hash=sha256js.h=sha256js.h||[],k=sha256js.k=sha256js.k||[],pc=k.length;
+  var isC={};
+  for(var cand=2;pc<64;cand++){
+    if(!isC[cand]){
+      for(i=0;i<313;i+=cand)isC[i]=true;
+      hash[pc]=(Math.pow(cand,.5)*mw)|0;
+      k[pc++]=(Math.pow(cand,1/3)*mw)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8)return'';
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(len/mw)|0;
+  words[words.length]=len;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oh=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2];
+      var a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^(~e&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+oh[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){
+    var b=(hash[i]>>(j*8))&255;
+    result+=((b<16)?0:'')+b.toString(16);
+  }
+  return result;
+}
 async function sha256(txt){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
-  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  if(window.crypto&&crypto.subtle&&crypto.subtle.digest){
+    try{
+      const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+    }catch(e){}
+  }
+  return sha256js(unescape(encodeURIComponent(txt)));
 }
 
 async function loadUsers(){
@@ -840,15 +887,20 @@ function showLogin(){
 }
 
 async function tryLogin(){
-  if(!loginSel){$('lerr').textContent='Escolha seu nome.';return;}
-  const pin=$('pin').value.trim();
-  if(!pin){$('lerr').textContent='Digite seu PIN.';return;}
-  const u=USERS.find(function(x){return x.nome===loginSel;});
-  const hash=await sha256(pin);
-  if(!u||hash!==u.pin_hash){$('lerr').textContent='PIN incorreto.';$('pin').value='';return;}
-  currentUser=u.nome;
-  safeSet('crmAuth',u.nome);
-  entrar();
+  try{
+    if(!loginSel){$('lerr').textContent='Escolha seu nome.';return;}
+    const pin=$('pin').value.trim();
+    if(!pin){$('lerr').textContent='Digite seu PIN.';return;}
+    const u=USERS.find(function(x){return x.nome===loginSel;});
+    const hash=await sha256(pin);
+    if(!hash){$('lerr').textContent='Não foi possível validar o PIN neste navegador.';return;}
+    if(!u||hash!==u.pin_hash){$('lerr').textContent='PIN incorreto.';$('pin').value='';return;}
+    currentUser=u.nome;
+    safeSet('crmAuth',u.nome);
+    entrar();
+  }catch(e){
+    $('lerr').textContent='Erro ao entrar: '+(e&&e.message?e.message:e);
+  }
 }
 
 function isAdmin(){
