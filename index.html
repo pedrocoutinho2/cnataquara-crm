@@ -701,18 +701,32 @@ $('iadd').onclick=async function(){
 };
 
 $('save').onclick=async function(){
+  const sbtn=$('save');
+  if(sbtn.disabled)return; // trava anti duplo-envio
   const cfg=CFG[tab];
   const body={};
   document.querySelectorAll('#form [data-k]').forEach(function(el){
     body[el.getAttribute('data-k')]=el.value.trim()===''?null:el.value.trim();
   });
   if(!body.nome){toast('O nome é obrigatório.');return;}
+  // Checagem de WhatsApp duplicado (só na criação de lead)
+  if(tab==='leads'&&!editing&&body.whatsapp){
+    const dig=function(v){return String(v||'').replace(/\D/g,'');};
+    const w=dig(body.whatsapp);
+    if(w.length>=8){
+      const dup=(DATA.leads||[]).find(function(x){return dig(x.whatsapp)===w;});
+      if(dup){toast('Já existe um lead com esse WhatsApp: '+dup.nome+'. Abra o card existente para editar.');return;}
+    }
+  }
   if(tab==='leads'){
     const stFin=body.etapa==='fechado'||body.etapa==='perdido';
     const cur=editing?(DATA.leads||[]).find(function(x){return x.id===editing;}):null;
     body.data_fechamento=stFin?((cur&&cur.data_fechamento)||new Date().toISOString().slice(0,10)):null;
     if(body.etapa!=='perdido')body.motivo_perda=null;
   }
+  sbtn.disabled=true;
+  const sbl=sbtn.textContent;
+  sbtn.textContent='Salvando…';
   try{
     if(editing){
       const antes=(DATA[tab]||[]).find(function(x){return x.id===editing;});
@@ -731,6 +745,7 @@ $('save').onclick=async function(){
     $('savedmsg').style.display='inline';
     setTimeout(function(){$('savedmsg').style.display='none';},1800);
   }catch(e){toast('Erro ao salvar: '+e.message.slice(0,120));}
+  finally{sbtn.disabled=false;sbtn.textContent=sbl;}
 };
 
 $('del').onclick=async function(){
