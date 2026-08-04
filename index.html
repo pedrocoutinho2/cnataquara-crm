@@ -42,6 +42,18 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12px;color:var(--gray)}
 .chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .chip.resp.on{background:var(--rc,var(--blue));border-color:var(--rc,var(--blue))}
+.fbadge{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:4px;display:inline-block}
+#fbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+#fbtn.on .fbadge{background:#fff;color:var(--blue)}
+.fpanel{display:none;margin:0 18px 10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.fpanel.open{display:flex}
+.fgroup{display:flex;flex-direction:column;gap:7px;min-width:140px}
+.fglabel{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px}
+.drange{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.drange input[type=date]{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;background:#fff;color:var(--ink)}
+.drange input[type=date].on{border-color:var(--blue);background:#F0F4FD}
+.drange span{font-size:11px;color:var(--gray)}
+.factions{display:flex;align-items:flex-end;margin-left:auto}
 .spacer{flex:1}
 .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;color:var(--ink)}
 .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
@@ -246,14 +258,14 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 
 <div class="toolbar">
   <input type="search" id="q" placeholder="Buscar por nome, decisor, bairro...">
-  <div class="chips" id="chipsPrio"></div>
-  <div class="chips" id="chipsTipo"></div>
-  <div class="chips" id="chipsResp"></div>
+  <button class="btn" id="fbtn">Filtro <span class="fbadge" id="fcount" style="display:none">0</span> <span id="fcaret">▾</span></button>
   <div class="spacer"></div>
   <button class="btn" id="csv">Exportar CSV</button>
   <button class="btn" id="reload" title="Recarregar dados">↻</button>
   <button class="btn primary" id="add">+ Nova</button>
 </div>
+
+<div class="fpanel" id="fpanel"></div>
 
 <div class="board" id="board"><div class="loading">Carregando dados do Supabase...</div></div>
 
@@ -338,7 +350,7 @@ const CFG={
       {id:'fechado',n:'Parceria fechada',c:'#1E7A46',ok:true},
       {id:'fora_funil',n:'Fora do funil',c:'#B9B9BE',off:true}
     ],
-    prioField:'prioridade',
+    prioField:'prioridade',prioLabel:'Prioridade',tipoLabel:'Tipo',
     prios:[['alta','Alta','p1'],['media','Média','p2'],['baixa','Baixa','p3']],
     tipos:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']],
     sub:function(s){return s.bairro||'';},
@@ -374,7 +386,7 @@ const CFG={
       {id:'fechado',n:'Fechado',c:'#1E7A46',ok:true},
       {id:'descartado',n:'Descartado',c:'#B9B9BE',off:true}
     ],
-    prioField:'potencial',
+    prioField:'potencial',prioLabel:'Potencial',tipoLabel:'Tipo',
     prios:[['alto','Alto','p1'],['medio','Médio','p2'],['baixo','Baixo','p3']],
     tipos:[['in_company','CNA na Empresa'],['multiempresa','Multiempresa']],
     sub:function(s){return s.categoria||'';},
@@ -411,12 +423,13 @@ const CFG={
       {id:'fechado',n:'Matrícula fechada',c:'#1E7A46',ok:true},
       {id:'perdido',n:'Perdido',c:'#B9B9BE',off:true}
     ],
-    prioField:'curso',
+    prioField:'curso',prioLabel:'Curso',tipoLabel:'Origem',
     prios:[['Inglês','Inglês','p2'],['Espanhol','Espanhol','p1'],['Robótica','Robótica','p3'],['Proficiência','Proficiência','p3']],
     tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']],
     sub:function(s){
       var d=s.data_entrada?s.data_entrada.split('-').reverse().join('/'):'';
-      return (s.origem||'')+(d?' · '+d:'');
+      var pa=s.proximo_atendimento?s.proximo_atendimento.split('-').reverse().slice(0,2).join('/'):'';
+      return (s.origem||'')+(d?' · '+d:'')+(pa?' · ⏰ '+pa:'');
     },
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
@@ -428,16 +441,18 @@ const CFG={
       {k:'etapa',l:'Etapa do funil',t:'stage'},
       {k:'motivo_perda',l:'Motivo da perda (se perdido)',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
+      {k:'proximo_atendimento',l:'Próximo atendimento',t:'date'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','motivo_perda','ultimo_contato','data_fechamento','observacoes']
+    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','motivo_perda','ultimo_contato','proximo_atendimento','data_fechamento','observacoes']
   }
 };
 
 /* ================= Estado ================= */
 let tab='escolas';
 const DATA={escolas:null,empresas:null,leads:null};
-let filters={q:'',prio:null,tipo:null,resp:null};
+function emptyFilters(){return {q:'',prio:null,tipo:null,resp:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};}
+let filters=emptyFilters();
 let editing=null;   // id em edição ou null (novo)
 let dragId=null;
 
@@ -484,6 +499,10 @@ function matches(s){
   if(filters.prio&&s[cfg.prioField]!==filters.prio)return false;
   if(filters.tipo&&s[TF(cfg)]!==filters.tipo)return false;
   if(filters.resp&&(s.responsavel||'')!==filters.resp)return false;
+  if(filters.entradaDe&&(s.data_entrada||'')<filters.entradaDe)return false;
+  if(filters.entradaAte&&(s.data_entrada||'9999-99-99')>filters.entradaAte)return false;
+  if(filters.proxDe&&(s.proximo_atendimento||'')<filters.proxDe)return false;
+  if(filters.proxAte&&(s.proximo_atendimento||'9999-99-99')>filters.proxAte)return false;
   if(filters.q){
     const blob=Object.keys(s).map(function(k){return s[k];}).join(' ').toLowerCase();
     if(blob.indexOf(filters.q)===-1)return false;
@@ -765,17 +784,50 @@ $('close').onclick=function(){$('ov').classList.remove('open');editing=null;};
 $('ov').addEventListener('click',function(e){if(e.target===$('ov')){$('ov').classList.remove('open');editing=null;}});
 
 /* ================= Toolbar ================= */
+function activeFilterCount(){
+  var n=0;
+  if(filters.prio)n++;
+  if(filters.tipo)n++;
+  if(filters.resp)n++;
+  if(filters.entradaDe||filters.entradaAte)n++;
+  if(filters.proxDe||filters.proxAte)n++;
+  return n;
+}
+function updateFBtn(){
+  var n=activeFilterCount();
+  var b=$('fcount');
+  b.style.display=n?'':'none';
+  b.textContent=n;
+  $('fbtn').classList.toggle('on',n>0||$('fpanel').classList.contains('open'));
+  $('fcaret').textContent=$('fpanel').classList.contains('open')?'▴':'▾';
+}
+function dateGroup(label,kDe,kAte){
+  return '<div class="fgroup"><span class="fglabel">'+label+'</span>'+
+    '<div class="drange">'+
+    '<input type="date" data-fk="'+kDe+'" value="'+(filters[kDe]||'')+'" class="'+(filters[kDe]?'on':'')+'">'+
+    '<span>até</span>'+
+    '<input type="date" data-fk="'+kAte+'" value="'+(filters[kAte]||'')+'" class="'+(filters[kAte]?'on':'')+'">'+
+    '</div></div>';
+}
 function buildChips(){
   const cfg=CFG[tab];
-  $('chipsPrio').innerHTML=cfg.prios.map(function(p){
+  var html='';
+  html+='<div class="fgroup"><span class="fglabel">'+(cfg.prioLabel||'Prioridade')+'</span><div class="chips" id="chipsPrio">'+cfg.prios.map(function(p){
     return '<button class="chip'+(filters.prio===p[0]?' on':'')+'" data-prio="'+p[0]+'">'+p[1]+'</button>';
-  }).join('');
-  $('chipsTipo').innerHTML=cfg.tipos.map(function(t){
+  }).join('')+'</div></div>';
+  html+='<div class="fgroup"><span class="fglabel">'+(cfg.tipoLabel||'Tipo')+'</span><div class="chips" id="chipsTipo">'+cfg.tipos.map(function(t){
     return '<button class="chip'+(filters.tipo===t[0]?' on':'')+'" data-tipo="'+t[0]+'">'+t[1]+'</button>';
-  }).join('');
-  $('chipsResp').innerHTML=RESP.map(function(r){
+  }).join('')+'</div></div>';
+  html+='<div class="fgroup"><span class="fglabel">Responsável</span><div class="chips" id="chipsResp">'+RESP.map(function(r){
     return '<button class="chip resp'+(filters.resp===r?' on':'')+'" style="--rc:'+RESPC[r]+'" data-resp="'+r+'">'+r+'</button>';
-  }).join('');
+  }).join('')+'</div></div>';
+  if(tab==='leads'){
+    html+=dateGroup('Data de cadastro','entradaDe','entradaAte');
+    html+=dateGroup('Próximo atendimento','proxDe','proxAte');
+  }
+  html+='<div class="factions"><button class="btn" id="fclear">Limpar filtros</button></div>';
+  $('fpanel').innerHTML=html;
+
   document.querySelectorAll('#chipsPrio .chip').forEach(function(ch){
     ch.onclick=function(){filters.prio=filters.prio===ch.dataset.prio?null:ch.dataset.prio;buildChips();render();};
   });
@@ -785,8 +837,26 @@ function buildChips(){
   document.querySelectorAll('#chipsResp .chip').forEach(function(ch){
     ch.onclick=function(){filters.resp=filters.resp===ch.dataset.resp?null:ch.dataset.resp;buildChips();render();};
   });
+  document.querySelectorAll('#fpanel input[type=date]').forEach(function(inp){
+    inp.onchange=function(){
+      filters[inp.dataset.fk]=inp.value||null;
+      inp.classList.toggle('on',!!inp.value);
+      updateFBtn();render();
+    };
+  });
+  $('fclear').onclick=function(){
+    var q=filters.q;
+    filters=emptyFilters();filters.q=q;
+    buildChips();render();
+  };
+  updateFBtn();
   $('add').textContent=cfg.addLabel;
 }
+
+$('fbtn').onclick=function(){
+  $('fpanel').classList.toggle('open');
+  updateFBtn();
+};
 
 $('q').addEventListener('input',function(e){filters.q=e.target.value.toLowerCase();render();});
 $('add').onclick=function(){openModal(null);};
@@ -811,7 +881,7 @@ $('csv').onclick=function(){
 
 /* ================= Tabs e usuário ================= */
 function setTab(t){
-  tab=t;filters={q:'',prio:null,tipo:null,resp:null};$('q').value='';
+  tab=t;filters=emptyFilters();$('q').value='';$('fpanel').classList.remove('open');
   document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t);});
   document.querySelector('.toolbar').style.display=(t==='relatorios'||t==='equipe')?'none':'';
   if(t==='relatorios'){openReports();return;}
