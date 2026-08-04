@@ -54,6 +54,8 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .drange input[type=date].on{border-color:var(--blue);background:#F0F4FD}
 .drange span{font-size:11px;color:var(--gray)}
 .factions{display:flex;align-items:flex-end;margin-left:auto}
+.fsel{border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px;background:#fff;color:var(--ink);min-width:150px}
+.fsel.on{border-color:var(--blue);background:#F0F4FD;font-weight:600;color:var(--blue)}
 .spacer{flex:1}
 .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;color:var(--ink)}
 .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
@@ -62,8 +64,12 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .btn.danger.confirm{background:var(--redDark);border-color:var(--redDark);color:#fff}
 
 /* ===== Board ===== */
-.board{flex:1;display:flex;gap:12px;padding:4px 18px 20px;overflow-x:auto;align-items:flex-start}
-.col{background:#EFEFF2;border-radius:14px;min-width:262px;width:262px;flex:0 0 auto;display:flex;flex-direction:column;max-height:calc(100vh - 175px)}
+.board{flex:1;min-height:0;display:flex;gap:12px;padding:4px 18px 20px;overflow:auto;align-items:flex-start}
+.board::-webkit-scrollbar{height:11px;width:11px}
+.board::-webkit-scrollbar-thumb{background:#C4C4CB;border-radius:999px;border:2px solid var(--surface)}
+.board::-webkit-scrollbar-thumb:hover{background:#A9A9B2}
+.board::-webkit-scrollbar-track{background:transparent}
+.col{background:#EFEFF2;border-radius:14px;min-width:262px;width:262px;flex:0 0 auto;display:flex;flex-direction:column;max-height:100%}
 .colh{padding:11px 13px 9px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--cc,var(--blue));position:sticky;top:0;background:#EFEFF2;border-radius:14px 14px 0 0;z-index:1}
 .colh h2{font-family:'Poppins';font-size:12.5px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.4px}
 .colh .n{margin-left:auto;background:#fff;border-radius:999px;font-size:11px;font-weight:600;color:var(--gray);padding:2px 8px}
@@ -809,18 +815,20 @@ function dateGroup(label,kDe,kAte){
     '<input type="date" data-fk="'+kAte+'" value="'+(filters[kAte]||'')+'" class="'+(filters[kAte]?'on':'')+'">'+
     '</div></div>';
 }
+function selGroup(label,key,opts){
+  var v=filters[key]||'';
+  return '<div class="fgroup"><span class="fglabel">'+label+'</span>'+
+    '<select class="fsel'+(v?' on':'')+'" data-fs="'+key+'">'+
+    '<option value="">Todos</option>'+
+    opts.map(function(o){return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
+    '</select></div>';
+}
 function buildChips(){
   const cfg=CFG[tab];
   var html='';
-  html+='<div class="fgroup"><span class="fglabel">'+(cfg.prioLabel||'Prioridade')+'</span><div class="chips" id="chipsPrio">'+cfg.prios.map(function(p){
-    return '<button class="chip'+(filters.prio===p[0]?' on':'')+'" data-prio="'+p[0]+'">'+p[1]+'</button>';
-  }).join('')+'</div></div>';
-  html+='<div class="fgroup"><span class="fglabel">'+(cfg.tipoLabel||'Tipo')+'</span><div class="chips" id="chipsTipo">'+cfg.tipos.map(function(t){
-    return '<button class="chip'+(filters.tipo===t[0]?' on':'')+'" data-tipo="'+t[0]+'">'+t[1]+'</button>';
-  }).join('')+'</div></div>';
-  html+='<div class="fgroup"><span class="fglabel">Responsável</span><div class="chips" id="chipsResp">'+RESP.map(function(r){
-    return '<button class="chip resp'+(filters.resp===r?' on':'')+'" style="--rc:'+RESPC[r]+'" data-resp="'+r+'">'+r+'</button>';
-  }).join('')+'</div></div>';
+  html+=selGroup(cfg.prioLabel||'Prioridade','prio',cfg.prios);
+  html+=selGroup(cfg.tipoLabel||'Tipo','tipo',cfg.tipos);
+  html+=selGroup('Responsável','resp',RESP.map(function(r){return [r,r];}));
   if(tab==='leads'){
     html+=dateGroup('Data de cadastro','entradaDe','entradaAte');
     html+=dateGroup('Próximo atendimento','proxDe','proxAte');
@@ -828,14 +836,12 @@ function buildChips(){
   html+='<div class="factions"><button class="btn" id="fclear">Limpar filtros</button></div>';
   $('fpanel').innerHTML=html;
 
-  document.querySelectorAll('#chipsPrio .chip').forEach(function(ch){
-    ch.onclick=function(){filters.prio=filters.prio===ch.dataset.prio?null:ch.dataset.prio;buildChips();render();};
-  });
-  document.querySelectorAll('#chipsTipo .chip').forEach(function(ch){
-    ch.onclick=function(){filters.tipo=filters.tipo===ch.dataset.tipo?null:ch.dataset.tipo;buildChips();render();};
-  });
-  document.querySelectorAll('#chipsResp .chip').forEach(function(ch){
-    ch.onclick=function(){filters.resp=filters.resp===ch.dataset.resp?null:ch.dataset.resp;buildChips();render();};
+  document.querySelectorAll('#fpanel select.fsel').forEach(function(sel){
+    sel.onchange=function(){
+      filters[sel.dataset.fs]=sel.value||null;
+      sel.classList.toggle('on',!!sel.value);
+      updateFBtn();render();
+    };
   });
   document.querySelectorAll('#fpanel input[type=date]').forEach(function(inp){
     inp.onchange=function(){
@@ -852,6 +858,15 @@ function buildChips(){
   updateFBtn();
   $('add').textContent=cfg.addLabel;
 }
+
+$('board').addEventListener('wheel',function(e){
+  if(tab==='relatorios'||tab==='equipe')return;
+  if(e.target.closest('.cards'))return;
+  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+    $('board').scrollLeft+=e.deltaY;
+    e.preventDefault();
+  }
+},{passive:false});
 
 $('fbtn').onclick=function(){
   $('fpanel').classList.toggle('open');
