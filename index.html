@@ -30,6 +30,32 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .brand .sub{font-family:'Poppins';font-weight:600;font-size:13px;color:var(--blue)}
 .tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;max-width:100%;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
+
+/* ===== Menu hamburguer + gaveta (mobile) ===== */
+.mbtn{display:none;border:1px solid var(--line);background:#fff;border-radius:10px;width:40px;height:40px;align-items:center;justify-content:center;font-size:19px;color:var(--ink);line-height:1;flex:none}
+.drawer{position:fixed;inset:0;z-index:120;visibility:hidden;transition:visibility 0s linear .24s}
+.drawer.open{visibility:visible;transition-delay:0s}
+.dbg{position:absolute;inset:0;background:rgba(26,26,26,.45);opacity:0;transition:opacity .24s ease}
+.drawer.open .dbg{opacity:1}
+.dpanel{position:absolute;top:0;left:0;bottom:0;width:min(80vw,320px);background:#fff;display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .24s cubic-bezier(.32,.72,0,1);box-shadow:4px 0 24px rgba(26,26,26,.18);
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  padding-left:calc(14px + env(safe-area-inset-left))}
+.drawer.open .dpanel{transform:none}
+.dhead{display:flex;align-items:center;gap:10px;padding:2px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.dhead .dinfo{display:flex;flex-direction:column;min-width:0}
+.dhead .dinfo b{font-family:'Poppins';font-size:14.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dhead .dinfo span{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px}
+.dhead .avatar{width:34px;height:34px;font-size:14px}
+.dx{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:50%;width:32px;height:32px;font-size:14px;color:var(--gray);line-height:1;flex:none}
+.dnav{display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1;min-height:0}
+.dnav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:none;background:none;
+  border-radius:11px;padding:13px 12px;font-family:'Poppins';font-weight:600;font-size:14.5px;color:var(--ink)}
+.dnav button i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.dnav button.on{background:var(--red);color:#fff}
+.dnav button.on i{background:#fff}
+.dfoot{border-top:1px solid var(--line);padding-top:12px;margin-top:10px}
+.dfoot .btn{width:100%;padding:12px}
 .tabs button{border:none;background:transparent;padding:7px 20px;border-radius:999px;font-family:'Poppins';font-weight:600;font-size:13px;color:var(--gray);flex:0 0 auto;white-space:nowrap}
 .tabs button.on{background:var(--red);color:#fff}
 .hright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -346,7 +372,8 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 /* ===== Mobile ===== */
 @media(max-width:640px){
   /* Header: marca + usuário na 1ª linha, abas roláveis na 2ª */
-  header{padding:8px 12px 0;gap:8px;row-gap:6px}
+  header{padding:9px 12px;gap:10px}
+  .mbtn{display:flex;order:0}
   .brand{order:1}
   .brand .cna{font-size:19px}
   .brand .sub{font-size:11.5px}
@@ -355,9 +382,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
   .userbox label{display:none}
   #unome{display:none}
   #logout{padding:7px 12px}
-  .tabs{order:3;flex:1 1 100%;border:none;background:transparent;border-radius:0;padding:6px 12px 8px;margin:0 -12px;gap:6px;scroll-snap-type:x proximity}
-  .tabs button{border:1px solid var(--line);background:#fff;padding:8px 14px;font-size:12.5px;scroll-snap-align:center}
-  .tabs button.on{border-color:var(--red)}
+  .tabs{display:none}
 
   /* Toolbar: busca em cima, ações embaixo */
   .toolbar{padding:10px 12px;gap:8px}
@@ -430,6 +455,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 <body>
 
 <header>
+  <button class="mbtn" id="menubtn" aria-label="Abrir menu">&#9776;</button>
   <div class="brand"><span class="cna">CNA</span><span class="sub">CRM · Taquara</span></div>
   <div class="tabs" id="tabs">
     <button data-t="escolas">Escolas</button>
@@ -512,6 +538,19 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
     </div>
     <p class="lerr" id="lerr"></p>
   </div>
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="dbg" id="dbg"></div>
+  <nav class="dpanel">
+    <div class="dhead">
+      <span class="avatar" id="dav" style="background:#5A5A5A">?</span>
+      <div class="dinfo"><b id="dnome"></b><span>CRM &middot; Taquara</span></div>
+      <button class="dx" id="dclose" aria-label="Fechar menu">&#10005;</button>
+    </div>
+    <div class="dnav" id="dnav"></div>
+    <div class="dfoot"><button class="btn" id="dlogout">Sair</button></div>
+  </nav>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1177,6 +1216,7 @@ window.addEventListener('resize',function(){
     const m=isMobile();
     if(m===wasMobile)return;
     wasMobile=m;
+    if(!m)closeDrawer();
     if(!(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc')){buildChips();render();}
   },200);
 });
@@ -1213,7 +1253,7 @@ function setTab(t){
   document.querySelectorAll('#tabs button').forEach(function(b){
     var on=b.dataset.t===t;
     b.classList.toggle('on',on);
-    if(on){
+    if(on&&!isMobile()){
       const tb=b.parentNode;
       const alvo=b.offsetLeft-(tb.clientWidth-b.offsetWidth)/2;
       try{tb.scrollTo({left:Math.max(0,alvo),behavior:'smooth'});}catch(_){tb.scrollLeft=Math.max(0,alvo);}
@@ -1230,6 +1270,39 @@ function setTab(t){
   buildChips();loadTab();
 }
 document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t);};});
+
+/* ================= Menu lateral (mobile) ================= */
+function buildDrawer(){
+  const dn=$('dnav');
+  dn.innerHTML='';
+  document.querySelectorAll('#tabs button').forEach(function(b){
+    if(b.style.display==='none')return;   // respeita a aba Equipe, só admin
+    const el=document.createElement('button');
+    el.innerHTML='<i></i>'+esc(b.textContent);
+    if(b.classList.contains('on'))el.className='on';
+    el.onclick=function(){closeDrawer();setTab(b.dataset.t);};
+    dn.appendChild(el);
+  });
+}
+function openDrawer(){
+  if(currentUser){
+    $('dnome').textContent=currentUser;
+    $('dav').textContent=currentUser[0];
+    $('dav').style.background=RESPC[currentUser]||'#5A5A5A';
+  }
+  buildDrawer();
+  $('drawer').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+function closeDrawer(){
+  $('drawer').classList.remove('open');
+  if(!$('ov').classList.contains('open'))document.body.classList.remove('modal-open');
+}
+$('menubtn').onclick=openDrawer;
+$('dbg').onclick=closeDrawer;
+$('dclose').onclick=closeDrawer;
+$('dlogout').onclick=function(){closeDrawer();$('logout').onclick();};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer();});
 
 
 
