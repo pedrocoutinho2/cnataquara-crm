@@ -270,6 +270,11 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .cf label{display:block;font-size:11px;font-weight:600;color:var(--gray);margin-bottom:4px}
 .cf select,.cf input{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;background:#fff}
 .cf .hint{font-size:11.5px;color:var(--gray);margin-top:4px}
+.cmoney{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}
+.cmoney span{padding:0 4px 0 11px;font-size:13px;font-weight:600;color:var(--gray);flex:none}
+.cmoney input{border:none;border-radius:0;padding:9px 11px 9px 4px;width:100%;font-variant-numeric:tabular-nums}
+.cmoney input:focus{outline:none}
+.cmoney:focus-within{border-color:var(--blue)}
 .cchk{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:10px}
 .cchk input{width:16px;height:16px;accent-color:var(--red)}
 .cres{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 16px;margin-top:14px}
@@ -1634,10 +1639,18 @@ let PRECOS={niveis:null,materiais:null,certs:null};
 let CALC={n1:'',d1:0,dois:true,n2:'',d2:0,mat:true,dm1:0,dm2:0,
           parcC:12,parcM:12,matricula:15000,validade:''};
 
-function money(c){
-  const neg=c<0;c=Math.abs(Math.round(c));
-  const v=(c/100).toFixed(2).split('.');
-  return (neg?'-':'')+'R$ '+v[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+v[1];
+function fmtNum(c){
+  const v=(Math.abs(Math.round(c))/100).toFixed(2).split('.');
+  return v[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+v[1];
+}
+function money(c){return (c<0?'-':'')+'R$ '+fmtNum(c);}
+/* mascara de moeda: le so os digitos e reposiciona o cursor no fim */
+function maskMoeda(el){
+  const d=String(el.value).replace(/\D/g,'');
+  const cents=d?parseInt(d,10):0;
+  el.value=fmtNum(cents);
+  try{const n=el.value.length;el.setSelectionRange(n,n);}catch(e){}
+  return cents;
 }
 function nivelBy(cod){return (PRECOS.niveis||[]).find(function(x){return x.codigo===cod;})||null;}
 function matBy(cod){return cod?((PRECOS.materiais||[]).find(function(x){return x.codigo===cod;})||null):null;}
@@ -1718,6 +1731,49 @@ function optsParc(sel){
   }).join('');
 }
 
+function resultadoHTML(R){
+  let h='<div class="cres2">';
+
+  /* bloco curso */
+  h+='<div class="cresbox"><h5>Curso</h5>'+
+     '<div class="cl2"><span>Nível '+(CALC.dois?'1º / 2º':'')+'</span><b>'+
+       esc(R.n1?R.n1.nome:'')+(CALC.dois&&R.n2&&R.n2.codigo!==R.n1.codigo?' / '+esc(R.n2.nome):'')+'</b></div>'+
+     '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.cursoCheio)+'</b></div>'+
+     '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+'</b></div>'+
+     '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.cursoDesc)+'</b></div>'+
+     '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+'</span>'+
+       '<span class="cbv">'+money(R.parcCurso)+'</span></div></div>';
+
+  /* bloco material */
+  h+='<div class="cresbox"><h5>Material didático</h5>';
+  if(CALC.mat&&R.matCheio>0){
+    h+='<div class="cl2"><span>Livros</span><b>'+esc(R.m1?R.m1.nome:'—')+(R.m2?' + '+esc(R.m2.nome):'')+'</b></div>'+
+       '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.matCheio)+'</b></div>'+
+       '<div class="cl2"><span>Desconto</span><b>'+CALC.dm1+'%'+(CALC.dois&&R.m2?' / '+CALC.dm2+'%':'')+'</b></div>'+
+       '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.matDesc)+'</b></div>'+
+       '<div class="cbig"><span class="cbl">'+(CALC.parcM>1?CALC.parcM+'x de':'À vista')+'</span>'+
+         '<span class="cbv">'+money(R.parcMat)+'</span></div>';
+  }else{
+    h+='<div class="cl2"><span>Material não incluído nesta simulação.</span><b></b></div>';
+  }
+  h+='</div></div>';
+
+  /* faixa de fechamento */
+  h+='<div class="cfoot">'+
+     '<div class="cfi"><span>Taxa de matrícula</span><b>'+money(R.taxa)+'</b></div>'+
+     '<div class="cfi eco"><span>Economia com o desconto</span><b>'+money(R.economia)+'</b></div>'+
+     '<div class="cfi"><span>Total geral (referência)</span><b>'+money(R.totalDesc)+'</b></div>'+
+     (R.mesmaParc&&CALC.parcC>1&&CALC.mat&&R.matDesc>0
+       ? '<div class="cfi big"><span>Parcela mensal (curso + material)</span><b>'+CALC.parcC+'x '+money(R.somaParc)+'</b></div>'
+       : '')+
+     '</div>';
+
+  h+='<div class="cbtns"><button class="btn primary" id="c_copy">Copiar proposta</button>'+
+     '<button class="btn" id="c_reset">Limpar descontos</button>'+
+     '<span id="c_msg" style="font-size:12.5px;color:var(--ok);align-self:center"></span></div>';
+  return h;
+}
+
 function renderCalc(){
   const foco=document.activeElement?document.activeElement.id:null;
   const selStart=(document.activeElement&&document.activeElement.selectionStart!=null)?document.activeElement.selectionStart:null;
@@ -1759,52 +1815,15 @@ function renderCalc(){
   h+='<div class="cbox"><h4>Parcelamento e condições</h4>'+
      '<div class="cf"><label>Parcelamento do curso</label><select id="c_parcC">'+optsParc(CALC.parcC)+'</select></div>'+
      '<div class="cf"><label>Parcelamento do material</label><select id="c_parcM">'+optsParc(CALC.parcM)+'</select></div>'+
-     '<div class="cf"><label>Taxa de matrícula</label><input id="c_taxa" type="number" step="0.01" min="0" value="'+(CALC.matricula/100).toFixed(2)+'"></div>'+
+     '<div class="cf"><label>Taxa de matrícula</label>'+
+       '<div class="cmoney"><span>R$</span><input id="c_taxa" type="text" inputmode="numeric" autocomplete="off" value="'+fmtNum(CALC.matricula)+'"></div></div>'+
      '<div class="cf"><label>Proposta válida até</label><input id="c_val" type="date" value="'+esc(CALC.validade)+'"></div></div>';
 
   h+='</div></div>'; /* cgrid + rcard */
 
   /* ---------- RESULTADO ---------- */
-  h+='<div class="rcard"><div class="paneh"><h3>Resultado</h3></div><div class="cres2">';
-
-  /* bloco curso */
-  h+='<div class="cresbox"><h5>Curso</h5>'+
-     '<div class="cl2"><span>Nível '+(CALC.dois?'1º / 2º':'')+'</span><b>'+
-       esc(R.n1?R.n1.nome:'')+(CALC.dois&&R.n2&&R.n2.codigo!==R.n1.codigo?' / '+esc(R.n2.nome):'')+'</b></div>'+
-     '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.cursoCheio)+'</b></div>'+
-     '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+'</b></div>'+
-     '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.cursoDesc)+'</b></div>'+
-     '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+'</span>'+
-       '<span class="cbv">'+money(R.parcCurso)+'</span></div></div>';
-
-  /* bloco material */
-  h+='<div class="cresbox"><h5>Material didático</h5>';
-  if(CALC.mat&&R.matCheio>0){
-    h+='<div class="cl2"><span>Livros</span><b>'+esc(R.m1?R.m1.nome:'—')+(R.m2?' + '+esc(R.m2.nome):'')+'</b></div>'+
-       '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.matCheio)+'</b></div>'+
-       '<div class="cl2"><span>Desconto</span><b>'+CALC.dm1+'%'+(CALC.dois&&R.m2?' / '+CALC.dm2+'%':'')+'</b></div>'+
-       '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.matDesc)+'</b></div>'+
-       '<div class="cbig"><span class="cbl">'+(CALC.parcM>1?CALC.parcM+'x de':'À vista')+'</span>'+
-         '<span class="cbv">'+money(R.parcMat)+'</span></div>';
-  }else{
-    h+='<div class="cl2"><span>Material não incluído nesta simulação.</span><b></b></div>';
-  }
-  h+='</div></div>';
-
-  /* faixa de fechamento */
-  h+='<div class="cfoot">'+
-     '<div class="cfi"><span>Taxa de matrícula</span><b>'+money(R.taxa)+'</b></div>'+
-     '<div class="cfi eco"><span>Economia com o desconto</span><b>'+money(R.economia)+'</b></div>'+
-     '<div class="cfi"><span>Total geral (referência)</span><b>'+money(R.totalDesc)+'</b></div>'+
-     (R.mesmaParc&&CALC.parcC>1&&CALC.mat&&R.matDesc>0
-       ? '<div class="cfi big"><span>Parcela mensal (curso + material)</span><b>'+CALC.parcC+'x '+money(R.somaParc)+'</b></div>'
-       : '')+
-     '</div>';
-
-  h+='<div class="cbtns"><button class="btn primary" id="c_copy">Copiar proposta</button>'+
-     '<button class="btn" id="c_reset">Limpar descontos</button>'+
-     '<span id="c_msg" style="font-size:12.5px;color:var(--ok);align-self:center"></span></div>';
-  h+='</div>';
+  h+='<div class="rcard"><div class="paneh"><h3>Resultado</h3></div>'+
+     '<div id="cresult">'+resultadoHTML(R)+'</div></div>';
 
   /* ---------- CERTIFICAÇÕES ---------- */
   if((PRECOS.certs||[]).length){
@@ -1823,7 +1842,7 @@ function renderCalc(){
     const el=$(foco);el.focus();
     try{if(selStart!=null&&el.setSelectionRange)el.setSelectionRange(selStart,selStart);}catch(e){}
   }
-  wireCalc(R);
+  wireCalc();
 }
 
 function propostaTexto(R){
@@ -1854,7 +1873,7 @@ function propostaTexto(R){
   return L.join('\n');
 }
 
-function wireCalc(R){
+function wireCalc(){
   const bind=function(id,ev,fn){
     const el=$(id);if(!el)return;
     el[ev]=function(e){fn(e.target);renderCalc();};
@@ -1869,16 +1888,27 @@ function wireCalc(R){
   bind('c_dm2','onchange',function(t){CALC.dm2=parseInt(t.value,10);});
   bind('c_parcC','onchange',function(t){CALC.parcC=parseInt(t.value,10);});
   bind('c_parcM','onchange',function(t){CALC.parcM=parseInt(t.value,10);});
-  bind('c_taxa','oninput',function(t){
-    const v=parseFloat(String(t.value).replace(',','.'));
-    CALC.matricula=isNaN(v)||v<0?0:Math.round(v*100);
-  });
-  bind('c_val','onchange',function(t){CALC.validade=t.value;});
+  /* taxa e validade nao reconstroem os campos, so o bloco de resultado */
+  const taxa=$('c_taxa');
+  if(taxa)taxa.oninput=function(e){CALC.matricula=maskMoeda(e.target);atualizaResultado();};
+  const val=$('c_val');
+  if(val)val.onchange=function(e){CALC.validade=e.target.value;};
 
+  wireResultado();
+}
+
+function atualizaResultado(){
+  const box=$('cresult');
+  if(!box)return;
+  box.innerHTML=resultadoHTML(calcular());
+  wireResultado();
+}
+
+function wireResultado(){
   if($('c_reset'))$('c_reset').onclick=function(){CALC.d1=0;CALC.d2=0;CALC.dm1=0;CALC.dm2=0;renderCalc();};
 
   if($('c_copy'))$('c_copy').onclick=function(){
-    const txt=propostaTexto(R);
+    const txt=propostaTexto(calcular());
     const done=function(){const m=$('c_msg');if(m){m.textContent='Copiado ✓';setTimeout(function(){if($('c_msg'))$('c_msg').textContent='';},2200);}};
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(done).catch(function(){fallbackCopy(txt);done();});
