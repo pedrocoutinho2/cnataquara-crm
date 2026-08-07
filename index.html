@@ -16,7 +16,9 @@
 html{-webkit-text-size-adjust:100%}
 html,body{height:100%}
 @supports(height:100dvh){html,body{height:100dvh}}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--surface);color:var(--ink);font-size:14px;display:flex;flex-direction:column;overflow-x:hidden;max-width:100vw}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--surface);color:var(--ink);font-size:14px;display:flex;flex-direction:column;max-width:100vw}
+html,body{overflow-x:hidden}
+@supports(overflow:clip){html,body{overflow-x:clip}}
 body.modal-open{overflow:hidden}
 button{font-family:inherit;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:14px}
@@ -1211,7 +1213,11 @@ function setTab(t){
   document.querySelectorAll('#tabs button').forEach(function(b){
     var on=b.dataset.t===t;
     b.classList.toggle('on',on);
-    if(on&&b.scrollIntoView)try{b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});}catch(_){}
+    if(on){
+      const tb=b.parentNode;
+      const alvo=b.offsetLeft-(tb.clientWidth-b.offsetWidth)/2;
+      try{tb.scrollTo({left:Math.max(0,alvo),behavior:'smooth'});}catch(_){tb.scrollLeft=Math.max(0,alvo);}
+    }
   });
   const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc');
   document.querySelector('.toolbar').style.display=outro?'none':'';
