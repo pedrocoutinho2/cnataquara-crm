@@ -288,6 +288,30 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .certrow .cd{color:var(--gray);font-size:12px}
 .certrow .cval{margin-left:auto;font-family:'Poppins';font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
 @media(max-width:760px){.cgrid{grid-template-columns:1fr}.mform{grid-template-columns:1fr}}
+.cres2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cresbox{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.cresbox h5{font-family:'Poppins';font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#fff;background:var(--blue);padding:9px 14px}
+.cresbox:nth-child(2) h5{background:var(--red)}
+.cl2{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 14px;font-size:13px;border-bottom:1px solid var(--line)}
+.cl2 span{color:var(--gray)}
+.cl2 b{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+.cl2.ref b{color:var(--gray);text-decoration:line-through;font-weight:500}
+.cl2.tot{background:var(--surface)}
+.cl2.tot b{color:var(--ink);font-size:14.5px}
+.cbig{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:13px 14px;background:#fff;flex-wrap:wrap}
+.cbig .cbl{font-family:'Poppins';font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--gray)}
+.cbig .cbv{font-family:'Poppins';font-weight:700;font-size:26px;color:var(--blue);font-variant-numeric:tabular-nums;line-height:1}
+.cresbox:nth-child(2) .cbig .cbv{color:var(--red)}
+.cfoot{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:6px 14px}
+.cfi{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 0;font-size:13px;border-bottom:1px solid var(--line)}
+.cfi:last-child{border-bottom:none}
+.cfi span{color:var(--gray)}
+.cfi b{font-variant-numeric:tabular-nums;font-weight:600}
+.cfi.eco b{color:var(--ok)}
+.cfi.big{padding:12px 0 10px}
+.cfi.big span{font-family:'Poppins';font-weight:600;color:var(--ink);text-transform:uppercase;font-size:11.5px;letter-spacing:.4px}
+.cfi.big b{font-family:'Poppins';font-size:20px;color:var(--blue)}
+@media(max-width:760px){.cres2{grid-template-columns:1fr}}
 
 @media(max-width:640px){
   header{gap:10px}
@@ -1605,8 +1629,10 @@ function wireMural(){
 
 /* ================= Calculadora de valores ================= */
 const ANO_PRECOS=2026;
+const PARCELAS=[12,11,10,9,1];
 let PRECOS={niveis:null,materiais:null,certs:null};
-let CALC={n1:'',d1:0,dois:true,n2:'',d2:0,mat:true,dm1:0,dm2:0,parc:12};
+let CALC={n1:'',d1:0,dois:true,n2:'',d2:0,mat:true,dm1:0,dm2:0,
+          parcC:12,parcM:12,matricula:15000,validade:''};
 
 function money(c){
   const neg=c<0;c=Math.abs(Math.round(c));
@@ -1615,6 +1641,10 @@ function money(c){
 }
 function nivelBy(cod){return (PRECOS.niveis||[]).find(function(x){return x.codigo===cod;})||null;}
 function matBy(cod){return cod?((PRECOS.materiais||[]).find(function(x){return x.codigo===cod;})||null):null;}
+function maisDias(n){
+  const d=new Date();d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 async function openCalc(){
   $('stats').innerHTML='';
@@ -1633,6 +1663,7 @@ async function openCalc(){
   }
   if(!CALC.n1&&PRECOS.niveis.length)CALC.n1=PRECOS.niveis[0].codigo;
   if(!CALC.n2)CALC.n2=CALC.n1;
+  if(!CALC.validade)CALC.validade=maisDias(7);
   renderCalc();
 }
 
@@ -1652,15 +1683,19 @@ function calcular(){
   const md2=m2?mc2*(1-CALC.dm2/100):0;
   const cursoCheio=Math.round(p1+p2), cursoDesc=Math.round(c1+c2);
   const matCheio=mc1+mc2, matDesc=Math.round(md1+md2);
+  const taxa=CALC.matricula||0;
   return {
     n1:n1,n2:n2,m1:m1,m2:m2,p1:p1,p2:p2,c1:c1,c2:c2,
     mc1:mc1,mc2:mc2,md1:md1,md2:md2,
     cursoCheio:cursoCheio,cursoDesc:cursoDesc,matCheio:matCheio,matDesc:matDesc,
-    totalCheio:cursoCheio+matCheio,totalDesc:cursoDesc+matDesc,
+    taxa:taxa,
+    totalCheio:cursoCheio+matCheio+taxa,
+    totalDesc:cursoDesc+matDesc+taxa,
     economia:(cursoCheio+matCheio)-(cursoDesc+matDesc),
-    parcCurso:cursoDesc/CALC.parc,parcMat:matDesc/CALC.parc,
-    parcela:(cursoDesc+matDesc)/CALC.parc,
-    periodoCheio1:p1,periodoCheio2:p2
+    parcCurso:cursoDesc/CALC.parcC,
+    parcMat:matDesc/CALC.parcM,
+    mesmaParc:CALC.parcC===CALC.parcM,
+    somaParc:(cursoDesc/CALC.parcC)+(matDesc/CALC.parcM)
   };
 }
 
@@ -1677,11 +1712,19 @@ function optsDesc(sel){
   for(let i=0;i<=100;i+=5)o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+i+'%</option>';
   return o;
 }
+function optsParc(sel){
+  return PARCELAS.map(function(n){
+    return '<option value="'+n+'"'+(n===sel?' selected':'')+'>'+(n===1?'À vista':n+'x')+'</option>';
+  }).join('');
+}
 
 function renderCalc(){
+  const foco=document.activeElement?document.activeElement.id:null;
+  const selStart=(document.activeElement&&document.activeElement.selectionStart!=null)?document.activeElement.selectionStart:null;
   const R=calcular();
   let h='<div class="pane">';
 
+  /* ---------- ENTRADA ---------- */
   h+='<div class="rcard"><div class="paneh"><h3>Calculadora de valores · tabela '+ANO_PRECOS+'</h3></div>';
   h+='<div class="cgrid">';
 
@@ -1713,35 +1756,57 @@ function renderCalc(){
   }
   h+='</div>';
 
-  h+='<div class="cbox"><h4>Parcelamento</h4>'+
-     '<div class="cf"><label>Número de parcelas</label><select id="c_parc">'+
-     [12,11,10,6,3,1].map(function(n){return '<option value="'+n+'"'+(n===CALC.parc?' selected':'')+'>'+(n===1?'À vista':n+'x')+'</option>';}).join('')+
-     '</select></div></div>';
+  h+='<div class="cbox"><h4>Parcelamento e condições</h4>'+
+     '<div class="cf"><label>Parcelamento do curso</label><select id="c_parcC">'+optsParc(CALC.parcC)+'</select></div>'+
+     '<div class="cf"><label>Parcelamento do material</label><select id="c_parcM">'+optsParc(CALC.parcM)+'</select></div>'+
+     '<div class="cf"><label>Taxa de matrícula</label><input id="c_taxa" type="number" step="0.01" min="0" value="'+(CALC.matricula/100).toFixed(2)+'"></div>'+
+     '<div class="cf"><label>Proposta válida até</label><input id="c_val" type="date" value="'+esc(CALC.validade)+'"></div></div>';
 
-  h+='</div>'; /* cgrid */
+  h+='</div></div>'; /* cgrid + rcard */
 
-  /* resultado */
-  h+='<div class="cres">'+
-    '<div class="cline"><span>Curso · valor cheio</span><b>'+money(R.cursoCheio)+'</b></div>'+
-    '<div class="cline"><span>Curso · com desconto</span><b>'+money(R.cursoDesc)+'</b></div>';
-  if(CALC.mat){
-    h+='<div class="cline"><span>Material · valor cheio</span><b>'+money(R.matCheio)+'</b></div>'+
-       '<div class="cline"><span>Material · com desconto</span><b>'+money(R.matDesc)+'</b></div>';
+  /* ---------- RESULTADO ---------- */
+  h+='<div class="rcard"><div class="paneh"><h3>Resultado</h3></div><div class="cres2">';
+
+  /* bloco curso */
+  h+='<div class="cresbox"><h5>Curso</h5>'+
+     '<div class="cl2"><span>Nível '+(CALC.dois?'1º / 2º':'')+'</span><b>'+
+       esc(R.n1?R.n1.nome:'')+(CALC.dois&&R.n2&&R.n2.codigo!==R.n1.codigo?' / '+esc(R.n2.nome):'')+'</b></div>'+
+     '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.cursoCheio)+'</b></div>'+
+     '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+'</b></div>'+
+     '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.cursoDesc)+'</b></div>'+
+     '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+'</span>'+
+       '<span class="cbv">'+money(R.parcCurso)+'</span></div></div>';
+
+  /* bloco material */
+  h+='<div class="cresbox"><h5>Material didático</h5>';
+  if(CALC.mat&&R.matCheio>0){
+    h+='<div class="cl2"><span>Livros</span><b>'+esc(R.m1?R.m1.nome:'—')+(R.m2?' + '+esc(R.m2.nome):'')+'</b></div>'+
+       '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.matCheio)+'</b></div>'+
+       '<div class="cl2"><span>Desconto</span><b>'+CALC.dm1+'%'+(CALC.dois&&R.m2?' / '+CALC.dm2+'%':'')+'</b></div>'+
+       '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.matDesc)+'</b></div>'+
+       '<div class="cbig"><span class="cbl">'+(CALC.parcM>1?CALC.parcM+'x de':'À vista')+'</span>'+
+         '<span class="cbv">'+money(R.parcMat)+'</span></div>';
+  }else{
+    h+='<div class="cl2"><span>Material não incluído nesta simulação.</span><b></b></div>';
   }
-  h+='<div class="cline eco"><span>Economia total</span><b>'+money(R.economia)+'</b></div>'+
-     '<div class="cline"><span>Total a pagar</span><b>'+money(R.totalDesc)+'</b></div>';
-  if(CALC.parc>1){
-    h+='<div class="cline"><span>Parcela do curso</span><b>'+CALC.parc+'x '+money(R.parcCurso)+'</b></div>';
-    if(CALC.mat)h+='<div class="cline"><span>Parcela do material</span><b>'+CALC.parc+'x '+money(R.parcMat)+'</b></div>';
-  }
-  h+='<div class="cfinal"><span class="cl">'+(CALC.parc>1?'Parcela mensal':'Valor à vista')+'</span>'+
-     '<span class="cv">'+money(R.parcela)+'</span></div>'+
-     '<div class="cbtns"><button class="btn primary" id="c_copy">Copiar proposta</button>'+
+  h+='</div></div>';
+
+  /* faixa de fechamento */
+  h+='<div class="cfoot">'+
+     '<div class="cfi"><span>Taxa de matrícula</span><b>'+money(R.taxa)+'</b></div>'+
+     '<div class="cfi eco"><span>Economia com o desconto</span><b>'+money(R.economia)+'</b></div>'+
+     '<div class="cfi"><span>Total geral (referência)</span><b>'+money(R.totalDesc)+'</b></div>'+
+     (R.mesmaParc&&CALC.parcC>1&&CALC.mat&&R.matDesc>0
+       ? '<div class="cfi big"><span>Parcela mensal (curso + material)</span><b>'+CALC.parcC+'x '+money(R.somaParc)+'</b></div>'
+       : '')+
+     '</div>';
+
+  h+='<div class="cbtns"><button class="btn primary" id="c_copy">Copiar proposta</button>'+
      '<button class="btn" id="c_reset">Limpar descontos</button>'+
-     '<span id="c_msg" style="font-size:12.5px;color:var(--ok);align-self:center"></span></div>'+
-  '</div></div>';
+     '<span id="c_msg" style="font-size:12.5px;color:var(--ok);align-self:center"></span></div>';
+  h+='</div>';
 
-  /* certificações */
+  /* ---------- CERTIFICAÇÕES ---------- */
   if((PRECOS.certs||[]).length){
     h+='<div class="rcard"><div class="paneh"><h3>Certificações · valores avulsos</h3></div>';
     PRECOS.certs.forEach(function(c){
@@ -1754,40 +1819,61 @@ function renderCalc(){
 
   h+='</div>';
   $('board').innerHTML=h;
+  if(foco&&$(foco)){
+    const el=$(foco);el.focus();
+    try{if(selStart!=null&&el.setSelectionRange)el.setSelectionRange(selStart,selStart);}catch(e){}
+  }
   wireCalc(R);
 }
 
 function propostaTexto(R){
   const L=[];
   const periodos=CALC.dois?'2 períodos':'1 período';
-  const nome=R.n2&&R.n2.codigo!==R.n1.codigo?(R.n1.nome+' + '+R.n2.nome):(R.n1?R.n1.nome:'');
-  L.push('Curso: '+nome+' — '+periodos);
-  L.push('Investimento: de '+money(R.cursoCheio)+' por '+money(R.cursoDesc));
-  if(CALC.parc>1)L.push(CALC.parc+'x de '+money(R.parcCurso));
-  if(CALC.mat&&R.matCheio>0){
+  const nome=R.n2&&R.n1&&R.n2.codigo!==R.n1.codigo?(R.n1.nome+' + '+R.n2.nome):(R.n1?R.n1.nome:'');
+
+  L.push('*Investimento*');
+  L.push(nome+' — '+periodos);
+  L.push(CALC.parcC>1?(CALC.parcC+'x de '+money(R.parcCurso)):('À vista: '+money(R.cursoDesc)));
+
+  if(CALC.mat&&R.matDesc>0){
     L.push('');
-    L.push('Material didático: '+money(R.matDesc)+(R.matDesc<R.matCheio?' (de '+money(R.matCheio)+')':''));
-    if(CALC.parc>1)L.push(CALC.parc+'x de '+money(R.parcMat));
+    L.push('*Material didático*');
+    L.push(CALC.parcM>1?(CALC.parcM+'x de '+money(R.parcMat)):('À vista: '+money(R.matDesc)));
   }
-  L.push('');
-  L.push(CALC.parc>1?('Parcela mensal: '+money(R.parcela)):('Valor à vista: '+money(R.totalDesc)));
-  L.push('');
-  L.push('CNA Taquara · Estrada da Soca, 129');
-  L.push('(21) 97719-3899');
+
+  if(R.taxa>0){
+    L.push('');
+    L.push('*Taxa de matrícula*');
+    L.push(money(R.taxa));
+  }
+
+  if(CALC.validade){
+    L.push('');
+    L.push('Proposta válida até '+brDate(CALC.validade)+'.');
+  }
   return L.join('\n');
 }
 
 function wireCalc(R){
-  const bind=function(id,fn){const el=$(id);if(el)el.onchange=function(e){fn(e.target);renderCalc();};};
-  bind('c_n1',function(t){CALC.n1=t.value;if(!CALC.dois)CALC.n2=t.value;});
-  bind('c_d1',function(t){CALC.d1=parseInt(t.value,10);});
-  bind('c_dois',function(t){CALC.dois=t.checked;if(t.checked&&!CALC.n2)CALC.n2=CALC.n1;});
-  bind('c_n2',function(t){CALC.n2=t.value;});
-  bind('c_d2',function(t){CALC.d2=parseInt(t.value,10);});
-  bind('c_mat',function(t){CALC.mat=t.checked;});
-  bind('c_dm1',function(t){CALC.dm1=parseInt(t.value,10);});
-  bind('c_dm2',function(t){CALC.dm2=parseInt(t.value,10);});
-  bind('c_parc',function(t){CALC.parc=parseInt(t.value,10);});
+  const bind=function(id,ev,fn){
+    const el=$(id);if(!el)return;
+    el[ev]=function(e){fn(e.target);renderCalc();};
+  };
+  bind('c_n1','onchange',function(t){CALC.n1=t.value;if(!CALC.dois)CALC.n2=t.value;});
+  bind('c_d1','onchange',function(t){CALC.d1=parseInt(t.value,10);});
+  bind('c_dois','onchange',function(t){CALC.dois=t.checked;if(t.checked&&!CALC.n2)CALC.n2=CALC.n1;});
+  bind('c_n2','onchange',function(t){CALC.n2=t.value;});
+  bind('c_d2','onchange',function(t){CALC.d2=parseInt(t.value,10);});
+  bind('c_mat','onchange',function(t){CALC.mat=t.checked;});
+  bind('c_dm1','onchange',function(t){CALC.dm1=parseInt(t.value,10);});
+  bind('c_dm2','onchange',function(t){CALC.dm2=parseInt(t.value,10);});
+  bind('c_parcC','onchange',function(t){CALC.parcC=parseInt(t.value,10);});
+  bind('c_parcM','onchange',function(t){CALC.parcM=parseInt(t.value,10);});
+  bind('c_taxa','oninput',function(t){
+    const v=parseFloat(String(t.value).replace(',','.'));
+    CALC.matricula=isNaN(v)||v<0?0:Math.round(v*100);
+  });
+  bind('c_val','onchange',function(t){CALC.validade=t.value;});
 
   if($('c_reset'))$('c_reset').onclick=function(){CALC.d1=0;CALC.d2=0;CALC.dm1=0;CALC.dm2=0;renderCalc();};
 
