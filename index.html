@@ -450,6 +450,66 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
   .cbig .cbv{font-size:23px}
   .toast{left:12px;right:12px;transform:none;bottom:calc(14px + env(safe-area-inset-bottom));text-align:center}
 }
+
+/* ===== Agendamentos e alertas ===== */
+.abtn{position:relative;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 11px 6px 9px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px;line-height:1}
+.abtn:hover{border-color:var(--blue)}
+.abtn b{background:var(--blue);color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:2px 7px;min-width:20px;text-align:center}
+.abtn.late b{background:var(--red)}
+.abtn.late{border-color:#F1C2CC;animation:apulse 2.4s ease-in-out infinite}
+@keyframes apulse{0%,100%{box-shadow:0 0 0 0 rgba(230,20,60,0)}50%{box-shadow:0 0 0 4px rgba(230,20,60,.14)}}
+.amodal{max-width:620px}
+.aggrp{margin-bottom:16px}
+.aggrp h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.aggrp h4 span{background:var(--surface);border-radius:999px;padding:1px 8px;font-size:11px;color:var(--ink)}
+.aggrp.late h4{color:var(--redDark)}
+.aggrp.late h4 span{background:#FDECEF;color:var(--redDark)}
+.aggrp.today h4{color:#B87500}
+.aggrp.today h4 span{background:#FFF6E2;color:#8A5A00}
+.agi{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:7px;cursor:pointer;background:#fff}
+.agi:hover{border-color:var(--blue);background:var(--surface)}
+.aggrp.late .agi{border-left:3px solid var(--red)}
+.aggrp.today .agi{border-left:3px solid #B87500}
+.agn{flex:1;min-width:0}
+.agn b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agr{font-size:11.5px;color:var(--gray)}
+.agd{font-size:12px;font-weight:700;color:var(--blue);white-space:nowrap}
+.aga{display:flex;gap:6px;align-items:center}
+.aga .wa{background:#1E7A46;color:#fff;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;text-decoration:none}
+.aga .btn{padding:6px 10px;font-size:11.5px}
+/* sub-abas do historico */
+.isub{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.isub button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer}
+.isub button.on{background:var(--red);border-color:var(--red);color:#fff}
+.iadd.ne{align-items:flex-end}
+.iadd.ne select,.iadd.ne input{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff}
+.nesched{display:flex;flex-direction:column;gap:4px}
+.nesched label{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--gray);font-weight:700}
+.nesched label b{color:var(--red)}
+.nesched input{border:1px solid var(--red)!important;background:#FDECEF!important}
+.nesched input.ok{border-color:var(--line)!important;background:#fff!important}
+.iadd .btn:disabled{opacity:.45;cursor:not-allowed}
+.int.ne{background:#FDF6F7;border-left:3px solid #F1C2CC}
+.itipo.nef{background:#FDECEF;color:var(--redDark);font-weight:700}
+.iprox{margin-top:6px;font-size:11.5px;color:var(--blue);font-weight:600}
+.nestreak{background:#FFF6E2;border:1px solid #F0DCA8;color:#8A5A00;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:600;margin-bottom:10px}
+.nestreak.hot{background:#FDECEF;border-color:#F1C2CC;color:var(--redDark)}
+/* tag de agenda no card */
+.agt{border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.agt.late{background:#FDECEF;color:var(--redDark)}
+.agt.today{background:#FFF6E2;color:#8A5A00}
+.agt.soon{background:#EAF0FA;color:var(--blue)}
+.card.late{border-left:3px solid var(--red)}
+@media(max-width:860px){
+  .abtn{padding:6px 9px}
+  .isub button{flex:1;text-align:center}
+  .iadd.ne select,.iadd.ne input{font-size:16px}
+  .iadd.ne select,.nesched{flex:1 1 100%}
+  .nesched input{width:100%}
+  .agi{flex-wrap:wrap;row-gap:8px}
+  .agn{flex:1 1 100%}
+  .aga{margin-left:auto}
+}
 </style>
 </head>
 <body>
@@ -467,6 +527,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
     <button data-t="equipe" id="tabEquipe" style="display:none">Equipe</button>
   </div>
   <div class="hright">
+    <button class="abtn" id="abtn" title="Meus agendamentos" style="display:none">&#128276;<b id="acount">0</b></button>
     <div class="stats" id="stats"></div>
     <div class="userbox">
       <span class="avatar" id="uav" style="background:#5A5A5A">?</span>
@@ -502,7 +563,11 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
       <div class="grid" id="form"></div>
       <div class="ints" id="ints" style="display:none">
         <h3>Histórico de contatos</h3>
-        <div class="iadd">
+        <div class="isub" id="isub">
+          <button class="on" data-is="ef">Contato efetivo</button>
+          <button data-is="ne">Não efetivo</button>
+        </div>
+        <div class="iadd" id="paneEf">
           <select id="itipo">
             <option value="nota">Nota</option>
             <option value="whatsapp">WhatsApp</option>
@@ -512,7 +577,29 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
             <option value="reuniao">Reunião</option>
           </select>
           <input id="iresumo" placeholder="O que aconteceu nesse contato?">
+          <div class="nesched"><label>Próximo contato</label><input type="date" id="iprox" class="ok"></div>
           <button class="btn primary" id="iadd">Registrar</button>
+        </div>
+        <div class="iadd ne" id="paneNe" style="display:none">
+          <select id="necanal">
+            <option value="ligacao">Ligação</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="email">E-mail</option>
+            <option value="visita">Visita</option>
+          </select>
+          <select id="nemotivo">
+            <option value="">Por que não deu certo?</option>
+            <option value="nao_atendeu">Não atendeu</option>
+            <option value="caixa_postal">Caiu na caixa postal</option>
+            <option value="numero_errado">Número errado ou inválido</option>
+            <option value="pediu_retorno">Pediu retorno depois</option>
+            <option value="nao_leu">WhatsApp não lido</option>
+            <option value="recusou">Desligou / recusou falar</option>
+            <option value="ausente">Decisor ausente</option>
+          </select>
+          <input id="neobs" placeholder="Observação (opcional)">
+          <div class="nesched"><label>Próximo contato <b>*</b></label><input type="date" id="nedata"></div>
+          <button class="btn primary" id="neadd" disabled>Registrar e agendar</button>
         </div>
         <div class="ilist" id="ilist"></div>
       </div>
@@ -553,6 +640,18 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
   </nav>
 </div>
 
+<div class="ov" id="aov">
+  <div class="modal amodal">
+    <div class="mhead">
+      <h2>Contatos para acionar</h2>
+      <div class="msub" id="asub"></div>
+      <button class="mx" id="aclose" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody"><div id="alist"></div></div>
+    <div class="mfoot"><div class="spacer"></div><button class="btn primary" id="aok">Entendi</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -577,6 +676,7 @@ let RESP=[];          // preenchido a partir de crm_usuarios no login
 let RESPC={};
 const PALETA=['#E6143C','#19408B','#B87500','#7A3E9D','#1E7A46','#C2410C','#0E7490'];
 const ITIPOS={nota:'Nota',whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
+const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_errado:'Número errado',pediu_retorno:'Pediu retorno depois',nao_leu:'WhatsApp não lido',recusou:'Recusou falar',ausente:'Decisor ausente'};
 
 const CFG={
   escolas:{
@@ -590,10 +690,11 @@ const CFG={
       {id:'fechado',n:'Parceria fechada',c:'#1E7A46',ok:true},
       {id:'fora_funil',n:'Fora do funil',c:'#B9B9BE',off:true}
     ],
+    nextField:'proximo_contato',
     prioField:'prioridade',prioLabel:'Prioridade',tipoLabel:'Tipo',
     prios:[['alta','Alta','p1'],['media','Média','p2'],['baixa','Baixa','p3']],
     tipos:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']],
-    sub:function(s){return s.bairro||'';},
+    sub:function(s){var pc=s.proximo_contato?s.proximo_contato.split('-').reverse().slice(0,2).join('/'):'';return (s.bairro||'')+(pc?(s.bairro?' · ':'')+'⏰ '+pc:'');},
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'tipo',l:'Tipo',t:'select',opts:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']]},
@@ -612,9 +713,10 @@ const CFG={
       {k:'decisor',l:'Decisor',t:'text'},
       {k:'ingles_atual',l:'Inglês atual',t:'text'},
       {k:'mensalidade',l:'Mensalidade',t:'text'},
+      {k:'proximo_contato',l:'Próximo contato agendado',t:'date'},
       {k:'notas',l:'Notas',t:'textarea',full:true}
     ],
-    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','notas']
+    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','proximo_contato','notas']
   },
   empresas:{
     table:'crm_empresas',fk:'empresa_id',one:'empresa',plural:'Empresas',addLabel:'+ Nova empresa',addShort:'+ Empresa',
@@ -626,10 +728,11 @@ const CFG={
       {id:'fechado',n:'Fechado',c:'#1E7A46',ok:true},
       {id:'descartado',n:'Descartado',c:'#B9B9BE',off:true}
     ],
+    nextField:'proximo_contato',
     prioField:'potencial',prioLabel:'Potencial',tipoLabel:'Tipo',
     prios:[['alto','Alto','p1'],['medio','Médio','p2'],['baixo','Baixo','p3']],
     tipos:[['in_company','CNA na Empresa'],['multiempresa','Multiempresa']],
-    sub:function(s){return s.categoria||'';},
+    sub:function(s){var pc=s.proximo_contato?s.proximo_contato.split('-').reverse().slice(0,2).join('/'):'';return (s.categoria||'')+(pc?(s.categoria?' · ':'')+'⏰ '+pc:'');},
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'categoria',l:'Categoria',t:'text'},
@@ -646,9 +749,10 @@ const CFG={
       {k:'contato_cargo',l:'Contato (cargo)',t:'text'},
       {k:'argumento',l:'Argumento de venda',t:'textarea',full:true},
       {k:'proximo_passo',l:'Próximo passo',t:'text',full:true},
+      {k:'proximo_contato',l:'Próximo contato agendado',t:'date'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','observacoes']
+    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','proximo_contato','observacoes']
   }  ,
   leads:{
     table:'crm_leads',fk:'lead_id',one:'lead',plural:'Leads',addLabel:'+ Novo lead',addShort:'+ Lead',
@@ -663,6 +767,7 @@ const CFG={
       {id:'fechado',n:'Matrícula fechada',c:'#1E7A46',ok:true},
       {id:'perdido',n:'Perdido',c:'#B9B9BE',off:true}
     ],
+    nextField:'proximo_atendimento',
     prioField:'curso',prioLabel:'Curso',tipoLabel:'Origem',
     prios:[['Inglês','Inglês','p2'],['Espanhol','Espanhol','p1'],['Robótica','Robótica','p3'],['Proficiência','Proficiência','p3']],
     tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']],
@@ -691,7 +796,7 @@ const CFG={
 /* ================= Estado ================= */
 let tab='escolas';
 const DATA={escolas:null,empresas:null,leads:null};
-function emptyFilters(){return {q:'',prio:null,tipo:null,resp:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};}
+function emptyFilters(){return {q:'',prio:null,tipo:null,resp:null,ag:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};}
 let filters=emptyFilters();
 let editing=null;   // id em edição ou null (novo)
 let dragId=null;
@@ -705,6 +810,8 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block'
 
 let currentUser=null;
 function SF(cfg){return cfg.statusField||'status';}
+function NF(cfg){return cfg.nextField||'proximo_contato';}
+function addDias(iso,n){const p=String(iso).split('-');const d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
 function isMobile(){return window.matchMedia('(max-width:640px)').matches;}
 
 /* Normaliza telefone pra busca: só dígitos, sem DDI 55 e sem zero de operadora */
@@ -755,8 +862,16 @@ function matches(s){
   if(filters.resp&&(s.responsavel||'')!==filters.resp)return false;
   if(filters.entradaDe&&(s.data_entrada||'')<filters.entradaDe)return false;
   if(filters.entradaAte&&(s.data_entrada||'9999-99-99')>filters.entradaAte)return false;
-  if(filters.proxDe&&(s.proximo_atendimento||'')<filters.proxDe)return false;
-  if(filters.proxAte&&(s.proximo_atendimento||'9999-99-99')>filters.proxAte)return false;
+  const _nf=NF(CFG[tab]);
+  if(filters.proxDe&&(s[_nf]||'')<filters.proxDe)return false;
+  if(filters.proxAte&&(s[_nf]||'9999-99-99')>filters.proxAte)return false;
+  if(filters.ag){
+    const _d=s[_nf]||'',_h=hojeISO();
+    if(filters.ag==='atrasado'&&!(_d&&_d<_h))return false;
+    if(filters.ag==='hoje'&&_d!==_h)return false;
+    if(filters.ag==='semana'&&!(_d&&_d<=addDias(_h,7)))return false;
+    if(filters.ag==='sem'&&_d)return false;
+  }
   if(filters.q){
     // busca por número: compara só os dígitos, ignorando (), -, espaço e o DDI 55
     if(isPhoneQuery(filters.q)){
@@ -881,7 +996,14 @@ function cardEl(s,st,showStage){
   const wk=phoneKey(s.whatsapp);
   const dup=wk&&DUPWA[wk]?DUPWA[wk]:0;
   const c=document.createElement('div');
-  c.className='card';
+  const _pd=s[NF(cfg)]||'',_hj=hojeISO();
+  var agTag='';
+  if(_pd){
+    if(_pd<_hj)agTag='<span class="agt late">&#9200; atrasado '+brDate(_pd)+'</span>';
+    else if(_pd===_hj)agTag='<span class="agt today">&#9200; hoje</span>';
+    else agTag='<span class="agt soon">&#9200; '+brDate(_pd).slice(0,5)+'</span>';
+  }
+  c.className='card'+(_pd&&_pd<_hj?' late':'');
   c.draggable=true;
   const pr=cfg.prios.find(function(p){return p[0]===s[cfg.prioField];})||cfg.prios[1];
   const resp=s.responsavel;
@@ -905,6 +1027,7 @@ function cardEl(s,st,showStage){
       '<span class="tag">'+esc((cfg.tipos.find(function(t){return t[0]===s[TF(cfg)];})||['',s[TF(cfg)]||''])[1])+'</span>'+
       (showStage?'<span class="stg" style="--sc:'+st.c+'">'+esc(st.n)+'</span>':'')+
       (dup?'<span class="dupw" title="Esse WhatsApp aparece em '+dup+' cadastros">⚠ '+dup+'x mesmo zap</span>':'')+
+      agTag+
     '</div>'+
     '<div class="acts">'+
       (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':(telD?'<a class="tel" href="tel:+'+(telD.length<=11?'55':'')+telD+'">Ligar</a>':''))+
@@ -997,6 +1120,7 @@ function openModal(id){
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
   $('ints').style.display=s?'':'none';
+  resetIntPanes();
   if(s)loadInts(s.id);
   $('ov').classList.add('open');
   document.body.classList.add('modal-open');
@@ -1010,6 +1134,14 @@ function closeModal(){
   editing=null;
 }
 
+function resetIntPanes(){
+  document.querySelectorAll('#isub button').forEach(function(x){x.classList.toggle('on',x.dataset.is==='ef');});
+  $('paneEf').style.display='';$('paneNe').style.display='none';
+  $('iresumo').value='';$('iprox').value='';
+  $('nemotivo').value='';$('neobs').value='';$('nedata').value='';
+  neCheck();
+}
+
 async function loadInts(id){
   const cfg=CFG[tab];
   const it=cfg.intTable||'crm_interacoes';
@@ -1018,7 +1150,14 @@ async function loadInts(id){
   try{
     const ints=await api('/'+it+'?'+cfg.fk+'=eq.'+id+'&select=*&order='+(cfg.intOrder||'data.desc'));
     if(!ints.length){$('ilist').innerHTML='<div class="empty">Nenhum contato registrado ainda</div>';return;}
-    $('ilist').innerHTML=ints.map(function(i){
+    var seq=0;
+    for(var k=0;k<ints.length;k++){if(ints[k].efetivo===false)seq++;else break;}
+    var head='';
+    if(seq>=2){
+      head='<div class="nestreak'+(seq>=4?' hot':'')+'">'+seq+' tentativas seguidas sem contato efetivo'
+        +(seq>=4?' · vale avisar a coordenação antes de insistir de novo':'')+'</div>';
+    }
+    $('ilist').innerHTML=head+ints.map(function(i){
       let ds;
       if(cfg.intDateOnly){
         ds=String(i.data||'').split('-').reverse().join('/');
@@ -1026,36 +1165,110 @@ async function loadInts(id){
         const dt=new Date(i.data);
         ds=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       }
-      return '<div class="int"><div class="ih"><b>'+esc(i.autor||'?')+'</b><span class="itipo">'+esc(ITIPOS[i.tipo]||i.tipo)+'</span><span>'+ds+'</span></div><p>'+esc(i[tx])+'</p></div>';
+      const ne=(i.efetivo===false);
+      const txt=esc(i[tx]||'');
+      return '<div class="int'+(ne?' ne':'')+'"><div class="ih"><b>'+esc(i.autor||'?')+'</b>'
+        +'<span class="itipo">'+esc(ITIPOS[i.tipo]||i.tipo||'')+'</span>'
+        +(ne?'<span class="itipo nef">Não efetivo'+(i.motivo_nao_efetivo?' · '+esc(MOTIVOS_NE[i.motivo_nao_efetivo]||i.motivo_nao_efetivo):'')+'</span>':'')
+        +'<span>'+ds+'</span></div>'
+        +'<p>'+(txt||'<i>sem observação</i>')+'</p>'
+        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+'</div>':'')
+        +'</div>';
     }).join('');
   }catch(e){
     $('ilist').innerHTML='<div class="empty">Erro ao carregar o histórico</div>';
   }
 }
 
+/* Depois de qualquer contato registrado: grava agendamento no registro e atualiza tela */
+async function afterContato(id,prox){
+  const cfg=CFG[tab];
+  const nf=NF(cfg);
+  const hoje=hojeISO();
+  const patch={updated_at:new Date().toISOString()};
+  patch[nf]=prox||null;
+  if(tab==='leads')patch.ultimo_contato=hoje;
+  try{
+    await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(patch)});
+    const s=(DATA[tab]||[]).find(function(x){return x.id===id;});
+    if(s){s[nf]=prox||null;if(tab==='leads')s.ultimo_contato=hoje;}
+    const i1=document.querySelector('#form [data-k='+nf+']');if(i1)i1.value=prox||'';
+    if(tab==='leads'){const i2=document.querySelector('#form [data-k=ultimo_contato]');if(i2)i2.value=hoje;}
+    render();
+  }catch(e){}
+  loadAlerts();
+}
+
+/* Sub-abas do histórico */
+document.querySelectorAll('#isub button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('#isub button').forEach(function(x){x.classList.toggle('on',x===b);});
+    const ne=(b.dataset.is==='ne');
+    $('paneEf').style.display=ne?'none':'';
+    $('paneNe').style.display=ne?'':'none';
+  };
+});
+
+function neCheck(){
+  const ok=!!$('nemotivo').value&&!!$('nedata').value;
+  $('neadd').disabled=!ok;
+  $('nedata').classList.toggle('ok',!!$('nedata').value);
+}
+['nemotivo','nedata'].forEach(function(idf){
+  $(idf).addEventListener('change',neCheck);
+  $(idf).addEventListener('input',neCheck);
+});
+
+$('neadd').onclick=async function(){
+  if(!editing)return;
+  const btn=$('neadd');
+  if(btn.disabled)return;
+  const cfg=CFG[tab];
+  const it=cfg.intTable||'crm_interacoes';
+  const tx=cfg.intText||'resumo';
+  const motivo=$('nemotivo').value;
+  const prox=$('nedata').value;
+  if(!motivo){toast('Escolha o motivo da tentativa sem sucesso.');return;}
+  if(!prox){toast('Agende a data do próximo contato para poder registrar.');return;}
+  if(prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
+  btn.disabled=true;   // trava anti duplo-envio
+  const body={tipo:$('necanal').value,autor:currentUser,efetivo:false,motivo_nao_efetivo:motivo,proximo_contato:prox};
+  body[tx]=$('neobs').value.trim()||('Tentativa sem sucesso: '+(MOTIVOS_NE[motivo]||motivo));
+  body[cfg.fk]=editing;
+  try{
+    await api('/'+it,{method:'POST',body:JSON.stringify(body)});
+    await afterContato(editing,prox);
+    $('nemotivo').value='';$('neobs').value='';$('nedata').value='';
+    loadInts(editing);
+    toast('Tentativa registrada. Próximo contato em '+brDate(prox)+'.');
+  }catch(e){
+    toast('Não foi possível registrar. Tente de novo.');
+  }
+  neCheck();
+};
+
 $('iadd').onclick=async function(){
   if(!editing)return;
+  const btn=$('iadd');
+  if(btn.disabled)return;
   const cfg=CFG[tab];
   const it=cfg.intTable||'crm_interacoes';
   const tx=cfg.intText||'resumo';
   const resumo=$('iresumo').value.trim();
   if(!resumo){toast('Descreva o contato antes de registrar.');return;}
-  const body={tipo:$('itipo').value,autor:currentUser};
+  const prox=$('iprox').value||null;
+  if(prox&&prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
+  btn.disabled=true;   // trava anti duplo-envio
+  const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox};
   body[tx]=resumo;
   body[cfg.fk]=editing;
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
-    if(tab==='leads'){
-      const hoje=new Date().toISOString().slice(0,10);
-      await api('/crm_leads?id=eq.'+editing,{method:'PATCH',body:JSON.stringify({ultimo_contato:hoje,updated_at:new Date().toISOString()})});
-      const s=(DATA.leads||[]).find(function(x){return x.id===editing;});
-      if(s)s.ultimo_contato=hoje;
-      const inp=document.querySelector('#form [data-k=ultimo_contato]');
-      if(inp)inp.value=hoje;
-    }
-    $('iresumo').value='';
+    await afterContato(editing,prox);
+    $('iresumo').value='';$('iprox').value='';
     loadInts(editing);
   }catch(e){toast('Não foi possível registrar. Tente de novo.');}
+  btn.disabled=false;
 };
 
 $('save').onclick=async function(){
@@ -1164,10 +1377,11 @@ function buildChips(){
   html+=selGroup(cfg.prioLabel||'Prioridade','prio',cfg.prios);
   html+=selGroup(cfg.tipoLabel||'Tipo','tipo',cfg.tipos);
   html+=selGroup('Responsável','resp',RESP.map(function(r){return [r,r];}));
+  html+=selGroup('Agenda','ag',[['atrasado','Atrasados'],['hoje','Para hoje'],['semana','Próximos 7 dias'],['sem','Sem agendamento']]);
   if(tab==='leads'){
     html+=dateGroup('Data de cadastro','entradaDe','entradaAte');
-    html+=dateGroup('Próximo atendimento','proxDe','proxAte');
   }
+  html+=dateGroup('Próximo contato','proxDe','proxAte');
   html+='<div class="factions"><button class="btn" id="fclear">Limpar filtros</button></div>';
   $('fpanel').innerHTML=html;
 
@@ -1402,6 +1616,96 @@ async function tryLogin(){
   }
 }
 
+/* ================= Agendamentos e alertas ================= */
+const AGCFG={
+  leads:{table:'crm_leads',nf:'proximo_atendimento',sf:'etapa',rot:'Cliente B2C',tel:false},
+  escolas:{table:'crm_escolas',nf:'proximo_contato',sf:'status',rot:'Escola',tel:true},
+  empresas:{table:'crm_empresas',nf:'proximo_contato',sf:'status',rot:'Empresa',tel:true}
+};
+let ALERTS={atrasados:[],hoje:[],proximos:[],total:0};
+
+async function loadAlerts(){
+  if(!currentUser)return;
+  const hoje=hojeISO(),limite=addDias(hoje,3);
+  const at=[],hj=[],px=[];
+  const keys=Object.keys(AGCFG);
+  for(var i=0;i<keys.length;i++){
+    const k=keys[i],ac=AGCFG[k],cfg=CFG[k];
+    try{
+      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,'+ac.nf+','+ac.sf
+        +'&'+ac.nf+'=lte.'+limite
+        +'&responsavel=eq.'+encodeURIComponent(currentUser)
+        +'&order='+ac.nf+'.asc');
+      rows.forEach(function(r){
+        const st=cfg.stages.find(function(x){return x.id===r[ac.sf];});
+        if(st&&(st.ok||st.off))return;   // fechado / perdido não entra na fila
+        const d=r[ac.nf];
+        if(!d)return;
+        const item={tab:k,id:r.id,nome:r.nome,whatsapp:r.whatsapp||r.telefone,data:d,rot:ac.rot,etapa:st?st.n:''};
+        if(d<hoje)at.push(item);else if(d===hoje)hj.push(item);else px.push(item);
+      });
+    }catch(e){}
+  }
+  at.sort(function(a,b){return a.data<b.data?-1:1;});
+  ALERTS={atrasados:at,hoje:hj,proximos:px,total:at.length+hj.length};
+  renderAlertBadge();
+}
+
+function renderAlertBadge(){
+  const b=$('abtn'),c=$('acount');
+  if(!b)return;
+  const n=ALERTS.total,prox=ALERTS.proximos.length;
+  if(!n&&!prox){b.style.display='none';return;}
+  b.style.display='';
+  b.classList.toggle('late',ALERTS.atrasados.length>0);
+  c.textContent=n||prox;
+  b.title=ALERTS.atrasados.length+' atrasado(s) · '+ALERTS.hoje.length+' para hoje · '+prox+' nos próximos 3 dias';
+}
+
+function agItem(it){
+  const wa=waLink(it.whatsapp);
+  return '<div class="agi" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'
+    +'<div class="agn"><b>'+esc(it.nome)+'</b><span class="agr">'+esc(it.rot)+(it.etapa?' · '+esc(it.etapa):'')+'</span></div>'
+    +'<div class="agd">'+brDate(it.data)+'</div>'
+    +'<div class="aga">'+(wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">Zap</a>':'')
+    +'<button class="btn">Abrir</button></div></div>';
+}
+
+function openAlerts(){
+  const grupos=[['atrasados','Atrasados','late'],['hoje','Para hoje','today'],['proximos','Próximos 3 dias','soon']];
+  var html='';
+  grupos.forEach(function(g){
+    const arr=ALERTS[g[0]];
+    if(!arr.length)return;
+    html+='<div class="aggrp '+g[2]+'"><h4>'+g[1]+' <span>'+arr.length+'</span></h4>'+arr.map(agItem).join('')+'</div>';
+  });
+  if(!html)html='<div class="empty">Nenhum contato agendado para os próximos dias.</div>';
+  $('alist').innerHTML=html;
+  $('asub').textContent=currentUser+(ALERTS.total?' · '+ALERTS.total+' para acionar agora':' · em dia');
+  document.querySelectorAll('#alist .agi').forEach(function(el){
+    el.onclick=function(e){
+      if(e.target.tagName==='A')return;
+      closeAlerts();goToAlert(el.dataset.t,el.dataset.id);
+    };
+  });
+  $('aov').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+function closeAlerts(){
+  $('aov').classList.remove('open');
+  if(!$('ov').classList.contains('open'))document.body.classList.remove('modal-open');
+}
+async function goToAlert(t,id){
+  if(tab!==t)setTab(t);
+  if(!DATA[t])await loadTab();
+  const s=(DATA[t]||[]).find(function(x){return x.id===id;});
+  if(s)openModal(id);else toast('Registro não encontrado. Toque em ↻ para recarregar.');
+}
+$('abtn').onclick=openAlerts;
+$('aclose').onclick=closeAlerts;
+$('aok').onclick=closeAlerts;
+$('aov').onclick=function(e){if(e.target===$('aov'))closeAlerts();};
+
 function isAdmin(){
   const u=USERS.find(function(x){return x.nome===currentUser;});
   return !!(u&&u.admin);
@@ -1413,12 +1717,17 @@ function entrar(){
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
   $('tabEquipe').style.display=isAdmin()?'':'none';
   setTab('escolas');
+  loadAlerts().then(function(){
+    if(ALERTS.total>0)openAlerts();
+  });
 }
 
 $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
 $('logout').onclick=function(){
-  currentUser=null;safeSet('crmAuth','');showLogin();
+  currentUser=null;safeSet('crmAuth','');
+  ALERTS={atrasados:[],hoje:[],proximos:[],total:0};renderAlertBadge();
+  showLogin();
 };
 
 async function BOOT(){
