@@ -316,19 +316,27 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .tfbtns{grid-column:1/-1;display:flex;gap:6px;margin-top:4px}
 .tfbtns .btn{padding:5px 12px;font-size:12px}
 .tfbtns .spacer{flex:1}
+.tformpanel{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:12px;
+  background:#fff;padding:14px 15px;margin-bottom:18px;box-shadow:0 2px 10px rgba(26,26,26,.06)}
+.tformpanel>h5{font-family:'Poppins';font-size:11.5px;color:var(--blue);text-transform:uppercase;
+  letter-spacing:.4px;margin:0 0 10px}
+.tcell.editando{background:#EAF0FA;box-shadow:inset 3px 0 0 var(--blue)}
+@media(max-width:640px){.tformpanel .tform{grid-template-columns:1fr}}
 @media(max-width:640px){.tgrid{grid-template-columns:1fr}}
 .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:22px}
-table.tmap{border-collapse:collapse;width:100%;min-width:900px}
-table.tmap th,table.tmap td{border:1px solid var(--line);padding:0;vertical-align:top}
+table.tmap{border-collapse:collapse;width:100%;table-layout:fixed}
+table.tmap th,table.tmap td{border:1px solid var(--line);padding:0;vertical-align:top;width:158px;overflow:hidden}
+table.tmap tbody td{height:104px}
 table.tmap thead th{background:var(--blue);color:#fff;font-family:'Poppins';font-size:10.5px;font-weight:600;
   text-transform:uppercase;letter-spacing:.4px;padding:8px 6px;text-align:center;position:sticky;top:0;z-index:2}
 table.tmap thead th:first-child{left:0;z-index:3;background:var(--blue)}
-table.tmap td.thr,table.tmap th.thr{width:104px;min-width:104px;background:#F7F7F9;font-size:10.5px;font-weight:700;
+table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;background:#F7F7F9;font-size:10.5px;font-weight:700;
   color:var(--gray);text-align:center;padding:8px 5px;line-height:1.45;position:sticky;left:0;z-index:1;font-variant-numeric:tabular-nums}
 .tcap{font-family:'Poppins';font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;
   letter-spacing:.5px;margin:0 0 7px;display:flex;align-items:center;gap:8px}
 .tcap span{font-family:inherit;font-size:11px;font-weight:400;color:var(--gray);text-transform:none;letter-spacing:0}
-.tcell{padding:7px 8px;min-height:52px;height:100%}
+.tcell{padding:7px 8px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.tcell .cb{margin-top:auto}
 .tcell.vaga{background:#F1FAF5;box-shadow:inset 3px 0 0 #1E7A46}
 .tcell.cheia{background:#FFF4F7;box-shadow:inset 3px 0 0 var(--red)}
 .tcell .cn{font-family:'Poppins';font-weight:600;font-size:12px;color:var(--ink);line-height:1.3}
@@ -344,8 +352,9 @@ table.tmap td.thr,table.tmap th.thr{width:104px;min-width:104px;background:#F7F7
 .tviews .tchip{padding:5px 12px}
 @media(max-width:640px){
   .pane:has(table.tmap){padding-left:10px;padding-right:10px}
-  table.tmap{min-width:760px}
-  table.tmap td.thr,table.tmap th.thr{width:86px;min-width:86px;font-size:9.5px}
+  table.tmap th,table.tmap td{width:132px}
+  table.tmap tbody td{height:112px}
+  table.tmap td.thr,table.tmap th.thr{width:88px;min-width:88px;max-width:88px;font-size:9.5px}
   .tcell{padding:6px}
 }
 
@@ -3026,6 +3035,14 @@ function renderTurmas(){
 
   h+='<div class="tsum"><b>'+lista.length+'</b> turmas · <b>'+totAl+'</b> alunos · <b>'+comVaga+'</b> turmas com vaga (<b>'+vagasTot+'</b> vagas livres)</div>';
 
+  if(tEdit&&tView==='grade'){
+    var alvo=TURMAS.filter(function(x){return x.id===tEdit;})[0];
+    if(alvo){
+      h+='<div class="tformpanel"><h5>'+(alvo.__nova?'Nova turma':'Editando '+esc(alvo.curso)+(alvo.codigo?' · '+esc(alvo.codigo):''))+'</h5>';
+      h+=tCardForm(alvo)+'</div>';
+    }
+  }
+
   if(!lista.length){
     h+='<div class="empty">Nenhuma turma encontrada com esses filtros.</div>';
   }else if(tView==='grade'){
@@ -3044,7 +3061,7 @@ function tGrade(lista,adm){
   T_DIAS.forEach(function(d){
     /* usa TODAS as turmas do dia para montar a moldura, e marca as
        filtradas como atenuadas — assim a grade nao "pula" com filtro */
-    var todas=TURMAS.filter(function(t){return t.semestre===tSemestre&&t.dias===d;});
+    var todas=TURMAS.filter(function(t){return t.semestre===tSemestre&&t.dias===d&&!t.__nova;});
     if(!todas.length)return;
     var ids={};lista.forEach(function(t){ids[t.id]=1;});
     if(!todas.some(function(t){return ids[t.id];}))return;
@@ -3058,7 +3075,7 @@ function tGrade(lista,adm){
     var nDia=todas.filter(function(t){return ids[t.id];}).length;
 
     h+='<div class="tcap">'+esc(d)+' <span>'+nDia+' turma'+(nDia>1?'s':'')+'</span></div>';
-    h+='<div class="twrap"><table class="tmap"><thead><tr><th class="thr">Horários</th>';
+    h+='<div class="twrap"><table class="tmap" style="min-width:'+(112+salas.length*158)+'px"><thead><tr><th class="thr">Horários</th>';
     salas.forEach(function(sl){h+='<th>'+esc(sl)+'</th>';});
     h+='</tr></thead><tbody>';
 
@@ -3081,10 +3098,10 @@ function tGrade(lista,adm){
 }
 
 function tCelula(t,adm,dim){
-  if(tEdit===t.id)return tCardForm(t);
   var v=tVagas(t);
   var cls=t.sem_vaga?'cheia':(v>=9?'vaga':'');
-  if(dim)cls+=' dim';
+  if(tEdit===t.id)cls='editando';
+  else if(dim)cls+=' dim';
   var badge=t.sem_vaga
     ? '<span class="tbadge no">Sem vaga</span>'
     : (v>0?'<span class="tbadge'+(v>=9?' ok':'')+'">'+v+'</span>':'<span class="tbadge no">Lotada</span>');
@@ -3119,7 +3136,7 @@ function tLista(lista,adm){
 }
 
 function tCard(t,adm){
-  if(tEdit===t.id)return tCardForm(t);
+  if(tEdit===t.id)return '<div class="tcard" style="grid-column:1/-1">'+tCardForm(t)+'</div>';
   var v=tVagas(t);
   var cls=t.sem_vaga?'cheia':(v>=9?'vaga':'');
   var badge=t.sem_vaga
@@ -3141,7 +3158,7 @@ function tCardForm(t){
   function inp(k,l,tipo,full){
     return '<label class="'+(full?'full':'')+'">'+l+'<input type="'+(tipo||'text')+'" data-f="'+k+'" value="'+esc(t[k]==null?'':t[k])+'"></label>';
   }
-  var h='<div class="tcard" style="grid-column:1/-1"><div class="tform">';
+  var h='<div class="tform">';
   h+='<label>Dias<select data-f="dias">';
   T_DIAS.forEach(function(d){h+='<option value="'+d+'"'+(t.dias===d?' selected':'')+'>'+d+'</option>';});
   h+='</select></label>';
@@ -3159,7 +3176,7 @@ function tCardForm(t){
   h+='<button class="btn" id="tcancel">Cancelar</button>';
   h+='<div class="spacer"></div>';
   if(!nova)h+='<button class="btn" id="tdel" style="color:var(--red)">Excluir</button>';
-  h+='</div></div></div>';
+  h+='</div></div>';
   return h;
 }
 
