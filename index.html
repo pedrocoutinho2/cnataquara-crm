@@ -499,6 +499,21 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .agt.late{background:#FDECEF;color:var(--redDark)}
 .agt.today{background:#FFF6E2;color:#8A5A00}
 .agt.soon{background:#EAF0FA;color:var(--blue)}
+.agt.done{background:#E9F5EE;color:#1E7A46}
+.pvbox{border:1px solid var(--grayLine);border-radius:10px;padding:12px;margin:14px 0 0}
+.pvbox h4{margin:0 0 4px;font-size:14px;color:var(--blue)}
+.pvbox .pvsub{font-size:12px;color:var(--gray);margin:0 0 10px}
+.pvlist{display:flex;flex-direction:column;gap:6px}
+.pvi{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 8px;border-radius:8px;background:#F7F7F9}
+.pvi b{font-weight:600}
+.pvi .pvd{margin-left:auto;color:var(--gray);font-size:12px;white-space:nowrap}
+.pvi.late{background:#FDECEF}
+.pvi.ok{background:#E9F5EE}
+.pvi .pvr{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:#fff}
+.pvform{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.pvform .pvrow{display:flex;gap:8px;flex-wrap:wrap}
+.pvform select,.pvform input,.pvform textarea{flex:1;min-width:140px;font-size:16px;padding:9px 10px;border:1px solid var(--grayLine);border-radius:8px;font-family:inherit}
+.pvform textarea{min-height:60px;resize:vertical}
 .card.late{border-left:3px solid var(--red)}
 @media(max-width:860px){
   .abtn{padding:6px 9px}
@@ -603,6 +618,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
         </div>
         <div class="ilist" id="ilist"></div>
       </div>
+      <div class="pvbox" id="pvbox" style="display:none"></div>
     </div>
     <div class="mfoot">
       <button class="btn primary" id="save">Salvar</button>
@@ -784,12 +800,15 @@ const CFG={
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
+      {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
+      {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
+      {k:'turma',l:'Turma',t:'text'},
       {k:'motivo_perda',l:'Motivo da perda (se perdido)',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
       {k:'proximo_atendimento',l:'Próximo atendimento',t:'date'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','motivo_perda','ultimo_contato','proximo_atendimento','data_fechamento','observacoes']
+    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','data_fechamento','observacoes']
   }
 };
 
@@ -834,6 +853,7 @@ async function loadTab(force){
   $('board').innerHTML='<div class="loading">Carregando dados do Supabase...</div>';
   try{
     DATA[tab]=await api('/'+cfg.table+'?select=*&order=nome.asc');
+    if(tab==='leads')await loadTarefas();
     render();
   }catch(e){
     $('board').innerHTML='<div class="loading">Não foi possível carregar os dados. Verifique a conexão e toque em ↻ para tentar de novo.<br><small>'+esc(e.message).slice(0,180)+'</small></div>';
@@ -1003,6 +1023,8 @@ function cardEl(s,st,showStage){
     else if(_pd===_hj)agTag='<span class="agt today">&#9200; hoje</span>';
     else agTag='<span class="agt soon">&#9200; '+brDate(_pd).slice(0,5)+'</span>';
   }
+  var pvTag='';
+  if(tab==='leads'){const _pv=pvStatus(s);if(_pv)pvTag='<span class="agt '+_pv.cls+'">&#127891; '+esc(_pv.txt)+'</span>';}
   c.className='card'+(_pd&&_pd<_hj?' late':'');
   c.draggable=true;
   const pr=cfg.prios.find(function(p){return p[0]===s[cfg.prioField];})||cfg.prios[1];
@@ -1027,7 +1049,7 @@ function cardEl(s,st,showStage){
       '<span class="tag">'+esc((cfg.tipos.find(function(t){return t[0]===s[TF(cfg)];})||['',s[TF(cfg)]||''])[1])+'</span>'+
       (showStage?'<span class="stg" style="--sc:'+st.c+'">'+esc(st.n)+'</span>':'')+
       (dup?'<span class="dupw" title="Esse WhatsApp aparece em '+dup+' cadastros">⚠ '+dup+'x mesmo zap</span>':'')+
-      agTag+
+      agTag+pvTag+
     '</div>'+
     '<div class="acts">'+
       (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':(telD?'<a class="tel" href="tel:+'+(telD.length<=11?'55':'')+telD+'">Ligar</a>':''))+
@@ -1050,6 +1072,176 @@ function cardEl(s,st,showStage){
     openModal(s.id);
   });
   return c;
+}
+
+
+/* ================= Pós-venda (matrícula fechada) ================= */
+const NIVEIS=['Yard 1','Yard 2','Garden 1','Garden 2','Garden 3','Garden 4',
+  'Fun 1','Fun 2','Fun 3','Fun 4','Kids 1','Kids 2','Kids 3','Kids 4',
+  'Teen Up 1','Teen Up 2','Teen Up 3','Teen Up 4','Teen Up 5','Teen Up 6',
+  'Fly','Progression','Expansion','Gold','Platinum','Senior','Turbo','ACC',
+  'En Contacto 1','En Contacto 2','En Contacto 3','En Contacto 4','En Contacto 5','CAC'];
+
+/* off = dias em relação ao início das aulas · dir = para onde empurrar se cair em fim de semana */
+const PV=[
+  {tipo:'pos_venda_vespera',n:'Véspera do início',off:-1,dir:-1},
+  {tipo:'pos_venda_d7',n:'7 dias de aula',off:7,dir:1},
+  {tipo:'pos_venda_d14',n:'14 dias de aula',off:14,dir:1}
+];
+const PV_RESULT={ok:'Tudo certo',com_ressalva:'Com ressalva',risco_cancelamento:'Risco de cancelamento'};
+const PV_CANAL={ligacao:'Ligação',whatsapp:'WhatsApp',presencial:'Presencial'};
+let TAREFAS={};   /* lead_id -> [tarefa] */
+
+function pvNome(t){const x=PV.find(function(p){return p.tipo===t;});return x?x.n:'Pós-venda';}
+function dowISO(iso){const p=String(iso).split('-');return new Date(Date.UTC(+p[0],+p[1]-1,+p[2])).getUTCDay();}
+function ajustaFDS(iso,dir){
+  var d=iso,n=0;
+  while((dowISO(d)===0||dowISO(d)===6)&&n<3){d=addDias(d,dir>0?1:-1);n++;}
+  return d;
+}
+function calcPosVenda(inicio){
+  return PV.map(function(p){return {tipo:p.tipo,data:ajustaFDS(addDias(inicio,p.off),p.dir)};});
+}
+
+async function loadTarefas(){
+  try{
+    const rows=await api('/crm_tarefas?select=*&order=data_prevista.asc');
+    const m={};
+    (rows||[]).forEach(function(t){(m[t.lead_id]=m[t.lead_id]||[]).push(t);});
+    TAREFAS=m;
+  }catch(e){TAREFAS={};}
+}
+
+/* Cria ou realinha as tarefas do lead. Idempotente: unique (lead_id,tipo) no banco. */
+async function syncPosVenda(lead){
+  if(!lead||lead.etapa!=='fechado'||!lead.data_inicio_aulas)return;
+  const alvo=calcPosVenda(lead.data_inicio_aulas);
+  const atuais=TAREFAS[lead.id]||[];
+  const hoje=hojeISO();
+  for(var i=0;i<alvo.length;i++){
+    const a=alvo[i];
+    const ex=atuais.find(function(t){return t.tipo===a.tipo;});
+    if(ex){
+      if(ex.status==='concluida')continue;                 /* feita fica com a data original */
+      if(ex.status==='pendente'&&ex.data_prevista===a.data)continue;
+      try{
+        const r=await api('/crm_tarefas?id=eq.'+ex.id,{method:'PATCH',body:JSON.stringify({
+          status:'pendente',data_prevista:a.data,responsavel:ex.responsavel||lead.responsavel||currentUser,
+          updated_at:new Date().toISOString()})});
+        if(r&&r[0])Object.assign(ex,r[0]);
+      }catch(e){}
+      continue;
+    }
+    /* a véspera só nasce se ainda estiver no futuro */
+    if(a.tipo==='pos_venda_vespera'&&a.data<hoje)continue;
+    try{
+      const r=await api('/crm_tarefas',{method:'POST',body:JSON.stringify({
+        lead_id:lead.id,tipo:a.tipo,data_prevista:a.data,
+        responsavel:lead.responsavel||currentUser,status:'pendente'})});
+      if(r&&r[0])atuais.push(r[0]);
+    }catch(e){}
+  }
+  TAREFAS[lead.id]=atuais;
+}
+
+/* Lead saiu de "Matrícula fechada": pendências deixam de fazer sentido. */
+async function cancelPosVenda(lead){
+  if(!lead)return;
+  const atuais=(TAREFAS[lead.id]||[]).filter(function(t){return t.status==='pendente';});
+  for(var i=0;i<atuais.length;i++){
+    try{
+      await api('/crm_tarefas?id=eq.'+atuais[i].id,{method:'PATCH',body:JSON.stringify({status:'cancelada',updated_at:new Date().toISOString()})});
+      atuais[i].status='cancelada';
+    }catch(e){}
+  }
+}
+
+/* Sub-status mostrado no card da coluna Matrícula fechada */
+function pvStatus(lead){
+  if(!lead||lead.etapa!=='fechado')return null;
+  if(!lead.data_inicio_aulas)return {txt:'Definir início das aulas',cls:'late'};
+  const ts=(TAREFAS[lead.id]||[]).filter(function(t){return t.status==='pendente';})
+    .sort(function(a,b){return a.data_prevista<b.data_prevista?-1:1;});
+  if(!ts.length)return {txt:'Pós-venda concluído',cls:'done'};
+  const t=ts[0],hj=hojeISO();
+  return {txt:pvNome(t.tipo)+' · '+brDate(t.data_prevista).slice(0,5),
+          cls:t.data_prevista<hj?'late':(t.data_prevista===hj?'today':'soon')};
+}
+
+function renderPV(lead){
+  const box=$('pvbox');
+  if(!box)return;
+  if(!lead||lead.etapa!=='fechado'){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='';
+  if(!lead.data_inicio_aulas){
+    box.innerHTML='<h4>Pós-venda</h4><p class="pvsub">Preencha <b>Início das aulas</b>, <b>Nível</b> e <b>Turma</b> acima e salve. '
+      +'Os três contatos (véspera, 7 e 14 dias) são agendados automaticamente.</p>';
+    return;
+  }
+  const ts=(TAREFAS[lead.id]||[]).slice().sort(function(a,b){return a.data_prevista<b.data_prevista?-1:1;});
+  const hj=hojeISO();
+  const linhas=ts.filter(function(t){return t.status!=='cancelada';}).map(function(t){
+    const done=t.status==='concluida';
+    const cls=done?'ok':(t.data_prevista<hj?'late':'');
+    return '<div class="pvi '+cls+'"><b>'+esc(pvNome(t.tipo))+'</b>'
+      +(done?'<span class="pvr">'+esc(PV_RESULT[t.resultado]||'feito')+'</span>':'')
+      +(done&&t.canal?'<span class="pvr">'+esc(PV_CANAL[t.canal]||t.canal)+'</span>':'')
+      +'<span class="pvd">'+brDate(t.data_prevista)+'</span></div>';
+  }).join('');
+  const prox=ts.filter(function(t){return t.status==='pendente';})[0];
+  var form='';
+  if(prox){
+    form='<div class="pvform" data-tid="'+esc(prox.id)+'">'
+      +'<div class="pvrow"><b style="flex:0 0 100%;font-size:13px">Registrar: '+esc(pvNome(prox.tipo))+'</b></div>'
+      +'<div class="pvrow">'
+      +'<select id="pvres"><option value="">Como foi?</option>'
+      +'<option value="ok">Tudo certo</option>'
+      +'<option value="com_ressalva">Com ressalva</option>'
+      +'<option value="risco_cancelamento">Risco de cancelamento</option></select>'
+      +'<select id="pvcanal"><option value="">Canal (opcional)</option>'
+      +'<option value="ligacao">Ligação</option><option value="whatsapp">WhatsApp</option>'
+      +'<option value="presencial">Presencial</option></select>'
+      +'</div>'
+      +'<textarea id="pvobs" placeholder="O que o aluno falou? (obrigatório quando não for tudo certo)"></textarea>'
+      +'<div class="pvrow"><button class="btn primary" id="pvok">Registrar contato</button></div>'
+      +'</div>';
+  }
+  box.innerHTML='<h4>Pós-venda</h4>'
+    +'<p class="pvsub">Início das aulas '+brDate(lead.data_inicio_aulas)
+    +(lead.nivel?' · '+esc(lead.nivel):'')+(lead.turma?' · turma '+esc(lead.turma):'')
+    +' · responsável '+esc((ts[0]&&ts[0].responsavel)||lead.responsavel||'—')+'</p>'
+    +'<div class="pvlist">'+(linhas||'<div class="pvi">Nenhuma tarefa aberta</div>')+'</div>'
+    +(form||'<p class="pvsub" style="margin:10px 0 0">Pós-venda concluído.</p>');
+  if(prox){$('pvok').onclick=function(){pvConcluir(lead,prox.id);};}
+}
+
+async function pvConcluir(lead,tid){
+  const btn=$('pvok');
+  if(!btn||btn.disabled)return;
+  const res=$('pvres').value,canal=$('pvcanal').value,obs=$('pvobs').value.trim();
+  if(!res){toast('Escolha como foi o contato.');return;}
+  if(res!=='ok'&&!obs){toast('Descreva o que aconteceu antes de registrar.');return;}
+  btn.disabled=true;const lbl=btn.textContent;btn.textContent='Registrando…';
+  const t=(TAREFAS[lead.id]||[]).find(function(x){return x.id===tid;});
+  try{
+    const r=await api('/crm_tarefas?id=eq.'+tid,{method:'PATCH',body:JSON.stringify({
+      status:'concluida',resultado:res,canal:canal||null,observacao:obs||null,
+      concluida_em:new Date().toISOString(),concluida_por:currentUser,
+      updated_at:new Date().toISOString()})});
+    if(t&&r&&r[0])Object.assign(t,r[0]);
+    /* o histórico do lead continua sendo a fonte única de verdade */
+    try{
+      await api('/crm_leads_interacoes',{method:'POST',body:JSON.stringify({
+        lead_id:lead.id,data:hojeISO(),autor:currentUser,tipo:canal==='presencial'?'visita':(canal||'nota'),
+        efetivo:true,nota:'Pós-venda ('+pvNome(t?t.tipo:'')+') · '+(PV_RESULT[res]||res)+(obs?' · '+obs:'')})});
+      loadInts(lead.id);
+    }catch(e){}
+    if(res==='risco_cancelamento')toast('Risco de cancelamento registrado. Avise a coordenação hoje.');
+    else toast('Pós-venda registrado.');
+    renderPV(lead);render();loadAlerts();
+  }catch(e){
+    toast('Não foi possível registrar. Tente de novo.');
+  }finally{if($('pvok')){$('pvok').disabled=false;$('pvok').textContent=lbl;}}
 }
 
 /* ================= Ações ================= */
@@ -1077,6 +1269,12 @@ async function moveTo(id,stage){
   try{
     await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
     if(tab==='leads')logEtapa(id,stage);
+    if(tab==='leads'){
+      if(stage==='fechado'){
+        if(!s.data_inicio_aulas){toast('Informe início das aulas, nível e turma para abrir o pós-venda.');openModal(id);}
+        else{await syncPosVenda(s);render();}
+      }else if(old==='fechado'){await cancelPosVenda(s);render();}
+    }
     if(tab==='leads'&&stage==='perdido'&&!s.motivo_perda){
       toast('Registre o motivo da perda na ficha.');
       openModal(id);
@@ -1122,6 +1320,7 @@ function openModal(id){
   $('ints').style.display=s?'':'none';
   resetIntPanes();
   if(s)loadInts(s.id);
+  renderPV(tab==='leads'?s:null);
   $('ov').classList.add('open');
   document.body.classList.add('modal-open');
   const mb=document.querySelector('.mbody');
@@ -1311,6 +1510,13 @@ $('save').onclick=async function(){
       const res=await api('/'+cfg.table,{method:'POST',body:JSON.stringify(body)});
       if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';
         if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');}
+    }
+    if(tab==='leads'&&editing){
+      const cur=(DATA.leads||[]).find(function(x){return x.id===editing;});
+      if(cur){
+        if(cur.etapa==='fechado')await syncPosVenda(cur);else await cancelPosVenda(cur);
+        renderPV(cur);loadAlerts();
+      }
     }
     render();
     $('savedmsg').style.display='inline';
@@ -1646,6 +1852,31 @@ async function loadAlerts(){
       });
     }catch(e){}
   }
+  try{
+    const qs='status=eq.pendente&data_prevista=lte.'+limite
+      +'&responsavel=eq.'+encodeURIComponent(currentUser)+'&order=data_prevista.asc';
+    var tr=null,emb=true;
+    try{ tr=await api('/crm_tarefas?select=*,crm_leads(nome,whatsapp,etapa)&'+qs); }
+    catch(e){ emb=false; }
+    if(!emb){
+      /* fallback: se o embed do PostgREST nao estiver disponivel, resolve os leads a parte */
+      tr=await api('/crm_tarefas?select=*&'+qs);
+      const ids=(tr||[]).map(function(t){return t.lead_id;});
+      var mp={};
+      if(ids.length){
+        const lds=await api('/crm_leads?select=id,nome,whatsapp,etapa&id=in.('+ids.join(',')+')');
+        (lds||[]).forEach(function(l){mp[l.id]=l;});
+      }
+      (tr||[]).forEach(function(t){t.crm_leads=mp[t.lead_id]||null;});
+    }
+    (tr||[]).forEach(function(t){
+      const L=t.crm_leads||{};
+      if(L.etapa!=='fechado')return;
+      const item={tab:'leads',id:t.lead_id,nome:L.nome||'Lead',whatsapp:L.whatsapp,
+        data:t.data_prevista,rot:'Pós-venda',etapa:pvNome(t.tipo)};
+      if(t.data_prevista<hoje)at.push(item);else if(t.data_prevista===hoje)hj.push(item);else px.push(item);
+    });
+  }catch(e){}
   at.sort(function(a,b){return a.data<b.data?-1:1;});
   ALERTS={atrasados:at,hoje:hj,proximos:px,total:at.length+hj.length};
   renderAlertBadge();
