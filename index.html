@@ -913,8 +913,8 @@ const CFG={
       {k:'etapa',l:'Etapa do funil',t:'stage'},
       {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
       {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
-      {k:'turma',l:'Turma',t:'text'},
-      {k:'motivo_perda',l:'Motivo da perda (se perdido)',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
+      {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
+      {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
       {k:'proximo_atendimento',l:'Próximo atendimento',t:'datetime',hk:'proximo_atendimento_hora'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
@@ -1425,11 +1425,16 @@ function openModal(id){
         +'<div class="dtwrap"><input type="date" data-k="'+f.k+'" value="'+esc(v)+'">'
         +'<input type="time" step="900" data-k="'+f.hk+'" value="'+esc(hv)
         +'" class="'+(v&&!hv?'need':'')+'"></div>';
+    }else if(f.t==='turmas'){
+      inner+='<select data-k="'+f.k+'" class="selturma">'
+        +'<option value="'+esc(v)+'" selected>'+esc(v||'— sem turma —')+'</option></select>';
     }else{
       inner+='<input data-k="'+f.k+'" value="'+esc(v)+'">';
     }
     d.innerHTML=inner;
+    if(f.k==='motivo_perda')d.id='fPerda';
     form.appendChild(d);
+    if(f.t==='turmas')fillTurmas(d.querySelector('select'),v);
   });
   form.querySelectorAll('.dtwrap').forEach(function(w){
     const di=w.querySelector('input[type=date]'),hi=w.querySelector('input[type=time]');
@@ -1438,6 +1443,9 @@ function openModal(id){
     hi.addEventListener('change',marca);
     hi.addEventListener('input',marca);
   });
+  const selEt=form.querySelector('[data-k=etapa]');
+  if(selEt)selEt.addEventListener('change',syncPerda);
+  syncPerda();
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -1449,6 +1457,60 @@ function openModal(id){
   document.body.classList.add('modal-open');
   const mb=document.querySelector('.mbody');
   if(mb)mb.scrollTop=0;
+}
+
+/* Motivo da perda so existe quando a etapa e' "perdido"; fora disso fica nulo */
+function syncPerda(){
+  const w=$('fPerda');
+  if(!w)return;
+  const se=document.querySelector('#form [data-k=etapa]');
+  const perdido=!!se&&se.value==='perdido';
+  w.style.display=perdido?'':'none';
+  const mp=w.querySelector('[data-k=motivo_perda]');
+  if(mp&&!perdido)mp.value='';
+}
+
+/* Lista de turmas do mapa, agrupada por nivel, para o campo Turma da ficha do lead */
+var TCACHE=null;
+async function turmasCache(){
+  if(TCACHE)return TCACHE;
+  try{
+    TCACHE=await api('/crm_turmas?select=curso,dias,horario,sala,professor,alunos,capacidade,sem_vaga,semestre'
+      +'&ativa=eq.true&order=curso.asc,dias.asc,horario.asc')||[];
+  }catch(e){TCACHE=[];}
+  return TCACHE;
+}
+function turmaValor(t){
+  return (t.curso||'?')+' · '+(t.dias||'')+' '+(t.horario||'')+' · '+(t.sala||'');
+}
+async function fillTurmas(sel,atual){
+  if(!sel)return;
+  const rows=await turmasCache();
+  const sem=(typeof tSemestre!=='undefined'&&tSemestre)?tSemestre:null;
+  const lista=rows.filter(function(t){return !sem||t.semestre===sem;});
+  const grupos={},ordem=[];
+  lista.forEach(function(t){
+    const g=String(t.curso||'Sem nível').toUpperCase();
+    if(!grupos[g]){grupos[g]=[];ordem.push(g);}
+    grupos[g].push(t);
+  });
+  ordem.sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+  var achou=false,h='<option value="">— sem turma —</option>';
+  ordem.forEach(function(g){
+    h+='<optgroup label="'+esc(g)+'">';
+    grupos[g].forEach(function(t){
+      const val=turmaValor(t);
+      if(val===atual)achou=true;
+      const vg=t.sem_vaga?0:Math.max(0,(t.capacidade||16)-(t.alunos||0));
+      const rot=(t.dias||'')+' '+(t.horario||'')+' · '+(t.sala||'')
+        +(t.professor?' · '+t.professor:'')
+        +' · '+(vg>0?vg+(vg>1?' vagas':' vaga'):'sem vaga');
+      h+='<option value="'+esc(val)+'"'+(val===atual?' selected':'')+'>'+esc(rot)+'</option>';
+    });
+    h+='</optgroup>';
+  });
+  if(atual&&!achou)h='<option value="'+esc(atual)+'" selected>'+esc(atual)+' (fora do mapa)</option>'+h;
+  sel.innerHTML=h;
 }
 
 function closeModal(){
@@ -1614,6 +1676,10 @@ $('save').onclick=async function(){
     body[el.getAttribute('data-k')]=el.value.trim()===''?null:el.value.trim();
   });
   if(!body.nome){toast('O nome é obrigatório.');return;}
+  if(tab==='leads'){
+    if(body.etapa!=='perdido')body.motivo_perda=null;
+    else if(!body.motivo_perda){toast('Escolha o motivo da perda.');syncPerda();return;}
+  }
   var semHora=null;
   cfg.fields.forEach(function(f){
     if(f.t!=='datetime')return;
@@ -3342,10 +3408,12 @@ async function tSalvar(){
   try{
     if(atual&&atual.__nova){
       o.semestre=tSemestre;o.ativa=true;
+      TCACHE=null;
       await api('/crm_turmas',{method:'POST',body:JSON.stringify(o)});
       toast('Turma criada.');
     }else{
       o.atualizado_em=new Date().toISOString();
+      TCACHE=null;
       await api('/crm_turmas?id=eq.'+tEdit,{method:'PATCH',body:JSON.stringify(o)});
       toast('Turma atualizada.');
     }
@@ -3359,6 +3427,7 @@ async function tSalvar(){
 async function tExcluir(){
   if(!confirm('Excluir esta turma do mapa?'))return;
   try{
+    TCACHE=null;
     await api('/crm_turmas?id=eq.'+tEdit,{method:'DELETE'});
     toast('Turma excluída.');
   }catch(e){toast('Erro ao excluir: '+e.message);return;}
