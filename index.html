@@ -317,6 +317,37 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .tfbtns .btn{padding:5px 12px;font-size:12px}
 .tfbtns .spacer{flex:1}
 @media(max-width:640px){.tgrid{grid-template-columns:1fr}}
+.twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:22px}
+table.tmap{border-collapse:collapse;width:100%;min-width:900px}
+table.tmap th,table.tmap td{border:1px solid var(--line);padding:0;vertical-align:top}
+table.tmap thead th{background:var(--blue);color:#fff;font-family:'Poppins';font-size:10.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.4px;padding:8px 6px;text-align:center;position:sticky;top:0;z-index:2}
+table.tmap thead th:first-child{left:0;z-index:3;background:var(--blue)}
+table.tmap td.thr,table.tmap th.thr{width:104px;min-width:104px;background:#F7F7F9;font-size:10.5px;font-weight:700;
+  color:var(--gray);text-align:center;padding:8px 5px;line-height:1.45;position:sticky;left:0;z-index:1;font-variant-numeric:tabular-nums}
+.tcap{font-family:'Poppins';font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;
+  letter-spacing:.5px;margin:0 0 7px;display:flex;align-items:center;gap:8px}
+.tcap span{font-family:inherit;font-size:11px;font-weight:400;color:var(--gray);text-transform:none;letter-spacing:0}
+.tcell{padding:7px 8px;min-height:52px;height:100%}
+.tcell.vaga{background:#F1FAF5;box-shadow:inset 3px 0 0 #1E7A46}
+.tcell.cheia{background:#FFF4F7;box-shadow:inset 3px 0 0 var(--red)}
+.tcell .cn{font-family:'Poppins';font-weight:600;font-size:12px;color:var(--ink);line-height:1.3}
+.tcell .cc{font-size:10.5px;color:var(--gray);font-variant-numeric:tabular-nums}
+.tcell .cp{font-size:11px;color:var(--gray);margin-top:2px}
+.tcell .cb{margin-top:4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tcell .cq{font-size:10.5px;color:var(--gray);font-variant-numeric:tabular-nums}
+.tcell .ce{margin-top:5px}
+.tcell .ce .btn{padding:2px 7px;font-size:10px}
+.tcell.dim{opacity:.22}
+.tcell.empty{background:#FCFCFD}
+.tviews{display:flex;gap:6px;margin-left:auto}
+.tviews .tchip{padding:5px 12px}
+@media(max-width:640px){
+  .pane:has(table.tmap){padding-left:10px;padding-right:10px}
+  table.tmap{min-width:760px}
+  table.tmap td.thr,table.tmap th.thr{width:86px;min-width:86px;font-size:9.5px}
+  .tcell{padding:6px}
+}
 
 /* ===== Mural e Calculadora ===== */
 .pane{max-width:920px;margin:0 auto;padding:4px 18px 30px;flex:1;overflow-y:auto;width:100%}
@@ -2935,6 +2966,29 @@ function tFiltradas(){
   });
 }
 
+var tView='grade';
+var T_SALAS=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','AUDITÓRIO','GARDEN'];
+
+function tMin(hr){
+  var m=String(hr||'').match(/(\d{1,2}):(\d{2})/);
+  return m?(parseInt(m[1],10)*60+parseInt(m[2],10)):0;
+}
+
+/* agrupa horarios proximos na mesma linha, como na planilha
+   (ex.: "17:45 - 19:10" e "18:00 - 19:00" sao a mesma faixa) */
+function tFaixas(turmas){
+  var hs=[];
+  turmas.forEach(function(t){if(hs.indexOf(t.horario)<0)hs.push(t.horario);});
+  hs.sort(function(a,b){return tMin(a)-tMin(b);});
+  var out=[];
+  hs.forEach(function(h){
+    var ult=out[out.length-1];
+    if(ult&&tMin(h)-tMin(ult.horarios[0])<=20){ult.horarios.push(h);}
+    else{out.push({horarios:[h]});}
+  });
+  return out;
+}
+
 function renderTurmas(){
   var adm=isAdmin();
   var lista=tFiltradas();
@@ -2947,10 +3001,13 @@ function renderTurmas(){
 
   var h='<div class="pane">';
   h+='<div class="paneh"><h3>Mapa de turmas '+esc(tSemestre)+'</h3>';
-  if(adm)h+='<button class="btn primary" id="tnova">+ Nova turma</button>';
+  h+='<div class="tviews">';
+  h+='<button class="tchip'+(tView==='grade'?' on':'')+'" data-view="grade">Grade</button>';
+  h+='<button class="tchip'+(tView==='lista'?' on':'')+'" data-view="lista">Lista</button>';
+  h+='</div>';
+  if(adm)h+='<button class="btn primary" id="tnova" style="margin-left:8px">+ Nova turma</button>';
   h+='</div>';
 
-  /* filtros */
   h+='<div class="tfilters">';
   h+='<input type="text" id="tq" placeholder="Buscar curso, código, professor ou sala..." value="'+esc(tBusca)+'">';
   h+='<select id="tprof"><option value="">Todos os professores</option>';
@@ -2971,27 +3028,94 @@ function renderTurmas(){
 
   if(!lista.length){
     h+='<div class="empty">Nenhuma turma encontrada com esses filtros.</div>';
+  }else if(tView==='grade'){
+    h+=tGrade(lista,adm);
   }else{
-    T_DIAS.forEach(function(d){
-      var doDia=lista.filter(function(t){return t.dias===d;});
-      if(!doDia.length)return;
-      h+='<div class="tblock"><h4>'+esc(d)+'</h4>';
-      var horas=[];
-      doDia.forEach(function(t){if(horas.indexOf(t.horario)<0)horas.push(t.horario);});
-      horas.sort();
-      horas.forEach(function(hr){
-        h+='<div class="thora">'+esc(hr)+'</div><div class="tgrid">';
-        doDia.filter(function(t){return t.horario===hr;}).forEach(function(t){
-          h+=tCard(t,adm);
-        });
-        h+='</div>';
-      });
-      h+='</div>';
-    });
+    h+=tLista(lista,adm);
   }
   h+='</div>';
   $('board').innerHTML=h;
   tBind();
+}
+
+/* ---- visão grade: uma tabela por bloco de dias, salas nas colunas ---- */
+function tGrade(lista,adm){
+  var h='';
+  T_DIAS.forEach(function(d){
+    /* usa TODAS as turmas do dia para montar a moldura, e marca as
+       filtradas como atenuadas — assim a grade nao "pula" com filtro */
+    var todas=TURMAS.filter(function(t){return t.semestre===tSemestre&&t.dias===d;});
+    if(!todas.length)return;
+    var ids={};lista.forEach(function(t){ids[t.id]=1;});
+    if(!todas.some(function(t){return ids[t.id];}))return;
+
+    var salas=T_SALAS.filter(function(sl){
+      return todas.some(function(t){return t.sala===sl;});
+    });
+    todas.forEach(function(t){if(salas.indexOf(t.sala)<0)salas.push(t.sala);});
+
+    var faixas=tFaixas(todas);
+    var nDia=todas.filter(function(t){return ids[t.id];}).length;
+
+    h+='<div class="tcap">'+esc(d)+' <span>'+nDia+' turma'+(nDia>1?'s':'')+'</span></div>';
+    h+='<div class="twrap"><table class="tmap"><thead><tr><th class="thr">Horários</th>';
+    salas.forEach(function(sl){h+='<th>'+esc(sl)+'</th>';});
+    h+='</tr></thead><tbody>';
+
+    faixas.forEach(function(f){
+      h+='<tr><td class="thr">'+f.horarios.map(esc).join('<br>')+'</td>';
+      salas.forEach(function(sl){
+        var nesta=todas.filter(function(t){
+          return t.sala===sl && f.horarios.indexOf(t.horario)>-1;
+        });
+        if(!nesta.length){h+='<td><div class="tcell empty"></div></td>';return;}
+        h+='<td>';
+        nesta.forEach(function(t){h+=tCelula(t,adm,!ids[t.id]);});
+        h+='</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  return h;
+}
+
+function tCelula(t,adm,dim){
+  if(tEdit===t.id)return tCardForm(t);
+  var v=tVagas(t);
+  var cls=t.sem_vaga?'cheia':(v>=9?'vaga':'');
+  if(dim)cls+=' dim';
+  var badge=t.sem_vaga
+    ? '<span class="tbadge no">Sem vaga</span>'
+    : (v>0?'<span class="tbadge'+(v>=9?' ok':'')+'">'+v+'</span>':'<span class="tbadge no">Lotada</span>');
+  var h='<div class="tcell '+cls+'">';
+  h+='<div class="cn">'+esc(t.curso)+(t.codigo?' <span class="cc">'+esc(t.codigo)+'</span>':'')+'</div>';
+  h+='<div class="cp">'+esc(t.professor||'sem professor')+'</div>';
+  h+='<div class="cb"><span class="cq">'+(t.alunos||0)+'/'+(t.capacidade||16)+'</span>'+badge+'</div>';
+  if(t.obs)h+='<div class="tobs">'+esc(t.obs)+'</div>';
+  if(adm)h+='<div class="ce"><button class="btn" data-ed="'+t.id+'">Editar</button></div>';
+  h+='</div>';
+  return h;
+}
+
+/* ---- visão lista (mantida) ---- */
+function tLista(lista,adm){
+  var h='';
+  T_DIAS.forEach(function(d){
+    var doDia=lista.filter(function(t){return t.dias===d;});
+    if(!doDia.length)return;
+    h+='<div class="tblock"><h4>'+esc(d)+'</h4>';
+    var horas=[];
+    doDia.forEach(function(t){if(horas.indexOf(t.horario)<0)horas.push(t.horario);});
+    horas.sort(function(a,b){return tMin(a)-tMin(b);});
+    horas.forEach(function(hr){
+      h+='<div class="thora">'+esc(hr)+'</div><div class="tgrid">';
+      doDia.filter(function(t){return t.horario===hr;}).forEach(function(t){h+=tCard(t,adm);});
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  return h;
 }
 
 function tCard(t,adm){
@@ -3044,6 +3168,9 @@ function tBind(){
   if(q)q.oninput=function(){tBusca=q.value;var p=q.selectionStart;renderTurmas();var n=$('tq');if(n){n.focus();try{n.setSelectionRange(p,p);}catch(_){}}};
   var pr=$('tprof');
   if(pr)pr.onchange=function(){tFiltroProf=pr.value;renderTurmas();};
+  document.querySelectorAll('.tchip[data-view]').forEach(function(b){
+    b.onclick=function(){tView=b.dataset.view;renderTurmas();};
+  });
   var vg=$('tvaga');
   if(vg)vg.onclick=function(){tSoVaga=!tSoVaga;renderTurmas();};
   document.querySelectorAll('.tchip[data-dia]').forEach(function(b){
