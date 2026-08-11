@@ -590,6 +590,12 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .nesched label b{color:var(--red)}
 .nesched input{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .nesched input.ok{border-color:var(--line)!important;background:var(--white)!important}
+.dtwrap{display:flex;gap:6px}
+.dtwrap input{width:100%;min-width:0}
+.dtwrap input[type=date]{flex:1 1 58%}
+.dtwrap input[type=time]{flex:1 1 42%}
+.dtwrap input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
+.f label b.req{color:var(--red)}
 .iadd .btn:disabled{opacity:.45;cursor:not-allowed}
 .int.ne{background:#FDF6F7;border-left:3px solid var(--dangerLine)}
 .itipo.nef{background:var(--pastelRed);color:var(--redDark);font-weight:700}
@@ -695,7 +701,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
             <option value="reuniao">Reunião</option>
           </select>
           <input id="iresumo" placeholder="O que aconteceu nesse contato?">
-          <div class="nesched"><label>Próximo contato</label><input type="date" id="iprox" class="ok"></div>
+          <div class="nesched"><label>Próximo contato (data e hora)</label><div class="dtwrap"><input type="date" id="iprox" class="ok"><input type="time" step="900" id="iproxh" class="ok"></div></div>
           <button class="btn primary" id="iadd">Registrar</button>
         </div>
         <div class="iadd ne" id="paneNe" style="display:none">
@@ -716,7 +722,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
             <option value="ausente">Decisor ausente</option>
           </select>
           <input id="neobs" placeholder="Observação (opcional)">
-          <div class="nesched"><label>Próximo contato <b>*</b></label><input type="date" id="nedata"></div>
+          <div class="nesched"><label>Próximo contato: data e hora <b>*</b></label><div class="dtwrap"><input type="date" id="nedata"><input type="time" step="900" id="nedatah"></div></div>
           <button class="btn primary" id="neadd" disabled>Registrar e agendar</button>
         </div>
         <div class="ilist" id="ilist"></div>
@@ -815,7 +821,7 @@ const CFG={
     prioField:'prioridade',prioLabel:'Prioridade',tipoLabel:'Tipo',
     prios:[['alta','Alta','p1'],['media','Média','p2'],['baixa','Baixa','p3']],
     tipos:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']],
-    sub:function(s){var pc=s.proximo_contato?s.proximo_contato.split('-').reverse().slice(0,2).join('/'):'';return (s.bairro||'')+(pc?(s.bairro?' · ':'')+'⏰ '+pc:'');},
+    sub:function(s){var pc=agLabel(s.proximo_contato,s.proximo_contato_hora);return (s.bairro||'')+(pc?(s.bairro?' · ':'')+'⏰ '+pc:'');},
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'tipo',l:'Tipo',t:'select',opts:[['colegio','Colégio'],['infantil','Ed. Infantil'],['benchmark','Benchmark']]},
@@ -834,10 +840,10 @@ const CFG={
       {k:'decisor',l:'Decisor',t:'text'},
       {k:'ingles_atual',l:'Inglês atual',t:'text'},
       {k:'mensalidade',l:'Mensalidade',t:'text'},
-      {k:'proximo_contato',l:'Próximo contato agendado',t:'date'},
+      {k:'proximo_contato',l:'Próximo contato agendado',t:'datetime',hk:'proximo_contato_hora'},
       {k:'notas',l:'Notas',t:'textarea',full:true}
     ],
-    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','proximo_contato','notas']
+    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','proximo_contato','proximo_contato_hora','notas']
   },
   empresas:{
     table:'crm_empresas',fk:'empresa_id',one:'empresa',plural:'Empresas',addLabel:'+ Nova empresa',addShort:'+ Empresa',
@@ -853,7 +859,7 @@ const CFG={
     prioField:'potencial',prioLabel:'Potencial',tipoLabel:'Tipo',
     prios:[['alto','Alto','p1'],['medio','Médio','p2'],['baixo','Baixo','p3']],
     tipos:[['in_company','CNA na Empresa'],['multiempresa','Multiempresa']],
-    sub:function(s){var pc=s.proximo_contato?s.proximo_contato.split('-').reverse().slice(0,2).join('/'):'';return (s.categoria||'')+(pc?(s.categoria?' · ':'')+'⏰ '+pc:'');},
+    sub:function(s){var pc=agLabel(s.proximo_contato,s.proximo_contato_hora);return (s.categoria||'')+(pc?(s.categoria?' · ':'')+'⏰ '+pc:'');},
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'categoria',l:'Categoria',t:'text'},
@@ -870,10 +876,10 @@ const CFG={
       {k:'contato_cargo',l:'Contato (cargo)',t:'text'},
       {k:'argumento',l:'Argumento de venda',t:'textarea',full:true},
       {k:'proximo_passo',l:'Próximo passo',t:'text',full:true},
-      {k:'proximo_contato',l:'Próximo contato agendado',t:'date'},
+      {k:'proximo_contato',l:'Próximo contato agendado',t:'datetime',hk:'proximo_contato_hora'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','proximo_contato','observacoes']
+    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','proximo_contato','proximo_contato_hora','observacoes']
   }  ,
   leads:{
     table:'crm_leads',fk:'lead_id',one:'lead',plural:'Leads',addLabel:'+ Novo lead',addShort:'+ Lead',
@@ -894,7 +900,7 @@ const CFG={
     tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']],
     sub:function(s){
       var d=s.data_entrada?s.data_entrada.split('-').reverse().join('/'):'';
-      var pa=s.proximo_atendimento?s.proximo_atendimento.split('-').reverse().slice(0,2).join('/'):'';
+      var pa=agLabel(s.proximo_atendimento,s.proximo_atendimento_hora);
       return (s.origem||'')+(d?' · '+d:'')+(pa?' · ⏰ '+pa:'');
     },
     fields:[
@@ -910,10 +916,10 @@ const CFG={
       {k:'turma',l:'Turma',t:'text'},
       {k:'motivo_perda',l:'Motivo da perda (se perdido)',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
-      {k:'proximo_atendimento',l:'Próximo atendimento',t:'date'},
+      {k:'proximo_atendimento',l:'Próximo atendimento',t:'datetime',hk:'proximo_atendimento_hora'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','data_fechamento','observacoes']
+    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','data_fechamento','observacoes']
   }
 };
 
@@ -1291,7 +1297,7 @@ function renderPV(lead){
     return '<div class="pvi '+cls+'"><b>'+esc(pvNome(t.tipo))+'</b>'
       +(done?'<span class="pvr">'+esc(PV_RESULT[t.resultado]||'feito')+'</span>':'')
       +(done&&t.canal?'<span class="pvr">'+esc(PV_CANAL[t.canal]||t.canal)+'</span>':'')
-      +'<span class="pvd">'+brDate(t.data_prevista)+'</span></div>';
+      +'<span class="pvd">'+brDate(t.data_prevista)+(t.hora_prevista?' '+String(t.hora_prevista).slice(0,5):'')+'</span></div>';
   }).join('');
   const prox=ts.filter(function(t){return t.status==='pendente';})[0];
   var form='';
@@ -1413,11 +1419,24 @@ function openModal(id){
     }else if(f.t==='date'){
       const dv=v||(s?'':(f.def?f.def():''));
       inner+='<input type="date" data-k="'+f.k+'" value="'+esc(dv)+'">';
+    }else if(f.t==='datetime'){
+      const hv=s?(s[f.hk]==null?'':String(s[f.hk]).slice(0,5)):'';
+      inner='<label>'+esc(f.l)+' <b class="req">*</b></label>'
+        +'<div class="dtwrap"><input type="date" data-k="'+f.k+'" value="'+esc(v)+'">'
+        +'<input type="time" step="900" data-k="'+f.hk+'" value="'+esc(hv)
+        +'" class="'+(v&&!hv?'need':'')+'"></div>';
     }else{
       inner+='<input data-k="'+f.k+'" value="'+esc(v)+'">';
     }
     d.innerHTML=inner;
     form.appendChild(d);
+  });
+  form.querySelectorAll('.dtwrap').forEach(function(w){
+    const di=w.querySelector('input[type=date]'),hi=w.querySelector('input[type=time]');
+    const marca=function(){hi.classList.toggle('need',!!di.value&&!hi.value);};
+    di.addEventListener('change',function(){if(!di.value)hi.value='';marca();});
+    hi.addEventListener('change',marca);
+    hi.addEventListener('input',marca);
   });
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
@@ -1441,8 +1460,8 @@ function closeModal(){
 function resetIntPanes(){
   document.querySelectorAll('#isub button').forEach(function(x){x.classList.toggle('on',x.dataset.is==='ef');});
   $('paneEf').style.display='';$('paneNe').style.display='none';
-  $('iresumo').value='';$('iprox').value='';
-  $('nemotivo').value='';$('neobs').value='';$('nedata').value='';
+  $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
+  $('nemotivo').value='';$('neobs').value='';$('nedata').value='';$('nedatah').value='';
   neCheck();
 }
 
@@ -1476,7 +1495,7 @@ async function loadInts(id){
         +(ne?'<span class="itipo nef">Não efetivo'+(i.motivo_nao_efetivo?' · '+esc(MOTIVOS_NE[i.motivo_nao_efetivo]||i.motivo_nao_efetivo):'')+'</span>':'')
         +'<span>'+ds+'</span></div>'
         +'<p>'+(txt||'<i>sem observação</i>')+'</p>'
-        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+'</div>':'')
+        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+(i.proximo_contato_hora?' às '+String(i.proximo_contato_hora).slice(0,5):'')+'</div>':'')
         +'</div>';
     }).join('');
   }catch(e){
@@ -1485,18 +1504,22 @@ async function loadInts(id){
 }
 
 /* Depois de qualquer contato registrado: grava agendamento no registro e atualiza tela */
-async function afterContato(id,prox){
+async function afterContato(id,prox,proxh){
   const cfg=CFG[tab];
   const nf=NF(cfg);
+  const hf=nf+'_hora';
   const hoje=hojeISO();
   const patch={updated_at:new Date().toISOString()};
   patch[nf]=prox||null;
+  patch[hf]=prox?(proxh||null):null;
   if(tab==='leads')patch.ultimo_contato=hoje;
   try{
     await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(patch)});
     const s=(DATA[tab]||[]).find(function(x){return x.id===id;});
-    if(s){s[nf]=prox||null;if(tab==='leads')s.ultimo_contato=hoje;}
+    if(s){s[nf]=prox||null;s[hf]=patch[hf];if(tab==='leads')s.ultimo_contato=hoje;}
     const i1=document.querySelector('#form [data-k='+nf+']');if(i1)i1.value=prox||'';
+    const i1h=document.querySelector('#form [data-k='+hf+']');
+    if(i1h){i1h.value=patch[hf]?String(patch[hf]).slice(0,5):'';i1h.classList.toggle('need',!!prox&&!patch[hf]);}
     if(tab==='leads'){const i2=document.querySelector('#form [data-k=ultimo_contato]');if(i2)i2.value=hoje;}
     render();
   }catch(e){}
@@ -1514,11 +1537,12 @@ document.querySelectorAll('#isub button').forEach(function(b){
 });
 
 function neCheck(){
-  const ok=!!$('nemotivo').value&&!!$('nedata').value;
+  const ok=!!$('nemotivo').value&&!!$('nedata').value&&!!$('nedatah').value;
   $('neadd').disabled=!ok;
   $('nedata').classList.toggle('ok',!!$('nedata').value);
+  $('nedatah').classList.toggle('ok',!!$('nedatah').value);
 }
-['nemotivo','nedata'].forEach(function(idf){
+['nemotivo','nedata','nedatah'].forEach(function(idf){
   $(idf).addEventListener('change',neCheck);
   $(idf).addEventListener('input',neCheck);
 });
@@ -1532,19 +1556,22 @@ $('neadd').onclick=async function(){
   const tx=cfg.intText||'resumo';
   const motivo=$('nemotivo').value;
   const prox=$('nedata').value;
+  const proxh=$('nedatah').value;
   if(!motivo){toast('Escolha o motivo da tentativa sem sucesso.');return;}
   if(!prox){toast('Agende a data do próximo contato para poder registrar.');return;}
+  if(!proxh){toast('Informe a hora do próximo contato. O alerta dispara na data e hora marcadas.');return;}
   if(prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
+  if(prox===hojeISO()&&proxh<agoraHM()){toast('Esse horário já passou. Escolha uma hora à frente.');return;}
   btn.disabled=true;   // trava anti duplo-envio
-  const body={tipo:$('necanal').value,autor:currentUser,efetivo:false,motivo_nao_efetivo:motivo,proximo_contato:prox};
+  const body={tipo:$('necanal').value,autor:currentUser,efetivo:false,motivo_nao_efetivo:motivo,proximo_contato:prox,proximo_contato_hora:proxh};
   body[tx]=$('neobs').value.trim()||('Tentativa sem sucesso: '+(MOTIVOS_NE[motivo]||motivo));
   body[cfg.fk]=editing;
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
-    await afterContato(editing,prox);
-    $('nemotivo').value='';$('neobs').value='';$('nedata').value='';
+    await afterContato(editing,prox,proxh);
+    $('nemotivo').value='';$('neobs').value='';$('nedata').value='';$('nedatah').value='';
     loadInts(editing);
-    toast('Tentativa registrada. Próximo contato em '+brDate(prox)+'.');
+    toast('Tentativa registrada. Próximo contato em '+brDate(prox)+' às '+proxh+'.');
   }catch(e){
     toast('Não foi possível registrar. Tente de novo.');
   }
@@ -1561,15 +1588,18 @@ $('iadd').onclick=async function(){
   const resumo=$('iresumo').value.trim();
   if(!resumo){toast('Descreva o contato antes de registrar.');return;}
   const prox=$('iprox').value||null;
+  const proxh=$('iproxh').value||null;
+  if(prox&&!proxh){toast('Informe a hora do próximo contato. O alerta dispara na data e hora marcadas.');return;}
   if(prox&&prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
+  if(prox&&prox===hojeISO()&&proxh<agoraHM()){toast('Esse horário já passou. Escolha uma hora à frente.');return;}
   btn.disabled=true;   // trava anti duplo-envio
-  const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox};
+  const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox,proximo_contato_hora:prox?proxh:null};
   body[tx]=resumo;
   body[cfg.fk]=editing;
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
-    await afterContato(editing,prox);
-    $('iresumo').value='';$('iprox').value='';
+    await afterContato(editing,prox,proxh);
+    $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
     loadInts(editing);
   }catch(e){toast('Não foi possível registrar. Tente de novo.');}
   btn.disabled=false;
@@ -1584,6 +1614,20 @@ $('save').onclick=async function(){
     body[el.getAttribute('data-k')]=el.value.trim()===''?null:el.value.trim();
   });
   if(!body.nome){toast('O nome é obrigatório.');return;}
+  var semHora=null;
+  cfg.fields.forEach(function(f){
+    if(f.t!=='datetime')return;
+    if(!body[f.k]){body[f.hk]=null;return;}
+    if(!body[f.hk])semHora=f.l;
+  });
+  if(semHora){
+    document.querySelectorAll('#form .dtwrap').forEach(function(w){
+      const di=w.querySelector('input[type=date]'),hi=w.querySelector('input[type=time]');
+      hi.classList.toggle('need',!!di.value&&!hi.value);
+    });
+    toast('Informe a hora de "'+semHora+'". O alerta dispara na data e hora marcadas.');
+    return;
+  }
   // Checagem de WhatsApp duplicado (só na criação de lead)
   if(tab==='leads'&&!editing&&body.whatsapp){
     const dig=function(v){return String(v||'').replace(/\D/g,'');};
@@ -1934,17 +1978,20 @@ const AGCFG={
   escolas:{table:'crm_escolas',nf:'proximo_contato',sf:'status',rot:'Escola',tel:true},
   empresas:{table:'crm_empresas',nf:'proximo_contato',sf:'status',rot:'Empresa',tel:true}
 };
-let ALERTS={atrasados:[],hoje:[],proximos:[],total:0};
+let ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],total:0};
+let AGITENS=[];      // itens crus, re-agrupados a cada minuto
+let AGVISTOS={};     // chaves ja avisadas nesta sessao
+let AGBOOT=false;    // evita enxurrada de toast no primeiro carregamento
 
 async function loadAlerts(){
   if(!currentUser)return;
   const hoje=hojeISO(),limite=addDias(hoje,3);
-  const at=[],hj=[],px=[];
+  const itens=[];
   const keys=Object.keys(AGCFG);
   for(var i=0;i<keys.length;i++){
     const k=keys[i],ac=AGCFG[k],cfg=CFG[k];
     try{
-      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,'+ac.nf+','+ac.sf
+      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,'+ac.nf+','+ac.nf+'_hora,'+ac.sf
         +'&'+ac.nf+'=lte.'+limite
         +'&responsavel=eq.'+encodeURIComponent(currentUser)
         +'&order='+ac.nf+'.asc');
@@ -1953,8 +2000,8 @@ async function loadAlerts(){
         if(st&&(st.ok||st.off))return;   // fechado / perdido não entra na fila
         const d=r[ac.nf];
         if(!d)return;
-        const item={tab:k,id:r.id,nome:r.nome,whatsapp:r.whatsapp||r.telefone,data:d,rot:ac.rot,etapa:st?st.n:''};
-        if(d<hoje)at.push(item);else if(d===hoje)hj.push(item);else px.push(item);
+        itens.push({tab:k,id:r.id,nome:r.nome,whatsapp:r.whatsapp||r.telefone,data:d,
+          hora:hhmm(r[ac.nf+'_hora'])||'09:00',rot:ac.rot,etapa:st?st.n:''});
       });
     }catch(e){}
   }
@@ -1978,38 +2025,65 @@ async function loadAlerts(){
     (tr||[]).forEach(function(t){
       const L=t.crm_leads||{};
       if(L.etapa!=='fechado')return;
-      const item={tab:'leads',id:t.lead_id,nome:L.nome||'Lead',whatsapp:L.whatsapp,
-        data:t.data_prevista,rot:'Pós-venda',etapa:pvNome(t.tipo)};
-      if(t.data_prevista<hoje)at.push(item);else if(t.data_prevista===hoje)hj.push(item);else px.push(item);
+      itens.push({tab:'leads',id:t.lead_id,nome:L.nome||'Lead',whatsapp:L.whatsapp,
+        data:t.data_prevista,hora:hhmm(t.hora_prevista)||'09:00',rot:'Pós-venda',etapa:pvNome(t.tipo)});
     });
   }catch(e){}
-  at.sort(function(a,b){return a.data<b.data?-1:1;});
-  ALERTS={atrasados:at,hoje:hj,proximos:px,total:at.length+hj.length};
+  AGITENS=itens;
+  bucketAlerts();
+}
+
+/* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
+function bucketAlerts(){
+  const hoje=hojeISO(),hm=agoraHM();
+  const at=[],ag=[],hj=[],px=[];
+  AGITENS.forEach(function(it){
+    const h=it.hora||'09:00';
+    if(it.data<hoje)at.push(it);
+    else if(it.data===hoje){if(h<=hm)ag.push(it);else hj.push(it);}
+    else px.push(it);
+  });
+  const ord=function(a,b){const ka=a.data+' '+(a.hora||'09:00'),kb=b.data+' '+(b.hora||'09:00');return ka<kb?-1:1;};
+  at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);
+  ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,total:at.length+ag.length};
   renderAlertBadge();
+  const novos=[];
+  ag.forEach(function(it){
+    const k=it.tab+':'+it.id+':'+it.data+' '+(it.hora||'09:00');
+    if(AGVISTOS[k])return;
+    AGVISTOS[k]=1;novos.push(it);
+  });
+  if(AGBOOT&&novos.length){
+    toast(novos.length===1
+      ?('\u23F0 '+novos[0].hora+' · hora de falar com '+novos[0].nome)
+      :('\u23F0 '+novos.length+' contatos chegaram na hora agendada'));
+  }
+  AGBOOT=true;
 }
 
 function renderAlertBadge(){
   const b=$('abtn'),c=$('acount');
   if(!b)return;
-  const n=ALERTS.total,prox=ALERTS.proximos.length;
-  if(!n&&!prox){b.style.display='none';return;}
+  const n=ALERTS.total,resto=ALERTS.hoje.length+ALERTS.proximos.length;
+  if(!n&&!resto){b.style.display='none';return;}
   b.style.display='';
-  b.classList.toggle('late',ALERTS.atrasados.length>0);
-  c.textContent=n||prox;
-  b.title=ALERTS.atrasados.length+' atrasado(s) · '+ALERTS.hoje.length+' para hoje · '+prox+' nos próximos 3 dias';
+  b.classList.toggle('late',ALERTS.atrasados.length>0||ALERTS.agora.length>0);
+  c.textContent=n||resto;
+  b.title=ALERTS.atrasados.length+' atrasado(s) · '+ALERTS.agora.length+' na hora agora · '
+    +ALERTS.hoje.length+' ainda hoje · '+ALERTS.proximos.length+' nos próximos 3 dias';
 }
 
 function agItem(it){
   const wa=waLink(it.whatsapp);
   return '<div class="agi" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'
     +'<div class="agn"><b>'+esc(it.nome)+'</b><span class="agr">'+esc(it.rot)+(it.etapa?' · '+esc(it.etapa):'')+'</span></div>'
-    +'<div class="agd">'+brDate(it.data)+'</div>'
+    +'<div class="agd">'+brDate(it.data)+(it.hora?' · '+it.hora:'')+'</div>'
     +'<div class="aga">'+(wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">Zap</a>':'')
     +'<button class="btn">Abrir</button></div></div>';
 }
 
 function openAlerts(){
-  const grupos=[['atrasados','Atrasados','late'],['hoje','Para hoje','today'],['proximos','Próximos 3 dias','soon']];
+  const grupos=[['atrasados','Atrasados','late'],['agora','Na hora agora','late'],['hoje','Ainda hoje','today'],['proximos','Próximos 3 dias','soon']];
   var html='';
   grupos.forEach(function(g){
     const arr=ALERTS[g[0]];
@@ -2039,6 +2113,9 @@ async function goToAlert(t,id){
   if(s)openModal(id);else toast('Registro não encontrado. Toque em ↻ para recarregar.');
 }
 $('abtn').onclick=openAlerts;
+/* o alerta dispara na hora marcada: re-agrupa a cada 30s e recarrega do banco a cada 5min */
+setInterval(function(){if(currentUser&&AGITENS.length)bucketAlerts();},30000);
+setInterval(function(){if(currentUser)loadAlerts();},300000);
 $('aclose').onclick=closeAlerts;
 $('aok').onclick=closeAlerts;
 $('aov').onclick=function(e){if(e.target===$('aov'))closeAlerts();};
@@ -2368,6 +2445,9 @@ function hojeISO(){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function brDate(s){return s?s.split('-').reverse().join('/'):'';}
+function agoraHM(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function hhmm(h){return h?String(h).slice(0,5):'';}
+function agLabel(d,h){if(!d)return '';const p=String(d).split('-');return p[2]+'/'+p[1]+(h?' '+hhmm(h):'');}
 function vigente(a){
   const h=hojeISO();
   if(!a.ativo)return false;
