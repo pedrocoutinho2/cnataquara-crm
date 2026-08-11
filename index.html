@@ -160,6 +160,10 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .acts{display:flex;gap:6px;align-items:center}
 .acts a{text-decoration:none;font-size:11.5px;font-weight:600;border-radius:var(--r-sm);padding:5px 9px;display:inline-flex;align-items:center;gap:4px}
 .wa{background:#E8F7EE;color:var(--ok)}
+.waico{width:15px;height:15px;fill:currentColor;display:block;flex:none}
+.acts a.wa,.aga .wa{display:inline-flex;align-items:center;justify-content:center}
+.f label .waico{width:16px;height:16px}
+.itipo .waico{width:12px;height:12px;display:inline-block;vertical-align:-2px}
 .tel{background:#EDF2FB;color:var(--blue)}
 .ig{background:#FDEEF2;color:var(--redDark)}
 .mv{margin-left:auto;display:flex;gap:3px}
@@ -577,7 +581,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .agr{font-size:11.5px;color:var(--gray)}
 .agd{font-size:12px;font-weight:700;color:var(--blue);white-space:nowrap}
 .aga{display:flex;gap:6px;align-items:center}
-.aga .wa{background:var(--ok);color:var(--white);border-radius:var(--r-sm);padding:6px 10px;font-size:11.5px;font-weight:600;text-decoration:none}
+.aga .wa{background:var(--ok);color:var(--white);border-radius:var(--r-sm);padding:6px 11px;font-size:11.5px;font-weight:600;text-decoration:none}
 .aga .btn{padding:6px 10px;font-size:11.5px}
 /* sub-abas do historico */
 .isub{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
@@ -717,7 +721,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
             <option value="caixa_postal">Caiu na caixa postal</option>
             <option value="numero_errado">Número errado ou inválido</option>
             <option value="pediu_retorno">Pediu retorno depois</option>
-            <option value="nao_leu">WhatsApp não lido</option>
+            <option value="nao_leu">Mensagem não lida</option>
             <option value="recusou">Desligou / recusou falar</option>
             <option value="ausente">Decisor ausente</option>
           </select>
@@ -802,8 +806,9 @@ async function api(path,opt){
 let RESP=[];          // preenchido a partir de crm_usuarios no login
 let RESPC={};
 const PALETA=['#E6143C','#19408B','#B87500','#7A3E9D','#1E7A46','#C2410C','#0E7490'];
-const ITIPOS={nota:'Nota',whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
-const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_errado:'Número errado',pediu_retorno:'Pediu retorno depois',nao_leu:'WhatsApp não lido',recusou:'Recusou falar',ausente:'Decisor ausente'};
+const WAICO='<svg class="waico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+const ITIPOS={nota:'Nota',whatsapp:WAICO,ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
+const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_errado:'Número errado',pediu_retorno:'Pediu retorno depois',nao_leu:'Mensagem não lida',recusou:'Recusou falar',ausente:'Decisor ausente'};
 
 const CFG={
   escolas:{
@@ -831,7 +836,7 @@ const CFG={
       {k:'bairro',l:'Bairro',t:'text'},
       {k:'endereco',l:'Endereço',t:'text'},
       {k:'telefone',l:'Telefone',t:'text'},
-      {k:'whatsapp',l:'WhatsApp',t:'text'},
+      {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'instagram',l:'Instagram',t:'text'},
       {k:'site',l:'Site',t:'text'},
       {k:'rating',l:'Nota Google',t:'text'},
@@ -871,7 +876,7 @@ const CFG={
       {k:'funcionarios',l:'Funcionários',t:'text'},
       {k:'endereco',l:'Endereço',t:'text'},
       {k:'telefone',l:'Telefone',t:'text'},
-      {k:'whatsapp',l:'WhatsApp',t:'text'},
+      {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'contato_nome',l:'Contato (nome)',t:'text'},
       {k:'contato_cargo',l:'Contato (cargo)',t:'text'},
       {k:'argumento',l:'Argumento de venda',t:'textarea',full:true},
@@ -906,7 +911,7 @@ const CFG={
     fields:[
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return new Date().toISOString().slice(0,10);}},
-      {k:'whatsapp',l:'WhatsApp',t:'text'},
+      {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'origem',l:'Origem',t:'select',opts:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
@@ -1029,7 +1034,7 @@ function render(){
     '<div class="stat"><b>'+andamento+'</b><span>Em andamento</span></div>'+
     '<div class="stat"><b>'+fechadas+'</b><span>Fechadas</span></div>';
 
-  // WhatsApp repetido (só faz sentido na base de leads)
+  // Numero repetido (só faz sentido na base de leads)
   DUPWA={};
   if(tab==='leads'){
     const cont={};
@@ -1047,7 +1052,7 @@ function render(){
     const col=document.createElement('div');
     col.className='col res';
     col.style.setProperty('--cc','#19408B');
-    const rot=isPhoneQuery(filters.q)?'Resultados por WhatsApp':'Resultados da busca';
+    const rot=isPhoneQuery(filters.q)?'Resultados por número':'Resultados da busca';
     col.innerHTML='<div class="colh"><h2>'+rot+'</h2><span class="n">'+list.length+'</span></div>';
     const wrap=document.createElement('div');
     wrap.className='cards';
@@ -1159,11 +1164,11 @@ function cardEl(s,st,showStage){
       (s.rating?'<span class="sep">·</span><span>★ '+esc(s.rating)+'</span>':'')+
       '<span class="tag">'+esc((cfg.tipos.find(function(t){return t[0]===s[TF(cfg)];})||['',s[TF(cfg)]||''])[1])+'</span>'+
       (showStage?'<span class="stg" style="--sc:'+st.c+'">'+esc(st.n)+'</span>':'')+
-      (dup?'<span class="dupw" title="Esse WhatsApp aparece em '+dup+' cadastros">⚠ '+dup+'x mesmo zap</span>':'')+
+      (dup?'<span class="dupw" title="Esse número aparece em '+dup+' cadastros">⚠ '+dup+'x mesmo número</span>':'')+
       agTag+pvTag+
     '</div>'+
     '<div class="acts">'+
-      (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':(telD?'<a class="tel" href="tel:+'+(telD.length<=11?'55':'')+telD+'">Ligar</a>':''))+
+      (wa?'<a class="wa" aria-label="WhatsApp" target="_blank" rel="noopener" href="'+wa+'">'+WAICO+'</a>':(telD?'<a class="tel" href="tel:+'+(telD.length<=11?'55':'')+telD+'">Ligar</a>':''))+
       (ig?'<a class="ig" target="_blank" rel="noopener" href="'+esc(ig)+'">Insta</a>':'')+
       '<div class="mv">'+
         (prev?'<button title="Voltar para '+esc(prev.n)+'" data-mv="'+prev.id+'">◀</button>':'')+
@@ -1200,7 +1205,7 @@ const PV=[
   {tipo:'pos_venda_d14',n:'14 dias de aula',off:14,dir:1}
 ];
 const PV_RESULT={ok:'Tudo certo',com_ressalva:'Com ressalva',risco_cancelamento:'Risco de cancelamento'};
-const PV_CANAL={ligacao:'Ligação',whatsapp:'WhatsApp',presencial:'Presencial'};
+const PV_CANAL={ligacao:'Ligação',whatsapp:WAICO,presencial:'Presencial'};
 let TAREFAS={};   /* lead_id -> [tarefa] */
 
 function pvNome(t){const x=PV.find(function(p){return p.tipo===t;});return x?x.n:'Pós-venda';}
@@ -1296,7 +1301,7 @@ function renderPV(lead){
     const cls=done?'ok':(t.data_prevista<hj?'late':'');
     return '<div class="pvi '+cls+'"><b>'+esc(pvNome(t.tipo))+'</b>'
       +(done?'<span class="pvr">'+esc(PV_RESULT[t.resultado]||'feito')+'</span>':'')
-      +(done&&t.canal?'<span class="pvr">'+esc(PV_CANAL[t.canal]||t.canal)+'</span>':'')
+      +(done&&t.canal?'<span class="pvr">'+(PV_CANAL[t.canal]||esc(t.canal))+'</span>':'')
       +'<span class="pvd">'+brDate(t.data_prevista)+(t.hora_prevista?' '+String(t.hora_prevista).slice(0,5):'')+'</span></div>';
   }).join('');
   const prox=ts.filter(function(t){return t.status==='pendente';})[0];
@@ -1406,7 +1411,7 @@ function openModal(id){
   cfg.fields.forEach(function(f){
     const d=document.createElement('div');
     d.className='f'+(f.full?' full':'');
-    let inner='<label>'+esc(f.l)+'</label>';
+    let inner='<label>'+(f.licon?WAICO:esc(f.l))+'</label>';
     const v=s?(s[f.k]==null?'':s[f.k]):'';
     if(f.t==='textarea'){
       inner+='<textarea data-k="'+f.k+'">'+esc(v)+'</textarea>';
@@ -1553,7 +1558,7 @@ async function loadInts(id){
       const ne=(i.efetivo===false);
       const txt=esc(i[tx]||'');
       return '<div class="int'+(ne?' ne':'')+'"><div class="ih"><b>'+esc(i.autor||'?')+'</b>'
-        +'<span class="itipo">'+esc(ITIPOS[i.tipo]||i.tipo||'')+'</span>'
+        +'<span class="itipo">'+(ITIPOS[i.tipo]||esc(i.tipo||''))+'</span>'
         +(ne?'<span class="itipo nef">Não efetivo'+(i.motivo_nao_efetivo?' · '+esc(MOTIVOS_NE[i.motivo_nao_efetivo]||i.motivo_nao_efetivo):'')+'</span>':'')
         +'<span>'+ds+'</span></div>'
         +'<p>'+(txt||'<i>sem observação</i>')+'</p>'
@@ -1694,13 +1699,13 @@ $('save').onclick=async function(){
     toast('Informe a hora de "'+semHora+'". O alerta dispara na data e hora marcadas.');
     return;
   }
-  // Checagem de WhatsApp duplicado (só na criação de lead)
+  // Checagem de numero duplicado (só na criação de lead)
   if(tab==='leads'&&!editing&&body.whatsapp){
     const dig=function(v){return String(v||'').replace(/\D/g,'');};
     const w=dig(body.whatsapp);
     if(w.length>=8){
       const dup=(DATA.leads||[]).find(function(x){return dig(x.whatsapp)===w;});
-      if(dup){toast('Já existe um lead com esse WhatsApp: '+dup.nome+'. Abra o card existente para editar.');return;}
+      if(dup){toast('Já existe um lead com esse número: '+dup.nome+'. Abra o card existente para editar.');return;}
     }
   }
   if(tab==='leads'){
@@ -1897,7 +1902,7 @@ function setTab(t){
   const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
-  $('q').placeholder=(t==='leads')?'Buscar por nome ou WhatsApp...':'Buscar por nome, decisor, bairro...';
+  $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
   if(t==='relatorios'){openReports();return;}
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
@@ -2144,7 +2149,7 @@ function agItem(it){
   return '<div class="agi" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'
     +'<div class="agn"><b>'+esc(it.nome)+'</b><span class="agr">'+esc(it.rot)+(it.etapa?' · '+esc(it.etapa):'')+'</span></div>'
     +'<div class="agd">'+brDate(it.data)+(it.hora?' · '+it.hora:'')+'</div>'
-    +'<div class="aga">'+(wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'">Zap</a>':'')
+    +'<div class="aga">'+(wa?'<a class="wa" aria-label="WhatsApp" target="_blank" rel="noopener" href="'+wa+'">'+WAICO+'</a>':'')
     +'<button class="btn">Abrir</button></div></div>';
 }
 
@@ -2383,7 +2388,7 @@ function renderReports(){
       const wa=waLink(x.s.whatsapp);
       return '<div class="alert"><span class="an">'+esc(x.s.nome)+' <span class="tag">'+esc(x.s.responsavel||'—')+'</span></span>'+
         '<span class="ad">'+(x.d==null?'nunca contatado':x.d+' dias')+'</span>'+
-        (wa?'<a class="wa" style="font-size:11.5px;font-weight:600;border-radius:8px;padding:5px 9px;text-decoration:none" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':'<span></span>')+
+        (wa?'<a class="wa" aria-label="WhatsApp" style="display:inline-flex;align-items:center;border-radius:8px;padding:6px 9px;text-decoration:none" target="_blank" rel="noopener" href="'+wa+'">'+WAICO+'</a>':'<span></span>')+
       '</div>';
     }).join('')+(esq.length>15?'<div class="empty">+ '+(esq.length-15)+' outros — use o kanban pra ver todos</div>':'')+'</div>';
   }
