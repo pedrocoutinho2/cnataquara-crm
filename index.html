@@ -283,6 +283,41 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
 .eqnote{font-size:11.5px;color:var(--gray);margin-top:10px;line-height:1.5}
 .loading{padding:40px;text-align:center;color:var(--gray);font-size:13px;width:100%}
 
+/* ===== Turmas ===== */
+.tfilters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tfilters input[type=text],.tfilters select{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff}
+.tfilters input[type=text]{flex:1;min-width:170px}
+.tchips{display:flex;gap:6px;flex-wrap:wrap}
+.tchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:12px;color:var(--gray);cursor:pointer;font-family:inherit}
+.tchip.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.tsum{font-size:12.5px;color:var(--gray);margin-bottom:14px;line-height:1.6}
+.tsum b{color:var(--ink)}
+.tblock{margin-bottom:20px}
+.tblock>h4{font-family:'Poppins';font-size:12.5px;color:var(--blue);text-transform:uppercase;letter-spacing:.4px;margin:0 0 4px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.thora{font-size:11.5px;font-weight:700;color:var(--gray);letter-spacing:.3px;margin:12px 0 7px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px}
+.tcard{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff}
+.tcard.vaga{border-left-color:#1E7A46;background:#F4FBF7}
+.tcard.cheia{border-left-color:var(--red);background:#FFF7F9}
+.tcard .tc1{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.tcard .tcurso{font-family:'Poppins';font-weight:600;font-size:14px;color:var(--ink)}
+.tcard .tcod{font-size:11.5px;color:var(--gray);font-variant-numeric:tabular-nums}
+.tcard .tc2{font-size:12px;color:var(--gray);margin-top:5px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.tcard .tobs{font-size:11px;color:var(--gray);font-style:italic;margin-top:5px}
+.tbadge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:999px;padding:2.5px 8px;background:var(--line);color:var(--ink)}
+.tbadge.ok{background:#1E7A46;color:#fff}
+.tbadge.no{background:var(--red);color:#fff}
+.tcard .tedit{margin-top:9px;display:flex;gap:6px}
+.tcard .tedit .btn{padding:3px 9px;font-size:11px}
+.tform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.tform label{font-size:10.5px;color:var(--gray);display:flex;flex-direction:column;gap:3px}
+.tform label.full{grid-column:1/-1}
+.tform input,.tform select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff}
+.tfbtns{grid-column:1/-1;display:flex;gap:6px;margin-top:4px}
+.tfbtns .btn{padding:5px 12px;font-size:12px}
+.tfbtns .spacer{flex:1}
+@media(max-width:640px){.tgrid{grid-template-columns:1fr}}
+
 /* ===== Mural e Calculadora ===== */
 .pane{max-width:920px;margin:0 auto;padding:4px 18px 30px;flex:1;overflow-y:auto;width:100%}
 .pane .rcard{margin-bottom:14px}
@@ -538,6 +573,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 1
     <button data-t="leads">Clientes B2C</button>
     <button data-t="mural">Mural</button>
     <button data-t="calc">Calculadora</button>
+    <button data-t="turmas">Turmas</button>
     <button data-t="relatorios">Relatórios</button>
     <button data-t="equipe" id="tabEquipe" style="display:none">Equipe</button>
   </div>
@@ -1615,7 +1651,7 @@ function buildChips(){
 }
 
 $('board').addEventListener('wheel',function(e){
-  if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc')return;
+  if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc'||tab==='turmas')return;
   if(e.target.closest('.cards'))return;
   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
     $('board').scrollLeft+=e.deltaY;
@@ -1637,7 +1673,7 @@ window.addEventListener('resize',function(){
     if(m===wasMobile)return;
     wasMobile=m;
     if(!m)closeDrawer();
-    if(!(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc')){buildChips();render();}
+    if(!(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc'||tab==='turmas')){buildChips();render();}
   },200);
 });
 
@@ -1679,7 +1715,7 @@ function setTab(t){
       try{tb.scrollTo({left:Math.max(0,alvo),behavior:'smooth'});}catch(_){tb.scrollLeft=Math.max(0,alvo);}
     }
   });
-  const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc');
+  const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou WhatsApp...':'Buscar por nome, decisor, bairro...';
@@ -1687,6 +1723,7 @@ function setTab(t){
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
   if(t==='calc'){openCalc();return;}
+  if(t==='turmas'){openTurmas();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t);};});
@@ -2865,6 +2902,216 @@ async function openTeam(){
 }
 
 BOOT();
+
+/* ================= Turmas (mapa de turmas) ================= */
+var TURMAS=[], tFiltroDia='', tFiltroProf='', tBusca='', tSoVaga=false, tEdit=null, tSemestre='2026.2';
+var T_DIAS=['SEG/QUA','TER/QUI','SEX','SÁB'];
+
+function tVagas(t){
+  if(t.sem_vaga)return 0;
+  return Math.max(0,(t.capacidade||16)-(t.alunos||0));
+}
+
+async function openTurmas(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando mapa de turmas...</div>';
+  try{
+    TURMAS=await api('/crm_turmas?select=*&ativa=eq.true&order=dias.asc,horario.asc,sala.asc')||[];
+  }catch(e){
+    $('board').innerHTML='<div class="loading">Não foi possível carregar o mapa de turmas.</div>';return;
+  }
+  tEdit=null;renderTurmas();
+}
+
+function tFiltradas(){
+  var q=tBusca.trim().toLowerCase();
+  return TURMAS.filter(function(t){
+    if(t.semestre!==tSemestre)return false;
+    if(tFiltroDia&&t.dias!==tFiltroDia)return false;
+    if(tFiltroProf&&(t.professor||'')!==tFiltroProf)return false;
+    if(tSoVaga&&tVagas(t)<=0)return false;
+    if(!q)return true;
+    return ((t.curso||'')+' '+(t.codigo||'')+' '+(t.professor||'')+' '+(t.sala||'')+' '+(t.horario||'')).toLowerCase().indexOf(q)>-1;
+  });
+}
+
+function renderTurmas(){
+  var adm=isAdmin();
+  var lista=tFiltradas();
+  var profs=[];
+  TURMAS.forEach(function(t){if(t.professor&&profs.indexOf(t.professor)<0)profs.push(t.professor);});
+  profs.sort();
+
+  var totAl=0,comVaga=0,vagasTot=0;
+  lista.forEach(function(t){totAl+=(t.alunos||0);var v=tVagas(t);if(v>0){comVaga++;vagasTot+=v;}});
+
+  var h='<div class="pane">';
+  h+='<div class="paneh"><h3>Mapa de turmas '+esc(tSemestre)+'</h3>';
+  if(adm)h+='<button class="btn primary" id="tnova">+ Nova turma</button>';
+  h+='</div>';
+
+  /* filtros */
+  h+='<div class="tfilters">';
+  h+='<input type="text" id="tq" placeholder="Buscar curso, código, professor ou sala..." value="'+esc(tBusca)+'">';
+  h+='<select id="tprof"><option value="">Todos os professores</option>';
+  profs.forEach(function(p){h+='<option value="'+esc(p)+'"'+(tFiltroProf===p?' selected':'')+'>'+esc(p)+'</option>';});
+  h+='</select></div>';
+
+  h+='<div class="tchips" style="margin-bottom:14px">';
+  h+='<button class="tchip'+(tFiltroDia===''?' on':'')+'" data-dia="">Todos os dias</button>';
+  T_DIAS.forEach(function(d){
+    var n=TURMAS.filter(function(t){return t.semestre===tSemestre&&t.dias===d;}).length;
+    if(!n)return;
+    h+='<button class="tchip'+(tFiltroDia===d?' on':'')+'" data-dia="'+esc(d)+'">'+esc(d)+' ('+n+')</button>';
+  });
+  h+='<button class="tchip'+(tSoVaga?' on':'')+'" id="tvaga">Só com vaga</button>';
+  h+='</div>';
+
+  h+='<div class="tsum"><b>'+lista.length+'</b> turmas · <b>'+totAl+'</b> alunos · <b>'+comVaga+'</b> turmas com vaga (<b>'+vagasTot+'</b> vagas livres)</div>';
+
+  if(!lista.length){
+    h+='<div class="empty">Nenhuma turma encontrada com esses filtros.</div>';
+  }else{
+    T_DIAS.forEach(function(d){
+      var doDia=lista.filter(function(t){return t.dias===d;});
+      if(!doDia.length)return;
+      h+='<div class="tblock"><h4>'+esc(d)+'</h4>';
+      var horas=[];
+      doDia.forEach(function(t){if(horas.indexOf(t.horario)<0)horas.push(t.horario);});
+      horas.sort();
+      horas.forEach(function(hr){
+        h+='<div class="thora">'+esc(hr)+'</div><div class="tgrid">';
+        doDia.filter(function(t){return t.horario===hr;}).forEach(function(t){
+          h+=tCard(t,adm);
+        });
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+  }
+  h+='</div>';
+  $('board').innerHTML=h;
+  tBind();
+}
+
+function tCard(t,adm){
+  if(tEdit===t.id)return tCardForm(t);
+  var v=tVagas(t);
+  var cls=t.sem_vaga?'cheia':(v>=9?'vaga':'');
+  var badge=t.sem_vaga
+    ? '<span class="tbadge no">Sem vaga</span>'
+    : (v>0?'<span class="tbadge'+(v>=9?' ok':'')+'">'+v+' vaga'+(v>1?'s':'')+'</span>':'<span class="tbadge no">Lotada</span>');
+  var h='<div class="tcard '+cls+'">';
+  h+='<div class="tc1"><span class="tcurso">'+esc(t.curso)+'</span>';
+  if(t.codigo)h+='<span class="tcod">'+esc(t.codigo)+'</span>';
+  h+='</div>';
+  h+='<div class="tc2"><span>'+esc(t.sala)+'</span><span>·</span><span>'+esc(t.professor||'sem professor')+'</span><span>·</span><span>'+(t.alunos||0)+'/'+(t.capacidade||16)+'</span>'+badge+'</div>';
+  if(t.obs)h+='<div class="tobs">'+esc(t.obs)+'</div>';
+  if(adm)h+='<div class="tedit"><button class="btn" data-ed="'+t.id+'">Editar</button></div>';
+  h+='</div>';
+  return h;
+}
+
+function tCardForm(t){
+  var nova=!t.id;
+  function inp(k,l,tipo,full){
+    return '<label class="'+(full?'full':'')+'">'+l+'<input type="'+(tipo||'text')+'" data-f="'+k+'" value="'+esc(t[k]==null?'':t[k])+'"></label>';
+  }
+  var h='<div class="tcard" style="grid-column:1/-1"><div class="tform">';
+  h+='<label>Dias<select data-f="dias">';
+  T_DIAS.forEach(function(d){h+='<option value="'+d+'"'+(t.dias===d?' selected':'')+'>'+d+'</option>';});
+  h+='</select></label>';
+  h+=inp('horario','Horário');
+  h+=inp('sala','Sala');
+  h+=inp('curso','Curso');
+  h+=inp('codigo','Código');
+  h+=inp('professor','Professor');
+  h+=inp('alunos','Alunos','number');
+  h+=inp('capacidade','Capacidade','number');
+  h+='<label>Vagas<select data-f="sem_vaga"><option value="false"'+(t.sem_vaga?'':' selected')+'>Aceita aluno</option><option value="true"'+(t.sem_vaga?' selected':'')+'>Sem vaga</option></select></label>';
+  h+=inp('obs','Observação','text',true);
+  h+='<div class="tfbtns">';
+  h+='<button class="btn primary" id="tsave">Salvar</button>';
+  h+='<button class="btn" id="tcancel">Cancelar</button>';
+  h+='<div class="spacer"></div>';
+  if(!nova)h+='<button class="btn" id="tdel" style="color:var(--red)">Excluir</button>';
+  h+='</div></div></div>';
+  return h;
+}
+
+function tBind(){
+  var q=$('tq');
+  if(q)q.oninput=function(){tBusca=q.value;var p=q.selectionStart;renderTurmas();var n=$('tq');if(n){n.focus();try{n.setSelectionRange(p,p);}catch(_){}}};
+  var pr=$('tprof');
+  if(pr)pr.onchange=function(){tFiltroProf=pr.value;renderTurmas();};
+  var vg=$('tvaga');
+  if(vg)vg.onclick=function(){tSoVaga=!tSoVaga;renderTurmas();};
+  document.querySelectorAll('.tchip[data-dia]').forEach(function(b){
+    b.onclick=function(){tFiltroDia=b.dataset.dia;renderTurmas();};
+  });
+  var nv=$('tnova');
+  if(nv)nv.onclick=function(){
+    tEdit='__nova__';
+    TURMAS.unshift({id:'__nova__',semestre:tSemestre,dias:'SEG/QUA',horario:'',sala:'',curso:'',codigo:'',professor:'',alunos:0,capacidade:16,sem_vaga:false,obs:'',ativa:true,__nova:true});
+    renderTurmas();
+  };
+  document.querySelectorAll('[data-ed]').forEach(function(b){
+    b.onclick=function(){tEdit=b.dataset.ed;renderTurmas();};
+  });
+  var sv=$('tsave');
+  if(sv)sv.onclick=tSalvar;
+  var cc=$('tcancel');
+  if(cc)cc.onclick=function(){
+    TURMAS=TURMAS.filter(function(t){return !t.__nova;});
+    tEdit=null;renderTurmas();
+  };
+  var dl=$('tdel');
+  if(dl)dl.onclick=tExcluir;
+}
+
+function tColeta(){
+  var o={};
+  document.querySelectorAll('.tform [data-f]').forEach(function(el){
+    var k=el.dataset.f,v=el.value;
+    if(k==='alunos'||k==='capacidade')v=parseInt(v,10)||0;
+    else if(k==='sem_vaga')v=(v==='true');
+    else v=(v===''?null:v);
+    o[k]=v;
+  });
+  return o;
+}
+
+async function tSalvar(){
+  var o=tColeta();
+  if(!o.curso||!o.horario||!o.sala){toast('Curso, horário e sala são obrigatórios.');return;}
+  var atual=TURMAS.filter(function(t){return t.id===tEdit;})[0];
+  var btn=$('tsave');if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  try{
+    if(atual&&atual.__nova){
+      o.semestre=tSemestre;o.ativa=true;
+      await api('/crm_turmas',{method:'POST',body:JSON.stringify(o)});
+      toast('Turma criada.');
+    }else{
+      o.atualizado_em=new Date().toISOString();
+      await api('/crm_turmas?id=eq.'+tEdit,{method:'PATCH',body:JSON.stringify(o)});
+      toast('Turma atualizada.');
+    }
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Salvar';}
+    toast('Erro ao salvar: '+e.message);return;
+  }
+  tEdit=null;openTurmas();
+}
+
+async function tExcluir(){
+  if(!confirm('Excluir esta turma do mapa?'))return;
+  try{
+    await api('/crm_turmas?id=eq.'+tEdit,{method:'DELETE'});
+    toast('Turma excluída.');
+  }catch(e){toast('Erro ao excluir: '+e.message);return;}
+  tEdit=null;openTurmas();
+}
+
 </script>
 </body>
 </html>
