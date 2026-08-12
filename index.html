@@ -256,6 +256,28 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .rwrap{max-width:1320px;margin:0 auto}
 .rtitle{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
 .rtitle h1{font-family:'Poppins';font-size:19px;color:var(--red)}
+.rsub{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px;gap:3px}
+.rsub button{border:none;background:transparent;border-radius:var(--r-pill);padding:6px 15px;font-family:'Poppins';font-weight:600;font-size:12px;color:var(--gray);white-space:nowrap}
+.rsub button.on{background:var(--white);color:var(--red);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.rsub button:focus-visible,.dbtn:focus-visible,.dctl:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.dctl{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:6px 9px;font-size:12px;font-weight:600;color:var(--blue)}
+.dbtn{border:none;background:var(--red);color:var(--white);border-radius:var(--r-sm);padding:8px 15px;font-family:'Poppins';font-weight:600;font-size:12px}
+.dbtn[disabled]{background:var(--surface);color:var(--gray);border:1px solid var(--line)}
+.dstat{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--gray);margin:-6px 0 14px}
+.dpill{border-radius:var(--r-pill);padding:3px 10px;font-size:11px;font-weight:700}
+.dpill.aberto{background:var(--warnBg);color:var(--warn)}
+.dpill.fechado{background:var(--okBg);color:var(--ok)}
+.drow{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.drow:last-child{border-bottom:none}
+.drow .dh{font-variant-numeric:tabular-nums;color:var(--gray);font-size:11.5px}
+.drow .dn{font-weight:600;color:var(--ink)}
+.drow .dsub{display:block;font-weight:400;color:var(--gray);font-size:11px;margin-top:2px}
+.dok{color:var(--ok);font-weight:700;font-size:11.5px;white-space:nowrap}
+.dpend{color:var(--redDark);font-weight:700;font-size:11.5px;white-space:nowrap}
+.dne{color:var(--gray);font-weight:700;font-size:11.5px;white-space:nowrap}
+.dtipo{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:var(--surface);border:1px solid var(--line);color:var(--gray);border-radius:var(--r-pill);padding:1.5px 7px;margin-right:6px;display:inline-block}
+.mcol .mv{display:block;margin:0}
+@media(max-width:700px){.drow{grid-template-columns:46px 1fr}.drow>:last-child{grid-column:2;justify-self:start}}
 .rcard{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;margin-bottom:14px}
 .rcard>h3{font-family:'Poppins';font-size:13.5px;color:var(--red);margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px}
 .fnl{display:flex;flex-direction:column}
@@ -2205,12 +2227,16 @@ function entrar(){
   loadAlerts().then(function(){
     if(ALERTS.total>0)openAlerts();
   });
+  DIAAVISADO=false;
+  checarFechamento();
+  if(!window._dtimer)window._dtimer=setInterval(checarFechamento,300000);
 }
 
 $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
 $('logout').onclick=function(){
   currentUser=null;safeSet('crmAuth','');
+  DIAAVISADO=false;window._dcons=null;window._ddata=null;RVIEW='dia';
   ALERTS={atrasados:[],hoje:[],proximos:[],total:0};renderAlertBadge();
   showLogin();
 };
@@ -2237,7 +2263,25 @@ function mesCurto(ym){const p=ym.split('-');return MESES[parseInt(p[1],10)-1].sl
 function pct(a,b){return b?(100*a/b).toFixed(1).replace('.',',')+'%':'—';}
 let ETAPAS_HIST=null;
 
+let RVIEW='dia';
+function subnav(){
+  return '<div class="rsub" id="rsub">'+
+    '<button data-v="dia"'+(RVIEW==='dia'?' class="on"':'')+'>Meu dia</button>'+
+    '<button data-v="funil"'+(RVIEW==='funil'?' class="on"':'')+'>Funil B2C</button>'+
+  '</div>';
+}
+function bindSubnav(){
+  document.querySelectorAll('#rsub button').forEach(function(b){
+    b.onclick=function(){RVIEW=b.dataset.v;openReports();};
+  });
+}
+
 async function openReports(){
+  if(RVIEW==='dia'){await openMeuDia();return;}
+  await openFunil();
+}
+
+async function openFunil(){
   $('board').innerHTML='<div class="loading">Montando os relatórios...</div>';
   try{
     if(!DATA.leads)DATA.leads=await api('/crm_leads?select=*&order=nome.asc');
@@ -2395,7 +2439,7 @@ function renderReports(){
 
   $('stats').innerHTML='';
   board.innerHTML='<div class="rscreen"><div class="rwrap">'+
-    '<div class="rtitle"><h1>Relatórios · Clientes B2C</h1><div class="spacer"></div>'+
+    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer"></div>'+
       '<select id="rperiodo" class="btn" style="font-weight:600;color:var(--blue)">'+
         '<option value="">Todos os períodos</option>'+
         listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
@@ -2418,8 +2462,188 @@ function renderReports(){
   '</div></div>';
   const sel=document.getElementById('rperiodo');
   if(sel)sel.onchange=function(){window._rper=sel.value;renderReports();};
+  bindSubnav();
 }
 
+
+/* ================= Relatório diário do consultor ================= */
+let DIA={payload:null,serie:[]};
+const DTIPO={lead:'B2C',escola:'Escola',empresa:'Empresa',tarefa:'Tarefa'};
+
+function uInfo(nome){return USERS.find(function(x){return x.nome===nome;})||null;}
+function consultoresLista(){
+  const c=USERS.filter(function(u){return u.consultor;});
+  return c.length?c:USERS;
+}
+function diaConsultor(){
+  if(!isAdmin())return currentUser;
+  if(window._dcons&&USERS.some(function(u){return u.nome===window._dcons;}))return window._dcons;
+  const c=consultoresLista()[0];
+  return c?c.nome:currentUser;
+}
+function diaData(){return window._ddata||hojeISO();}
+function dLabel(iso){const p=String(iso).split('-');return p[2]+'/'+p[1];}
+function minDe(t){const h=hhmm(t)||'00:00';return parseInt(h.slice(0,2),10)*60+parseInt(h.slice(3,5),10);}
+
+async function openMeuDia(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Montando o relatório do dia...</div>';
+  const c=diaConsultor(),d=diaData();
+  if(!c){$('board').innerHTML='<div class="empty">Nenhum consultor cadastrado.</div>';return;}
+  try{
+    const r=await Promise.all([
+      api('/rpc/crm_relatorio_dia',{method:'POST',body:JSON.stringify({p_data:d,p_consultor:c})}),
+      api('/crm_relatorio_diario?consultor=eq.'+encodeURIComponent(c)+'&select=data,agendados,realizados,efetivos,nao_efetivos,pendentes,matriculas,leads_novos,cumprimento,fechado_em,fechado_por&order=data.desc&limit=30')
+    ]);
+    DIA.payload=r[0]||{};DIA.serie=r[1]||[];
+  }catch(e){
+    $('board').innerHTML='<div class="loading">Não foi possível carregar o relatório do dia.<br>'+esc(e&&e.message?e.message:'')+'</div>';
+    return;
+  }
+  renderMeuDia();
+}
+
+function dLista(arr,fn,vazio){
+  if(!arr||!arr.length)return '<div class="empty">'+vazio+'</div>';
+  return arr.map(fn).join('');
+}
+
+function renderMeuDia(){
+  const p=DIA.payload||{},k=p.kpis||{},c=diaConsultor(),d=diaData(),hoje=hojeISO();
+  const u=uInfo(c)||{},ini=hhmm(u.hora_inicio)||'09:00',fim=hhmm(u.hora_fim)||'18:00';
+  const snap=(DIA.serie||[]).filter(function(x){return x.data===d;})[0];
+  const ag=new Date(),agMin=ag.getHours()*60+ag.getMinutes();
+  const encerrado=(d<hoje)||(d===hoje&&agMin>=minDe(fim));
+  const cumpr=String(k.cumprimento==null?0:k.cumprimento).replace('.',',');
+
+  const status=snap
+    ? '<span class="dpill fechado">Dia fechado '+(snap.fechado_por==='automático'?'automaticamente':'por '+esc(snap.fechado_por||c))+'</span>'
+    : '<span class="dpill aberto">'+(encerrado?'Expediente encerrado, dia ainda não fechado':'Expediente em andamento')+'</span>';
+
+  const kpis='<div class="rkpis">'+
+    '<div class="rkpi"><b>'+(k.agendados||0)+'</b><span>Agendados</span></div>'+
+    '<div class="rkpi ok"><b>'+(k.cumpridos||0)+'</b><span>Contatos feitos</span></div>'+
+    '<div class="rkpi'+(k.pendentes?' bad':'')+'"><b>'+(k.pendentes||0)+'</b><span>Não realizados</span></div>'+
+    '<div class="rkpi"><b>'+cumpr+'%</b><span>Cumprimento</span></div>'+
+    '<div class="rkpi ok"><b>'+(k.matriculas||0)+'</b><span>Matrículas</span></div>'+
+    '<div class="rkpi"><b>'+(k.amanha||0)+'</b><span>Agenda de amanhã</span></div>'+
+  '</div>'+
+  '<div class="rkpis">'+
+    '<div class="rkpi"><b>'+(k.realizados||0)+'</b><span>Interações</span></div>'+
+    '<div class="rkpi"><b>'+(k.efetivos||0)+'</b><span>Efetivas</span></div>'+
+    '<div class="rkpi"><b>'+(k.nao_efetivos||0)+'</b><span>Não efetivas</span></div>'+
+    '<div class="rkpi"><b>'+(k.leads_novos||0)+'</b><span>Leads novos</span></div>'+
+    '<div class="rkpi"><b>'+(k.movimentacoes||0)+'</b><span>Movimentações</span></div>'+
+    '<div class="rkpi bad"><b>'+(k.perdidos||0)+'</b><span>Perdidos</span></div>'+
+  '</div>';
+
+  const agHtml=dLista(p.agendados,function(x){
+    return '<div class="drow"><span class="dh">'+(hhmm(x.hora)||'--:--')+'</span>'+
+      '<span class="dn"><span class="dtipo">'+esc(DTIPO[x.tipo]||x.tipo||'')+'</span>'+esc(x.nome||'')+'</span>'+
+      (x.feito?'<span class="dok">feito</span>':'<span class="dpend">não realizado</span>')+'</div>';
+  },'Nenhum contato agendado para este dia.');
+
+  const reHtml=dLista(p.realizados,function(x){
+    const canal=x.canal==='whatsapp'?'WhatsApp':(x.canal?String(x.canal).charAt(0).toUpperCase()+String(x.canal).slice(1):'');
+    const sub=[canal,x.resumo?String(x.resumo).slice(0,110):''].filter(Boolean).join(' · ');
+    const motivo=MOTIVOS_NE[x.motivo]||x.motivo||'sem retorno';
+    return '<div class="drow"><span class="dh">'+(hhmm(x.hora)||'--:--')+'</span>'+
+      '<span class="dn"><span class="dtipo">'+esc(DTIPO[x.tipo]||x.tipo||'')+'</span>'+esc(x.nome||'')+
+        (sub?'<span class="dsub">'+esc(sub)+'</span>':'')+'</span>'+
+      (x.efetivo?'<span class="dok">efetivo</span>':'<span class="dne">'+esc(motivo)+'</span>')+'</div>';
+  },'Nenhuma interação registrada neste dia.');
+
+  const amHtml=dLista(p.amanha,function(x){
+    return '<div class="drow"><span class="dh">'+(hhmm(x.hora)||'--:--')+'</span>'+
+      '<span class="dn"><span class="dtipo">'+esc(DTIPO[x.tipo]||x.tipo||'')+'</span>'+esc(x.nome||'')+'</span>'+
+      '<span></span></div>';
+  },'Nada agendado para o dia seguinte.');
+
+  const serie=(DIA.serie||[]).map(function(x){
+    return {data:x.data,ag:x.agendados,fe:x.agendados-x.pendentes,cp:x.cumprimento,mt:x.matriculas,ln:x.leads_novos};
+  });
+  if(!serie.some(function(x){return x.data===d;})){
+    serie.push({data:d,ag:k.agendados||0,fe:k.cumpridos||0,cp:k.cumprimento||0,mt:k.matriculas||0,ln:k.leads_novos||0});
+  }
+  serie.sort(function(a,b){return a.data<b.data?-1:(a.data>b.data?1:0);});
+  const graf=serie.slice(-14);
+
+  let evo='<div class="empty">O histórico começa a partir do primeiro fechamento de dia.</div>';
+  if(graf.length){
+    const mx=Math.max.apply(null,graf.map(function(x){return Math.max(x.ag,x.fe);}).concat([1]));
+    evo='<div class="mgrid">'+graf.map(function(x){
+      return '<div class="mcol"><div class="mv">'+x.ag+' · '+x.fe+'</div><div class="mbars">'+
+        '<i class="ml" style="height:'+Math.max(100*x.ag/mx,3)+'%"></i>'+
+        '<i class="mf" style="height:'+Math.max(100*x.fe/mx,3)+'%"></i>'+
+      '</div><div class="mn">'+dLabel(x.data)+'</div></div>';
+    }).join('')+'</div><div class="mleg"><span><i style="background:var(--blue)"></i>Agendados</span><span><i style="background:var(--ok)"></i>Realizados</span></div>';
+  }
+
+  const tab='<div class="rtabw"><table class="rtab">'+
+    '<tr><th>Dia</th><th class="num">Agendados</th><th class="num">Feitos</th><th class="num">Cumprimento</th><th class="num">Matrículas</th><th class="num">Leads novos</th></tr>'+
+    serie.slice().reverse().map(function(x){
+      return '<tr><td>'+brDate(x.data)+'</td><td class="num">'+x.ag+'</td><td class="num">'+x.fe+
+        '</td><td class="num">'+String(x.cp==null?0:x.cp).replace('.',',')+'%</td><td class="num">'+x.mt+
+        '</td><td class="num">'+x.ln+'</td></tr>';
+    }).join('')+'</table></div>';
+
+  const selCons=isAdmin()
+    ? '<select id="dcons" class="dctl">'+consultoresLista().map(function(x){
+        return '<option value="'+esc(x.nome)+'"'+(x.nome===c?' selected':'')+'>'+esc(x.nome)+'</option>';
+      }).join('')+'</select>'
+    : '';
+
+  const btn='<button class="dbtn" id="dfechar"'+(d>hoje?' disabled':'')+'>'+(snap?'Refazer fechamento':'Fechar o dia')+'</button>';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer"></div>'+selCons+
+      '<input type="date" id="ddata" class="dctl" value="'+esc(d)+'" max="'+hoje+'">'+btn+'</div>'+
+    '<div class="dstat"><b style="color:var(--blue)">'+esc(c)+'</b> · jornada '+ini+' às '+fim+
+      ' · '+brDate(d)+status+'</div>'+
+    kpis+
+    '<div class="rcard"><h3>Agenda do dia</h3>'+agHtml+'</div>'+
+    '<div class="rcard"><h3>Contatos realizados</h3>'+reHtml+'</div>'+
+    '<div class="rcard"><h3>Para o dia seguinte</h3>'+amHtml+'</div>'+
+    '<div class="rcard"><h3>Evolução dia a dia</h3>'+evo+'</div>'+
+    '<div class="rcard"><h3>Histórico</h3>'+tab+'</div>'+
+  '</div></div>';
+
+  bindSubnav();
+  const sc=document.getElementById('dcons');
+  if(sc)sc.onchange=function(){window._dcons=sc.value;openMeuDia();};
+  const sd=document.getElementById('ddata');
+  if(sd)sd.onchange=function(){window._ddata=sd.value||hojeISO();openMeuDia();};
+  const bf=document.getElementById('dfechar');
+  if(bf)bf.onclick=async function(){
+    bf.disabled=true;bf.textContent='Fechando...';
+    try{
+      await api('/rpc/crm_fechar_dia',{method:'POST',body:JSON.stringify({p_data:d,p_consultor:c,p_por:currentUser})});
+      toast('Dia fechado. Os números ficaram registrados no histórico.');
+      DIAAVISADO=true;
+      await openMeuDia();
+    }catch(e){
+      toast('Não foi possível fechar o dia.');
+      bf.disabled=false;bf.textContent=snap?'Refazer fechamento':'Fechar o dia';
+    }
+  };
+}
+
+/* aviso de fim de expediente */
+let DIAAVISADO=false;
+async function checarFechamento(){
+  if(!currentUser||DIAAVISADO)return;
+  const u=uInfo(currentUser);
+  if(!u||!u.consultor)return;
+  const ag=new Date();
+  if(ag.getHours()*60+ag.getMinutes()<minDe(u.hora_fim)-15)return;
+  try{
+    const r=await api('/crm_relatorio_diario?consultor=eq.'+encodeURIComponent(currentUser)+
+                      '&data=eq.'+hojeISO()+'&select=id');
+    if(r&&r.length){DIAAVISADO=true;return;}
+  }catch(e){return;}
+  DIAAVISADO=true;
+  toast('Seu expediente está terminando. Abra Relatórios e feche o dia.');
+}
 
 /* ================= Análise do andamento ================= */
 function buildAnalise(all,histMap){
