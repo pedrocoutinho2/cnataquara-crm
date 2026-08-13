@@ -622,6 +622,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .dtwrap input[type=time]{flex:1 1 42%}
 .dtwrap input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .f input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
+.f input:disabled,.f select:disabled{background:#F4F4F6;color:#8A8A8E;cursor:not-allowed}
 .f label b.req{color:var(--red)}
 .iadd .btn:disabled{opacity:.45;cursor:not-allowed}
 .int.ne{background:#FDF6F7;border-left:3px solid var(--dangerLine)}
@@ -1495,10 +1496,13 @@ function openModal(id){
   if(selEt)selEt.addEventListener('change',syncPerda);
   syncPerda();
   const inpId=form.querySelector('[data-k=idade]');
-  if(inpId){inpId.addEventListener('input',syncResp);inpId.addEventListener('change',syncResp);}
+  if(inpId){
+    inpId.addEventListener('input',function(){syncResp();});
+    inpId.addEventListener('change',function(){syncResp();});
+  }
   const inpRL=form.querySelector('[data-k=responsavel_legal]');
-  if(inpRL)inpRL.addEventListener('input',syncResp);
-  syncResp();
+  if(inpRL)inpRL.addEventListener('input',function(){syncResp(true);});
+  syncResp(true);
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -1512,15 +1516,16 @@ function openModal(id){
   if(mb)mb.scrollTop=0;
 }
 
-/* Abaixo de 16 anos quem assina e decide e' o responsavel: o nome dele vira obrigatorio */
+/* Menor de 18: quem assina o contrato e' o responsavel. Campo so abre nesse caso. */
 function idadeForm(){
   const el=document.querySelector('#form [data-k=idade]');
   if(!el)return null;
   const n=parseInt(el.value,10);
   return isNaN(n)?null:n;
 }
-function respObrigatorio(){const n=idadeForm();return n!==null&&n<16;}
-function syncResp(){
+function respObrigatorio(){const n=idadeForm();return n!==null&&n<18;}
+/* preserva=true na abertura da ficha, para nao apagar dado ja gravado */
+function syncResp(preserva){
   const w=$('fRespLegal');
   if(!w)return;
   const req=respObrigatorio();
@@ -1528,8 +1533,11 @@ function syncResp(){
   if(lab)lab.innerHTML='Responsável pelo aluno'+(req?' <b class="req">*</b>':'');
   const inp=w.querySelector('[data-k=responsavel_legal]');
   if(inp){
+    if(!req&&!preserva)inp.value='';
+    inp.disabled=!req;
     inp.classList.toggle('need',req&&!inp.value.trim());
-    inp.placeholder=req?'Nome do pai, mãe ou responsável':'';
+    inp.placeholder=req?'Nome do pai, mãe ou responsável'
+      :(idadeForm()===null?'Informe a idade do aluno':'Maior de 18, não se aplica');
   }
 }
 
@@ -1774,11 +1782,11 @@ $('save').onclick=async function(){
       const idn=parseInt(body.idade,10);
       if(isNaN(idn)||idn<1||idn>120){toast('Idade inválida. Informe um número entre 1 e 120.');return;}
       body.idade=idn;
-      if(idn<16&&!body.responsavel_legal){
-        syncResp();
+      if(idn<18&&!body.responsavel_legal){
+        syncResp(true);
         const rl=document.querySelector('#form [data-k=responsavel_legal]');
         if(rl)rl.focus();
-        toast('Aluno com menos de 16 anos: informe o nome do responsável pelo aluno.');
+        toast('Aluno menor de 18 anos: informe o nome do responsável pelo aluno.');
         return;
       }
     }
