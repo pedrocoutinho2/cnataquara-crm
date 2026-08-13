@@ -625,6 +625,9 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .dtwrap input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .persel{border:1px solid var(--line);border-radius:var(--r-pill);padding:7px 12px;background:var(--white);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;max-width:200px}
 .persel.on{border-color:var(--blue);color:var(--blue);background:var(--pastelBlue)}
+.dica{margin-top:6px;font-size:11.5px;line-height:1.45;color:var(--blue);background:var(--pastelBlue);border-radius:var(--r-md);padding:6px 9px}
+.dica.alerta{color:var(--red);background:var(--pastelRed)}
+.dica b{font-weight:700}
 .f input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .f input:disabled,.f select:disabled{background:#F4F4F6;color:#8A8A8E;cursor:not-allowed}
 .f label b.req{color:var(--red)}
@@ -1502,6 +1505,7 @@ function openModal(id){
     }
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
+    if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
     form.appendChild(d);
     if(f.t==='turmas')fillTurmas(d.querySelector('select'),v);
@@ -1518,12 +1522,14 @@ function openModal(id){
   syncPerda();
   const inpId=form.querySelector('[data-k=idade]');
   if(inpId){
-    inpId.addEventListener('input',function(){syncResp();});
-    inpId.addEventListener('change',function(){syncResp();});
+    inpId.addEventListener('input',function(){syncResp();syncFaixa();});
+    inpId.addEventListener('change',function(){syncResp();syncFaixa();});
   }
+  const selCur=form.querySelector('[data-k=curso]');
+  if(selCur)selCur.addEventListener('change',syncFaixa);
   const inpRL=form.querySelector('[data-k=responsavel_legal]');
   if(inpRL)inpRL.addEventListener('input',function(){syncResp(true);});
-  syncResp(true);
+  syncResp(true);syncFaixa();
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -1535,6 +1541,70 @@ function openModal(id){
   document.body.classList.add('modal-open');
   const mb=document.querySelector('.mbody');
   if(mb)mb.scrollTop=0;
+}
+
+/* Faixa etaria -> estagio de entrada. O mapa de turmas usa a grafia do CNA Box
+   (A1.1/FLY 1, PADV 1, YOUNG KIDS 3/FUN 3), entao o casamento e' por faixa, nao por nome exato. */
+function faixaIdade(n){
+  if(n<3)return {cedo:true};
+  if(n<=4)return {f:'Yard',ent:'Yard 1'};
+  if(n<=6)return {f:'Garden',ent:'Garden 1'};
+  if(n<=8)return {f:'Fun',ent:'Fun 1'};
+  if(n<=10)return {f:'Kids',ent:'Kids 1'};
+  if(n<=12)return {f:'Teen Up',ent:'Teen Up 1'};
+  if(n<50)return {f:'Jovens e adultos',ent:'Fly'};
+  return {f:'Senior',ent:'Senior',tb:'Jovens e adultos'};
+}
+function faixaTurma(c){
+  const u=String(c||'').toUpperCase();
+  if(u.indexOf('CONTACTO')>=0||u.indexOf('CAC')>=0)return 'Espanhol';
+  if(u.indexOf('YARD')>=0)return 'Yard';
+  if(u.indexOf('GARDEN')>=0)return 'Garden';
+  if(u.indexOf('FUN')>=0)return 'Fun';
+  if(u.indexOf('TEEN')>=0)return 'Teen Up';
+  if(u.indexOf('KIDS')>=0)return 'Kids';
+  if(u.indexOf('SENIOR')>=0)return 'Senior';
+  if(/FLY|QUEST|PROGRESS|EXPANS|PADV|ADV|MASTER|GOLD|PLATIN|A1\.|A2\.|B1|B2/.test(u))return 'Jovens e adultos';
+  return '';
+}
+function vagasTurma(t){return t.sem_vaga?0:Math.max(0,(t.capacidade||16)-(t.alunos||0));}
+/* Dica ao lado da idade: estagio de entrada + turmas do mapa com vaga naquela faixa */
+async function syncFaixa(){
+  const w=$('fIdade');
+  if(!w)return;
+  let el=w.querySelector('.dica');
+  if(!el){el=document.createElement('div');el.className='dica';w.appendChild(el);}
+  const n=idadeForm();
+  if(n===null||n<1||n>120){el.style.display='none';return;}
+  el.style.display='';el.classList.remove('alerta');
+  const selC=document.querySelector('#form [data-k=curso]');
+  const curso=selC?selC.value:'';
+  if(curso==='Espanhol'){
+    if(n<13){el.classList.add('alerta');el.innerHTML='En Contacto começa aos 13 anos. Nessa idade o caminho é o inglês.';}
+    else el.innerHTML='Entrada em <b>En Contacto 1</b>.';
+    return;
+  }
+  const fx=faixaIdade(n);
+  if(fx.cedo){el.classList.add('alerta');el.innerHTML='O CNA Yard começa aos 3 anos.';return;}
+  el.innerHTML='Faixa <b>'+esc(fx.f)+'</b> · entrada em <b>'+esc(fx.ent)+'</b>';
+  let rows=[];
+  try{rows=(await turmasCache())||[];}catch(e){return;}
+  if(idadeForm()!==n)return;   /* a idade mudou enquanto o mapa carregava */
+  const sem=(typeof tSemestre!=='undefined'&&tSemestre)?tSemestre:null;
+  const alvo={};alvo[fx.f]=1;if(fx.tb)alvo[fx.tb]=1;
+  const nomes=[];
+  rows.forEach(function(t){
+    if(sem&&t.semestre!==sem)return;
+    if(!alvo[faixaTurma(t.curso)])return;
+    if(vagasTurma(t)<=0)return;
+    const c=String(t.curso||'').toUpperCase();
+    if(nomes.indexOf(c)<0)nomes.push(c);
+  });
+  nomes.sort();
+  const lista=nomes.slice(0,5).join(', ')+(nomes.length>5?' e mais '+(nomes.length-5):'');
+  el.innerHTML+=nomes.length
+    ?'<br>Com vaga hoje: <b>'+esc(lista)+'</b>'
+    :'<br>Nenhuma turma dessa faixa com vaga no mapa.';
 }
 
 /* Menor de 18: quem assina o contrato e' o responsavel. Campo so abre nesse caso. */
