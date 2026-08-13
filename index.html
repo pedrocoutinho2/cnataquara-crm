@@ -154,6 +154,7 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .dot.p1{background:var(--red)}.dot.p2{background:var(--blue)}.dot.p3{background:#B9B9BE}
 .card h3{font-size:13.5px;font-weight:600;line-height:1.25;flex:1}
 .avatar{width:22px;height:22px;border-radius:50%;color:var(--white);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:'Poppins'}
+.card .cresp{font-size:11.5px;color:var(--gray);line-height:1.3;margin-top:3px}
 .card .meta{font-size:11.5px;color:var(--gray);margin:5px 0 7px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .card .meta .sep{color:#C9C9CE}
 .tag{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:1px 6px;font-size:10.5px}
@@ -1326,6 +1327,7 @@ function cardEl(s,st,showStage){
 
   c.innerHTML=
     '<div class="top"><span class="dot '+pr[2]+'" title="'+esc(pr[1])+'"></span><h3>'+esc(s.nome)+'</h3>'+av+'</div>'+
+    (s.responsavel_legal?'<div class="cresp">Resp.: '+esc(s.responsavel_legal)+'</div>':'')+
     '<div class="meta">'+
       (sub?'<span>'+esc(sub)+'</span>':'')+
       (dec?'<span class="sep">·</span><span>'+esc(dec)+'</span>':'')+
@@ -2211,11 +2213,17 @@ function buildChips(){
   });
   document.querySelectorAll('#fpanel input[type=date]').forEach(function(inp){
     inp.onchange=function(){
-      filters[inp.dataset.fk]=inp.value||null;
-      inp.classList.toggle('on',!!inp.value);
+      const fk=inp.dataset.fk;
+      filters[fk]=inp.value||null;
+      /* data inicial sem data final: fecha a faixa em hoje e mostra isso no campo,
+         para a faixa nunca ficar aberta sem o usuario perceber */
+      if(inp.value&&fk.slice(-2)==='De'){
+        const ate=fk.slice(0,-2)+'Ate';
+        if(!filters[ate]){const h=hojeISO();filters[ate]=(inp.value>h)?inp.value:h;}
+      }
       /* mexeu na faixa na mao: o preset vira "Período específico" */
-      if(tab==='leads'&&(inp.dataset.fk==='entradaDe'||inp.dataset.fk==='entradaAte')){filters.per='custom';buildPeriodo();}
-      updateFBtn();render();
+      if(tab==='leads'&&(fk==='entradaDe'||fk==='entradaAte'))filters.per='custom';
+      buildChips();render();
     };
   });
   $('fclear').onclick=function(){
