@@ -730,6 +730,15 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .int.ne{background:#FDF6F7;border-left:3px solid var(--dangerLine)}
 .itipo.nef{background:var(--pastelRed);color:var(--redDark);font-weight:700}
 .iprox{margin-top:6px;font-size:11.5px;color:var(--blue);font-weight:600}
+.iprox .ied{margin-left:6px;color:var(--gray);font-style:italic;font-weight:600}
+.agbar{background:var(--pastelBlue);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px}
+.agview,.agform{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.agtxt{flex:1;min-width:170px;font-size:12.5px;font-weight:600;color:var(--blue)}
+.agb{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:5px 12px;font-size:12px;font-weight:600;color:var(--gray);cursor:pointer}
+.agb.ok{background:var(--red);border-color:var(--red);color:var(--white)}
+.agb.del{color:var(--red);border-color:var(--red)}
+.agb:disabled{opacity:.55;cursor:not-allowed}
+.agform select{padding:6px 8px;font-size:12.5px}
 .nestreak{background:var(--warnBg);border:1px solid #F0DCA8;color:var(--warn);border-radius:var(--r-md);padding:8px 11px;font-size:12px;font-weight:600;margin-bottom:10px}
 .nestreak.hot{background:var(--pastelRed);border-color:var(--dangerLine);color:var(--redDark)}
 /* tag de agenda no card */
@@ -818,6 +827,19 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
       <div class="grid" id="form"></div>
       <div class="ints" id="ints" style="display:none">
         <h3>Histórico de contatos</h3>
+        <div class="agbar" id="agbar" style="display:none">
+          <div class="agview" id="agview">
+            <span class="agtxt" id="agtxt"></span>
+            <button type="button" class="agb" id="agedit">Editar</button>
+            <button type="button" class="agb del" id="agdel">Remover</button>
+          </div>
+          <div class="agform" id="agform" style="display:none">
+            <div class="dtwrap"><input type="date" id="agd"><input type="time" step="900" id="agh"></div>
+            <select id="agc"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select>
+            <button type="button" class="agb ok" id="agsave">Salvar</button>
+            <button type="button" class="agb" id="agcancel">Cancelar</button>
+          </div>
+        </div>
         <div class="isub" id="isub">
           <button class="on" data-is="ef">Contato efetivo</button>
           <button data-is="ne">Não efetivo</button>
@@ -1546,6 +1568,23 @@ async function moveTo(id,stage){
   }
 }
 
+/* Interacao que detem o agendamento vigente: a mais recente que tem proximo_contato.
+   E' ela que a barra corrige ou limpa, para ficha e historico nunca divergirem. */
+var agIntId=null;
+function recAtual(){return (DATA[tab]||[]).find(function(x){return x.id===editing;});}
+function syncAgbar(){
+  const bar=$('agbar');
+  if(!bar)return;
+  const cfg=CFG[tab],nf=NF(cfg),s=recAtual();
+  const dt=s?s[nf]:null;
+  if(!editing||!dt){bar.style.display='none';return;}
+  bar.style.display='';
+  $('agview').style.display='';
+  $('agform').style.display='none';
+  $('agtxt').textContent='\u23F0 Próximo contato: '+agLabel(dt,s[nf+'_hora'])
+    +(s.proximo_canal?' · '+canalNome(s.proximo_canal):'');
+}
+
 /* O agendamento mora no historico de contatos. Na ficha ele aparece so como leitura,
    para nao existirem dois campos concorrentes de proximo contato. */
 var msubBase='';
@@ -1629,6 +1668,7 @@ function openModal(id){
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
   $('ints').style.display=s?'':'none';
+  agIntId=null;$('agbar').style.display='none';
   resetIntPanes();
   if(s)loadInts(s.id);
   renderPV(tab==='leads'?s:null);
@@ -1701,6 +1741,61 @@ async function syncFaixa(){
     ?'<br>Com vaga hoje: <b>'+esc(lista)+'</b>'
     :'<br>Nenhuma turma dessa faixa com vaga no mapa.';
 }
+
+/* Correcao do agendamento ja registrado: bate na ficha e na interacao de origem,
+   deixando marcado no historico que aquela linha foi mexida depois do registro. */
+async function gravaAgenda(prox,proxh,pcanal){
+  const cfg=CFG[tab],nf=NF(cfg),hf=nf+'_hora';
+  const patch={updated_at:new Date().toISOString()};
+  patch[nf]=prox||null;
+  patch[hf]=prox?(proxh||null):null;
+  patch.proximo_canal=prox?(pcanal||null):null;
+  try{
+    await api('/'+cfg.table+'?id=eq.'+editing,{method:'PATCH',body:JSON.stringify(patch)});
+    if(agIntId){
+      const it=cfg.intTable||'crm_interacoes';
+      await api('/'+it+'?id=eq.'+agIntId,{method:'PATCH',body:JSON.stringify({
+        proximo_contato:patch[nf],proximo_contato_hora:patch[hf],proximo_canal:patch.proximo_canal,
+        agenda_editada_em:new Date().toISOString(),agenda_editada_por:currentUser
+      })});
+    }
+    const s=recAtual();
+    if(s){s[nf]=patch[nf];s[hf]=patch[hf];s.proximo_canal=patch.proximo_canal;syncMsub(s);}
+    syncAgbar();
+    await loadInts(editing);
+    render();
+    loadAlerts();
+    return true;
+  }catch(e){toast('Não consegui salvar a alteração do próximo contato.');return false;}
+}
+$('agedit').onclick=function(){
+  const cfg=CFG[tab],nf=NF(cfg),s=recAtual();
+  if(!s)return;
+  $('agd').value=s[nf]||'';
+  $('agh').value=hhmm(s[nf+'_hora'])||'';
+  $('agc').value=s.proximo_canal||'whatsapp';
+  $('agview').style.display='none';
+  $('agform').style.display='';
+};
+$('agcancel').onclick=function(){syncAgbar();};
+$('agsave').onclick=async function(){
+  const d=$('agd').value;
+  if(!d){toast('Informe a data do próximo contato.');return;}
+  const h=$('agh').value||'09:00';
+  const b=$('agsave');
+  b.disabled=true;
+  const ok=await gravaAgenda(d,h,$('agc').value);
+  b.disabled=false;
+  if(ok)toast('Próximo contato atualizado para '+brDate(d)+' às '+h+'.');
+};
+$('agdel').onclick=async function(){
+  if(!confirm('Remover o próximo contato agendado? O contato já registrado continua no histórico; só o agendamento sai.'))return;
+  const b=$('agdel');
+  b.disabled=true;
+  const ok=await gravaAgenda(null,null,null);
+  b.disabled=false;
+  if(ok)toast('Agendamento removido. O lead fica sem próximo contato.');
+};
 
 /* Menor de 18: quem assina o contrato e' o responsavel. Campo so abre nesse caso. */
 function idadeForm(){
@@ -1804,6 +1899,9 @@ async function loadInts(id){
   $('ilist').innerHTML='<div class="empty">Carregando...</div>';
   try{
     const ints=await api('/'+it+'?'+cfg.fk+'=eq.'+id+'&select=*&order='+(cfg.intOrder||'data.desc'));
+    agIntId=null;
+    for(var z=0;z<ints.length;z++){if(ints[z].proximo_contato){agIntId=ints[z].id;break;}}
+    syncAgbar();
     if(!ints.length){$('ilist').innerHTML='<div class="empty">Nenhum contato registrado ainda</div>';return;}
     var seq=0;
     for(var k=0;k<ints.length;k++){if(ints[k].efetivo===false)seq++;else break;}
@@ -1827,7 +1925,7 @@ async function loadInts(id){
         +(ne?'<span class="itipo nef">Não efetivo'+(i.motivo_nao_efetivo?' · '+esc(MOTIVOS_NE[i.motivo_nao_efetivo]||i.motivo_nao_efetivo):'')+'</span>':'')
         +'<span>'+ds+'</span></div>'
         +'<p>'+(txt||'<i>sem observação</i>')+'</p>'
-        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+(i.proximo_contato_hora?' às '+String(i.proximo_contato_hora).slice(0,5):'')+(i.proximo_canal?' · '+esc(canalNome(i.proximo_canal)):'')+'</div>':'')
+        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+(i.proximo_contato_hora?' às '+String(i.proximo_contato_hora).slice(0,5):'')+(i.proximo_canal?' · '+esc(canalNome(i.proximo_canal)):'')+(i.agenda_editada_em?'<span class="ied">editado por '+esc(i.agenda_editada_por||'?')+'</span>':'')+'</div>':'')
         +'</div>';
     }).join('');
   }catch(e){
