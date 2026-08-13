@@ -317,6 +317,46 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .acard li b{color:var(--redDark)}
 .acard li i{font-style:normal;font-weight:600;color:var(--blue)}
 
+/* ===== Relatorios v2: grade, KPIs e canais ===== */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}
+.rgrid>.rcard,.rgrid>.acard{margin-bottom:0;height:100%}
+.rgrid>.wide{grid-column:1/-1}
+@media(max-width:920px){.rgrid{grid-template-columns:1fr}}
+.rkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:10px;margin-bottom:14px}
+.rkpi{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:var(--r-lg);padding:11px 13px 10px;text-align:left;box-shadow:var(--shadow-1);min-width:0}
+.rkpi.ok{border-top-color:var(--ok)}
+.rkpi.bad{border-top-color:var(--red)}
+.rkpi b{display:block;font-family:'Poppins';font-size:23px;line-height:1.1;color:var(--blue);letter-spacing:-.3px}
+.rkpi.ok b{color:var(--ok)}
+.rkpi.bad b{color:var(--redDark)}
+.rkpi span{display:block;font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;line-height:1.3}
+.rkpi .kd{display:inline-block;font-style:normal;font-size:10.5px;font-weight:700;margin-top:6px;border-radius:var(--r-pill);padding:1.5px 8px;background:var(--surface);color:var(--gray)}
+.rkpi .kd.up{background:var(--okBg);color:var(--ok)}
+.rkpi .kd.down{background:var(--dangerBg);color:var(--danger)}
+.rbig{font-family:'Poppins';font-size:27px;color:var(--blue);line-height:1.15;margin-bottom:13px}
+.rbig small{display:block;font-family:'Inter';font-size:11.5px;font-weight:400;color:var(--gray);margin-top:4px;line-height:1.45}
+.rnote{font-size:11px;color:var(--gray);margin-top:11px;line-height:1.45}
+.rfil{display:flex;gap:6px;flex-wrap:wrap}
+.rfil button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:6px 13px;font-family:'Poppins';font-weight:600;font-size:11.5px;color:var(--gray)}
+.rfil button.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.chn{display:flex;flex-direction:column;gap:13px}
+.chrow .chh{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:5px}
+.chrow .cnm{font-family:'Poppins';font-weight:600;color:var(--ink)}
+.chrow .cqt{color:var(--gray);font-size:11.5px;margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chbar{display:flex;height:22px;border-radius:var(--r-sm);overflow:hidden;background:var(--surface)}
+.chbar i{display:block;height:100%;min-width:0}
+.chbar .cef{background:var(--ok)}
+.chbar .cne{background:#D6D6DB}
+.chleg{display:flex;gap:14px;font-size:11px;color:var(--gray);margin-top:12px;flex-wrap:wrap}
+.chleg i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.chtop{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.chpill{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:var(--r-pill);padding:5px 12px;font-size:11.5px;background:var(--surface);color:var(--gray)}
+.chpill b{font-family:'Poppins';color:var(--ink);font-size:12px}
+.chdot{width:9px;height:9px;border-radius:50%;flex:none}
+.rtab td.hl{font-weight:700;color:var(--ok)}
+.rtab td .sub{display:block;font-size:10.5px;color:var(--gray);font-weight:400}
+.rempty{font-size:12.5px;color:var(--gray);padding:6px 0}
+
 /* ===== Equipe ===== */
 .eq{max-width:1080px;margin:0 auto;padding:4px 18px 30px;flex:1;overflow-y:auto}
 .eqrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -2477,12 +2517,14 @@ function mesLabel(ym){const p=ym.split('-');return MESES[parseInt(p[1],10)-1]+' 
 function mesCurto(ym){const p=ym.split('-');return MESES[parseInt(p[1],10)-1].slice(0,3)+'/'+p[0].slice(2);}
 function pct(a,b){return b?(100*a/b).toFixed(1).replace('.',',')+'%':'—';}
 let ETAPAS_HIST=null;
+let CANDATA=null;
 
 let RVIEW='dia';
 function subnav(){
   return '<div class="rsub" id="rsub">'+
     '<button data-v="dia"'+(RVIEW==='dia'?' class="on"':'')+'>Meu dia</button>'+
     '<button data-v="funil"'+(RVIEW==='funil'?' class="on"':'')+'>Funil B2C</button>'+
+    '<button data-v="canais"'+(RVIEW==='canais'?' class="on"':'')+'>Canais</button>'+
   '</div>';
 }
 function bindSubnav(){
@@ -2493,7 +2535,19 @@ function bindSubnav(){
 
 async function openReports(){
   if(RVIEW==='dia'){await openMeuDia();return;}
+  if(RVIEW==='canais'){await openCanais();return;}
   await openFunil();
+}
+
+/* interacoes de leads (B2C) e de escolas/empresas (B2B), carregadas uma vez por sessao */
+async function loadInteracoes(){
+  if(CANDATA)return CANDATA;
+  const r=await Promise.all([
+    api('/crm_leads_interacoes?select=lead_id,data,autor,tipo,efetivo,motivo_nao_efetivo&order=data.desc&limit=5000'),
+    api('/crm_interacoes?select=escola_id,empresa_id,data,autor,tipo,efetivo,motivo_nao_efetivo&order=data.desc&limit=5000')
+  ]);
+  CANDATA={b2c:r[0]||[],b2b:r[1]||[]};
+  return CANDATA;
 }
 
 async function openFunil(){
@@ -2505,6 +2559,7 @@ async function openFunil(){
     if(!DATA.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados dos relatórios.</div>';return;}
     ETAPAS_HIST=ETAPAS_HIST||[];
   }
+  try{await loadInteracoes();}catch(e){CANDATA=CANDATA||{b2c:[],b2b:[]};}
   renderReports();
 }
 
@@ -2652,6 +2707,85 @@ function renderReports(){
     }).join('')+(esq.length>15?'<div class="empty">+ '+(esq.length-15)+' outros — use o kanban pra ver todos</div>':'')+'</div>';
   }
 
+  // comparativo com o mes anterior (so quando um mes esta selecionado)
+  let prevYM='';
+  if(per){
+    const pp=per.split('-');
+    const dt=new Date(parseInt(pp[0],10),parseInt(pp[1],10)-2,1);
+    prevYM=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  }
+  const lprev=prevYM?all.filter(function(s){return (s.data_entrada||'').slice(0,7)===prevYM;}):null;
+  const pTotal=lprev?lprev.length:null;
+  const pFech=lprev?lprev.filter(function(s){return s.etapa==='fechado';}).length:null;
+  function kd(cur,prev){
+    if(prev==null)return '';
+    const d=cur-prev;
+    if(!d)return '<i class="kd">igual ao mês anterior</i>';
+    return '<i class="kd '+(d>0?'up':'down')+'">'+(d>0?'▲ +'+d:'▼ '+d)+' vs mês anterior</i>';
+  }
+
+  // interacoes B2C do periodo, ja sem as notas internas
+  const interB2C=((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).filter(function(i){
+    if(i.tipo==='nota')return false;
+    return !per||String(i.data||'').slice(0,7)===per;
+  });
+
+  // tempo ate o primeiro contato
+  const primeiro={};
+  ((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).forEach(function(i){
+    if(!i.lead_id||!i.data||i.tipo==='nota')return;
+    const dd=String(i.data).slice(0,10);
+    if(!primeiro[i.lead_id]||dd<primeiro[i.lead_id])primeiro[i.lead_id]=dd;
+  });
+  const bks=[{n:'No mesmo dia',v:0},{n:'Em 1 dia',v:0},{n:'2 a 3 dias',v:0},{n:'4 a 7 dias',v:0},{n:'Mais de 7 dias',v:0},{n:'Ainda sem contato',v:0}];
+  let somaE=0,comE=0;
+  leads.forEach(function(s){
+    const pr=primeiro[s.id];
+    if(!pr){bks[5].v++;return;}
+    const dd=Math.max(0,Math.round((new Date(pr+'T12:00:00')-new Date((s.data_entrada||pr)+'T12:00:00'))/86400000));
+    somaE+=dd;comE++;
+    if(dd===0)bks[0].v++;else if(dd===1)bks[1].v++;else if(dd<=3)bks[2].v++;else if(dd<=7)bks[3].v++;else bks[4].v++;
+  });
+  const mxb=Math.max.apply(null,bks.map(function(b){return b.v;}).concat([1]));
+  const tprim=comE?(somaE/comE).toFixed(1).replace('.',',')+' dias':'—';
+  const cardTempo='<div class="rcard"><h3>Tempo até o primeiro contato</h3>'+
+    '<div class="rbig">'+tprim+'<small>média entre a entrada do lead e o primeiro contato registrado por um consultor</small></div>'+
+    '<div class="fun">'+bks.map(function(b,i){
+      return '<div class="frow"><span class="fl">'+b.n+'</span>'+
+        '<span class="fb"><i style="--bc:'+(i>=4?'var(--red)':(i>=3?'#B87500':'var(--blue)'))+';width:'+(100*b.v/mxb)+'%"></i></span>'+
+        '<span class="fn">'+b.v+'</span></div>';
+    }).join('')+'</div>'+
+    '<div class="rnote">Lead respondido no mesmo dia converte muito mais. Os dois blocos de baixo são a fila que está esfriando.</div></div>';
+
+  // ranking de consultores: leads, contatos, efetividade e matriculas
+  const rk={};
+  function rkGet(k){if(!rk[k])rk[k]={n:0,f:0,p:0,ct:0,ef:0};return rk[k];}
+  leads.forEach(function(s){
+    const g=rkGet(s.responsavel||'—');
+    g.n++;
+    if(s.etapa==='fechado')g.f++;
+    if(s.etapa==='perdido')g.p++;
+  });
+  interB2C.forEach(function(i){
+    const g=rkGet(i.autor||'—');
+    g.ct++;if(i.efetivo!==false)g.ef++;
+  });
+  const rkKeys=Object.keys(rk).sort(function(a,b){
+    if(rk[b].f!==rk[a].f)return rk[b].f-rk[a].f;
+    return rk[b].n-rk[a].n;
+  });
+  const cardRank=rkKeys.length?'<div class="rcard"><h3>Ranking de consultores</h3><div class="rtabw"><table class="rtab">'+
+    '<tr><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+    rkKeys.map(function(k){
+      const g=rk[k];
+      return '<tr><td>'+esc(k)+(g.p?'<span class="sub">'+g.p+' perdidos</span>':'')+'</td>'+
+        '<td class="num">'+g.n+'</td><td class="num">'+g.ct+'</td>'+
+        '<td class="num">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
+        '<td class="num'+(g.f?' hl':'')+'">'+g.f+'</td>'+
+        '<td class="num">'+pct(g.f,g.n)+'</td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="rnote">Contatos e efetividade contam as interações registradas por cada um no período. Leads e matrículas contam quem está como responsável.</div></div>':'';
+
   $('stats').innerHTML='';
   board.innerHTML='<div class="rscreen"><div class="rwrap">'+
     '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer"></div>'+
@@ -2659,25 +2793,255 @@ function renderReports(){
         '<option value="">Todos os períodos</option>'+
         listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
       '</select></div>'+
-    buildAnalise(all,histMap)+
     '<div class="rkpis">'+
-      '<div class="rkpi"><b>'+total+'</b><span>Leads</span></div>'+
+      '<div class="rkpi"><b>'+total+'</b><span>Leads</span>'+kd(total,pTotal)+'</div>'+
       '<div class="rkpi"><b>'+ativos+'</b><span>Ativos</span></div>'+
-      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span></div>'+
+      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span>'+kd(fech.length,pFech)+'</div>'+
       '<div class="rkpi bad"><b>'+perd.length+'</b><span>Perdidos</span></div>'+
       '<div class="rkpi"><b>'+pct(fech.length,total)+'</b><span>Conversão</span></div>'+
       '<div class="rkpi"><b>'+tmed+'</b><span>Tempo até matrícula</span></div>'+
     '</div>'+
-    '<div class="rcard"><h3>Funil · até onde os leads chegam</h3>'+funil+'</div>'+
-    alerta+evo+
-    grupo('responsavel','Conversão por consultor','Consultor')+
-    grupo('origem','Leads por origem','Origem')+
-    grupo('curso','Cursos procurados','Curso')+
-    motivos+
+    '<div class="rgrid">'+
+      buildAnalise(all,histMap).replace('class="acard"','class="acard wide"')+
+      '<div class="rcard wide"><h3>Funil · até onde os leads chegam</h3>'+funil+'</div>'+
+      cardRank+
+      cardTempo+
+      evo+
+      grupo('origem','Leads por origem','Origem')+
+      grupo('curso','Cursos procurados','Curso')+
+      motivos+
+      (alerta?alerta.replace('class="rcard"','class="rcard wide"'):'')+
+    '</div>'+
   '</div></div>';
   const sel=document.getElementById('rperiodo');
   if(sel)sel.onchange=function(){window._rper=sel.value;renderReports();};
   bindSubnav();
+}
+
+
+/* ================= Canais de contato ================= */
+const CANAL_INFO={
+  whatsapp:{n:'WhatsApp',c:'#1E7A46'},
+  ligacao:{n:'Ligação',c:'#19408B'},
+  email:{n:'E-mail',c:'#B87500'},
+  visita:{n:'Visita',c:'#7A3E9D'},
+  reuniao:{n:'Reunião',c:'#0E7490'},
+  presencial:{n:'Presencial',c:'#C2410C'}
+};
+function canalLbl(k){return (CANAL_INFO[k]&&CANAL_INFO[k].n)||(k?String(k).charAt(0).toUpperCase()+String(k).slice(1):'Não informado');}
+function canalCor(k){return (CANAL_INFO[k]&&CANAL_INFO[k].c)||'#8A8A8E';}
+function diasAtrasISO(n){
+  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function openCanais(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Montando o relatório de canais...</div>';
+  try{
+    await loadInteracoes();
+    if(!DATA.leads)DATA.leads=await api('/crm_leads?select=*&order=nome.asc');
+  }catch(e){
+    $('board').innerHTML='<div class="loading">Não foi possível carregar o relatório de canais.<br>'+esc(e&&e.message?e.message:'')+'</div>';
+    return;
+  }
+  renderCanais();
+}
+
+function renderCanais(){
+  const per=window._cper==null?'30':window._cper;   /* '7' | '30' | '90' | '' */
+  const escopo=window._cesc||'todos';               /* todos | b2c | b2b */
+  const desde=per?diasAtrasISO(parseInt(per,10)):'';
+
+  const rows=[];
+  if(escopo!=='b2b')((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).forEach(function(i){
+    rows.push({d:String(i.data||'').slice(0,10),autor:i.autor||'—',tipo:i.tipo||'',ef:i.efetivo!==false,mot:i.motivo_nao_efetivo,lead:i.lead_id});
+  });
+  if(escopo!=='b2c')((CANDATA&&CANDATA.b2b)?CANDATA.b2b:[]).forEach(function(i){
+    rows.push({d:String(i.data||'').slice(0,10),autor:i.autor||'—',tipo:i.tipo||'',ef:i.efetivo!==false,mot:i.motivo_nao_efetivo,lead:null});
+  });
+
+  const noPeriodo=rows.filter(function(r){return r.d&&(!desde||r.d>=desde);});
+  const notas=noPeriodo.filter(function(r){return r.tipo==='nota';}).length;
+  const cts=noPeriodo.filter(function(r){return r.tipo&&r.tipo!=='nota';});
+
+  const totalCt=cts.length;
+  const totalEf=cts.filter(function(r){return r.ef;}).length;
+
+  /* por canal */
+  const gc={};
+  cts.forEach(function(r){
+    if(!gc[r.tipo])gc[r.tipo]={n:0,ef:0};
+    gc[r.tipo].n++;if(r.ef)gc[r.tipo].ef++;
+  });
+  const canais=Object.keys(gc).sort(function(a,b){return gc[b].n-gc[a].n;});
+
+  /* melhores: volume e efetividade (minimo de 5 contatos pra nao virar ruido) */
+  const maisUsado=canais.length?canais[0]:null;
+  const elegiveis=canais.filter(function(k){return gc[k].n>=5;});
+  const maisEfetivo=(elegiveis.length?elegiveis:canais).slice().sort(function(a,b){
+    return (gc[b].ef/gc[b].n)-(gc[a].ef/gc[a].n);
+  })[0]||null;
+
+  /* por consultor */
+  const gu={};
+  cts.forEach(function(r){
+    if(!gu[r.autor])gu[r.autor]={n:0,ef:0,c:{}};
+    gu[r.autor].n++;if(r.ef)gu[r.autor].ef++;
+    gu[r.autor].c[r.tipo]=(gu[r.autor].c[r.tipo]||0)+1;
+  });
+  const consult=Object.keys(gu).sort(function(a,b){return gu[b].n-gu[a].n;});
+
+  /* motivos de contato nao efetivo */
+  const gm={};
+  cts.filter(function(r){return !r.ef;}).forEach(function(r){
+    const k=MOTIVOS_NE[r.mot]||r.mot||'Não informado';
+    gm[k]=(gm[k]||0)+1;
+  });
+  const motKeys=Object.keys(gm).sort(function(a,b){return gm[b]-gm[a];});
+
+  /* conversao em matricula por canal (so B2C) */
+  const leadsById={};
+  (DATA.leads||[]).forEach(function(s){leadsById[s.id]=s;});
+  const canalLead={};
+  cts.forEach(function(r){
+    if(!r.lead)return;
+    if(!canalLead[r.tipo])canalLead[r.tipo]={};
+    canalLead[r.tipo][r.lead]=1;
+  });
+  const convRows=Object.keys(canalLead).map(function(k){
+    const ids=Object.keys(canalLead[k]);
+    const f=ids.filter(function(id){return leadsById[id]&&leadsById[id].etapa==='fechado';}).length;
+    return {k:k,n:ids.length,f:f};
+  }).sort(function(a,b){return (b.f/(b.n||1))-(a.f/(a.n||1));});
+
+  /* volume por dia, ultimos 14 dias com registro */
+  const gd={};
+  cts.forEach(function(r){
+    if(!gd[r.d])gd[r.d]={n:0,ef:0};
+    gd[r.d].n++;if(r.ef)gd[r.d].ef++;
+  });
+  const dias=Object.keys(gd).sort().slice(-14);
+
+  /* ---------- montagem ---------- */
+  const kpis='<div class="rkpis">'+
+    '<div class="rkpi"><b>'+totalCt+'</b><span>Contatos no período</span></div>'+
+    '<div class="rkpi ok"><b>'+totalEf+'</b><span>Efetivos</span></div>'+
+    '<div class="rkpi"><b>'+pct(totalEf,totalCt)+'</b><span>Taxa de efetividade</span></div>'+
+    '<div class="rkpi"><b style="font-size:18px">'+(maisUsado?esc(canalLbl(maisUsado)):'—')+'</b><span>Canal mais usado</span></div>'+
+    '<div class="rkpi ok"><b style="font-size:18px">'+(maisEfetivo?esc(canalLbl(maisEfetivo)):'—')+'</b><span>Canal mais efetivo</span></div>'+
+    '<div class="rkpi"><b>'+consult.length+'</b><span>Consultores ativos</span></div>'+
+  '</div>';
+
+  let cardCanais;
+  if(!canais.length){
+    cardCanais='<div class="rcard wide"><h3>Canais mais usados e efetividade</h3><div class="rempty">Nenhum contato registrado no período selecionado.</div></div>';
+  }else{
+    const mxn=gc[canais[0]].n;
+    cardCanais='<div class="rcard wide"><h3>Canais mais usados e efetividade</h3>'+
+      '<div class="chtop">'+canais.map(function(k){
+        return '<span class="chpill"><i class="chdot" style="background:'+canalCor(k)+'"></i><b>'+esc(canalLbl(k))+'</b> '+pct(gc[k].ef,gc[k].n)+' efetivo</span>';
+      }).join('')+'</div>'+
+      '<div class="chn">'+canais.map(function(k){
+        const g=gc[k],larg=100*g.n/mxn,pe=g.n?100*g.ef/g.n:0;
+        return '<div class="chrow"><div class="chh"><i class="chdot" style="background:'+canalCor(k)+'"></i>'+
+            '<span class="cnm">'+esc(canalLbl(k))+'</span>'+
+            '<span class="cqt">'+g.n+' contatos · '+g.ef+' efetivos · '+pct(g.ef,g.n)+'</span></div>'+
+          '<div class="chbar" style="width:'+Math.max(larg,12)+'%">'+
+            '<i class="cef" style="width:'+pe+'%"></i><i class="cne" style="width:'+(100-pe)+'%"></i>'+
+          '</div></div>';
+      }).join('')+'</div>'+
+      '<div class="chleg"><span><i style="background:var(--ok)"></i>Contato efetivo</span><span><i style="background:#D6D6DB"></i>Não efetivo</span></div>'+
+      '<div class="rnote">A largura da barra é o volume de uso do canal. A parte verde é a fatia que virou conversa de verdade.'+
+        (notas?' Não entram aqui '+notas+' anotação'+(notas>1?'ões':'')+' interna'+(notas>1?'s':'')+', que não são contato com o cliente.':'')+'</div></div>';
+  }
+
+  let cardMatriz='<div class="rcard wide"><h3>Quem usa qual canal</h3><div class="rempty">Sem contatos no período.</div></div>';
+  if(consult.length&&canais.length){
+    cardMatriz='<div class="rcard wide"><h3>Quem usa qual canal</h3><div class="rtabw"><table class="rtab">'+
+      '<tr><th>Consultor</th>'+canais.map(function(k){return '<th class="num">'+esc(canalLbl(k))+'</th>';}).join('')+
+      '<th class="num">Total</th><th class="num">Efetividade</th></tr>'+
+      consult.map(function(u){
+        const g=gu[u];
+        return '<tr><td>'+esc(u)+'</td>'+canais.map(function(k){
+          const v=g.c[k]||0;
+          return '<td class="num">'+(v?v:'·')+'</td>';
+        }).join('')+'<td class="num">'+g.n+'</td><td class="num'+(g.n&&g.ef/g.n>=0.7?' hl':'')+'">'+pct(g.ef,g.n)+'</td></tr>';
+      }).join('')+
+      '<tr><td><b>Total</b></td>'+canais.map(function(k){return '<td class="num"><b>'+gc[k].n+'</b></td>';}).join('')+
+      '<td class="num"><b>'+totalCt+'</b></td><td class="num"><b>'+pct(totalEf,totalCt)+'</b></td></tr>'+
+      '</table></div>'+
+      '<div class="rnote">Cruze a linha do consultor com a coluna do canal para ver por onde cada um está puxando o cliente.</div></div>';
+  }
+
+  let cardConv='';
+  if(convRows.length){
+    cardConv='<div class="rcard"><h3>Canal x matrícula</h3><div class="rtabw"><table class="rtab">'+
+      '<tr><th>Canal</th><th class="num">Leads tocados</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+      convRows.map(function(x){
+        return '<tr><td>'+esc(canalLbl(x.k))+'</td><td class="num">'+x.n+'</td>'+
+          '<td class="num'+(x.f?' hl':'')+'">'+x.f+'</td><td class="num">'+pct(x.f,x.n)+'</td></tr>';
+      }).join('')+'</table></div>'+
+      '<div class="rnote">Leads B2C que receberam pelo menos um contato por aquele canal no período e hoje estão como matrícula fechada. O mesmo lead pode aparecer em mais de um canal.</div></div>';
+  }
+
+  let cardMot='';
+  if(motKeys.length){
+    const mm=gm[motKeys[0]];
+    cardMot='<div class="rcard"><h3>Por que o contato não foi efetivo</h3><div class="fun">'+
+      motKeys.map(function(k){
+        return '<div class="frow"><span class="fl">'+esc(k)+'</span>'+
+          '<span class="fb"><i style="--bc:#B9B9BE;width:'+(100*gm[k]/mm)+'%"></i></span>'+
+          '<span class="fn">'+gm[k]+' · '+pct(gm[k],totalCt-totalEf)+'</span></div>';
+      }).join('')+'</div>'+
+      '<div class="rnote">Muito "não atendeu" na ligação e muito "mensagem não lida" no WhatsApp indicam horário de abordagem errado.</div></div>';
+  }
+
+  let cardDias='';
+  if(dias.length){
+    const mxd=Math.max.apply(null,dias.map(function(d){return gd[d].n;}).concat([1]));
+    cardDias='<div class="rcard"><h3>Volume de contatos por dia</h3><div class="mgrid">'+
+      dias.map(function(d){
+        return '<div class="mcol"><div class="mv">'+gd[d].n+'</div><div class="mbars">'+
+          '<i class="ml" style="height:'+Math.max(100*gd[d].n/mxd,3)+'%"></i>'+
+          '<i class="mf" style="height:'+Math.max(100*gd[d].ef/mxd,3)+'%"></i>'+
+          '</div><div class="mn">'+dLabel(d)+'</div></div>';
+      }).join('')+'</div>'+
+      '<div class="mleg"><span><i style="background:var(--blue)"></i>Contatos</span><span><i style="background:var(--ok)"></i>Efetivos</span></div></div>';
+  }
+
+  const filtros='<div class="rcard wide" style="padding:12px 16px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">'+
+    '<div class="rfil" id="cper">'+
+      [['7','7 dias'],['30','30 dias'],['90','90 dias'],['','Tudo']].map(function(o){
+        return '<button data-p="'+o[0]+'"'+(per===o[0]?' class="on"':'')+'>'+o[1]+'</button>';
+      }).join('')+
+    '</div><div class="spacer" style="flex:1"></div>'+
+    '<div class="rfil" id="cesc">'+
+      [['todos','Todos'],['b2c','Clientes B2C'],['b2b','Escolas e empresas']].map(function(o){
+        return '<button data-e="'+o[0]+'"'+(escopo===o[0]?' class="on"':'')+'>'+o[1]+'</button>';
+      }).join('')+
+    '</div></div>';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'</div>'+
+    kpis+
+    '<div class="rgrid">'+
+      filtros+
+      cardCanais+
+      cardMatriz+
+      cardConv+
+      cardMot+
+      cardDias+
+    '</div>'+
+  '</div></div>';
+
+  bindSubnav();
+  document.querySelectorAll('#cper button').forEach(function(b){
+    b.onclick=function(){window._cper=b.dataset.p;renderCanais();};
+  });
+  document.querySelectorAll('#cesc button').forEach(function(b){
+    b.onclick=function(){window._cesc=b.dataset.e;renderCanais();};
+  });
 }
 
 
