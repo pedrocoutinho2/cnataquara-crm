@@ -621,6 +621,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .dtwrap input[type=date]{flex:1 1 58%}
 .dtwrap input[type=time]{flex:1 1 42%}
 .dtwrap input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
+.f input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .f label b.req{color:var(--red)}
 .iadd .btn:disabled{opacity:.45;cursor:not-allowed}
 .int.ne{background:#FDF6F7;border-left:3px solid var(--dangerLine)}
@@ -728,6 +729,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
           </select>
           <input id="iresumo" placeholder="O que aconteceu nesse contato?">
           <div class="nesched"><label>Próximo contato (data e hora)</label><div class="dtwrap"><input type="date" id="iprox" class="ok"><input type="time" step="900" id="iproxh" class="ok"></div></div>
+          <div class="nesched"><label>Canal do próximo contato</label><select id="iproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select></div>
           <button class="btn primary" id="iadd">Registrar</button>
         </div>
         <div class="iadd ne" id="paneNe" style="display:none">
@@ -749,6 +751,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
           </select>
           <input id="neobs" placeholder="Observação (opcional)">
           <div class="nesched"><label>Próximo contato: data e hora <b>*</b></label><div class="dtwrap"><input type="date" id="nedata"><input type="time" step="900" id="nedatah"></div></div>
+          <div class="nesched"><label>Canal do próximo contato</label><select id="neproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select></div>
           <button class="btn primary" id="neadd" disabled>Registrar e agendar</button>
         </div>
         <div class="ilist" id="ilist"></div>
@@ -831,6 +834,8 @@ const PALETA=['#E6143C','#19408B','#B87500','#7A3E9D','#1E7A46','#C2410C','#0E74
 const WAICO='<svg class="waico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
 const ITIPOS={nota:'Nota',whatsapp:WAICO,ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
 const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_errado:'Número errado',pediu_retorno:'Pediu retorno depois',nao_leu:'Mensagem não lida',recusou:'Recusou falar',ausente:'Decisor ausente'};
+const CANAIS={whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
+function canalNome(c){return CANAIS[c]||'';}
 
 const CFG={
   escolas:{
@@ -867,10 +872,9 @@ const CFG={
       {k:'decisor',l:'Decisor',t:'text'},
       {k:'ingles_atual',l:'Inglês atual',t:'text'},
       {k:'mensalidade',l:'Mensalidade',t:'text'},
-      {k:'proximo_contato',l:'Próximo contato agendado',t:'datetime',hk:'proximo_contato_hora'},
       {k:'notas',l:'Notas',t:'textarea',full:true}
     ],
-    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','proximo_contato','proximo_contato_hora','notas']
+    csv:['nome','tipo','prioridade','status','responsavel','bairro','endereco','telefone','whatsapp','instagram','site','rating','alunos','segmentos','decisor','ingles_atual','mensalidade','proximo_contato','proximo_contato_hora','proximo_canal','notas']
   },
   empresas:{
     table:'crm_empresas',fk:'empresa_id',one:'empresa',plural:'Empresas',addLabel:'+ Nova empresa',addShort:'+ Empresa',
@@ -903,10 +907,9 @@ const CFG={
       {k:'contato_cargo',l:'Contato (cargo)',t:'text'},
       {k:'argumento',l:'Argumento de venda',t:'textarea',full:true},
       {k:'proximo_passo',l:'Próximo passo',t:'text',full:true},
-      {k:'proximo_contato',l:'Próximo contato agendado',t:'datetime',hk:'proximo_contato_hora'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','proximo_contato','proximo_contato_hora','observacoes']
+    csv:['nome','categoria','tipo','potencial','status','responsavel','porte','funcionarios','endereco','telefone','whatsapp','contato_nome','contato_cargo','argumento','proximo_passo','proximo_contato','proximo_contato_hora','proximo_canal','observacoes']
   }  ,
   leads:{
     table:'crm_leads',fk:'lead_id',one:'lead',plural:'Leads',addLabel:'+ Novo lead',addShort:'+ Lead',
@@ -934,6 +937,8 @@ const CFG={
       {k:'nome',l:'Nome',t:'text',full:true},
       {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return new Date().toISOString().slice(0,10);}},
       {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
+      {k:'idade',l:'Idade do aluno',t:'number'},
+      {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
       {k:'origem',l:'Origem',t:'select',opts:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
@@ -943,10 +948,9 @@ const CFG={
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
       {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'ultimo_contato',l:'Último contato',t:'date'},
-      {k:'proximo_atendimento',l:'Próximo atendimento',t:'datetime',hk:'proximo_atendimento_hora'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','data_entrada','whatsapp','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','data_fechamento','observacoes']
+    csv:['nome','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
   }
 };
 
@@ -1422,12 +1426,26 @@ async function moveTo(id,stage){
   }
 }
 
+/* O agendamento mora no historico de contatos. Na ficha ele aparece so como leitura,
+   para nao existirem dois campos concorrentes de proximo contato. */
+var msubBase='';
+function syncMsub(s){
+  const cfg=CFG[tab],nf=NF(cfg);
+  let txt=msubBase;
+  if(s){
+    const pa=agLabel(s[nf],s[nf+'_hora']);
+    if(pa)txt+=' · \u23F0 Próximo contato: '+pa+(s.proximo_canal?' · '+canalNome(s.proximo_canal):'');
+  }
+  $('msub').textContent=txt;
+}
+
 function openModal(id){
   const cfg=CFG[tab];
   editing=id;
   const s=id?(DATA[tab]||[]).find(function(x){return x.id===id;}):null;
   $('mtitle').textContent=s?s.nome:('Nova '+cfg.one);
-  $('msub').textContent=tab==='escolas'?'CNA na Escola · Taquara':(tab==='empresas'?'CNA na Empresa e parcerias · Taquara':'Cliente B2C · funil de matrícula');
+  msubBase=tab==='escolas'?'CNA na Escola · Taquara':(tab==='empresas'?'CNA na Empresa e parcerias · Taquara':'Cliente B2C · funil de matrícula');
+  syncMsub(s);
   const form=$('form');
   form.innerHTML='';
   cfg.fields.forEach(function(f){
@@ -1443,6 +1461,8 @@ function openModal(id){
         const dv=v||(f.t==='stage'?cfg.stages[0].id:(f.k==='responsavel'?currentUser:o[0]));
         return '<option value="'+esc(o[0])+'"'+(String(dv)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';
       }).join('')+'</select>';
+    }else if(f.t==='number'){
+      inner+='<input type="number" inputmode="numeric" min="1" max="120" data-k="'+f.k+'" value="'+esc(v)+'">';
     }else if(f.t==='date'){
       const dv=v||(s?'':(f.def?f.def():''));
       inner+='<input type="date" data-k="'+f.k+'" value="'+esc(dv)+'">';
@@ -1460,6 +1480,7 @@ function openModal(id){
     }
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
+    if(f.k==='responsavel_legal')d.id='fRespLegal';
     form.appendChild(d);
     if(f.t==='turmas')fillTurmas(d.querySelector('select'),v);
   });
@@ -1473,6 +1494,11 @@ function openModal(id){
   const selEt=form.querySelector('[data-k=etapa]');
   if(selEt)selEt.addEventListener('change',syncPerda);
   syncPerda();
+  const inpId=form.querySelector('[data-k=idade]');
+  if(inpId){inpId.addEventListener('input',syncResp);inpId.addEventListener('change',syncResp);}
+  const inpRL=form.querySelector('[data-k=responsavel_legal]');
+  if(inpRL)inpRL.addEventListener('input',syncResp);
+  syncResp();
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -1484,6 +1510,27 @@ function openModal(id){
   document.body.classList.add('modal-open');
   const mb=document.querySelector('.mbody');
   if(mb)mb.scrollTop=0;
+}
+
+/* Abaixo de 16 anos quem assina e decide e' o responsavel: o nome dele vira obrigatorio */
+function idadeForm(){
+  const el=document.querySelector('#form [data-k=idade]');
+  if(!el)return null;
+  const n=parseInt(el.value,10);
+  return isNaN(n)?null:n;
+}
+function respObrigatorio(){const n=idadeForm();return n!==null&&n<16;}
+function syncResp(){
+  const w=$('fRespLegal');
+  if(!w)return;
+  const req=respObrigatorio();
+  const lab=w.querySelector('label');
+  if(lab)lab.innerHTML='Responsável pelo aluno'+(req?' <b class="req">*</b>':'');
+  const inp=w.querySelector('[data-k=responsavel_legal]');
+  if(inp){
+    inp.classList.toggle('need',req&&!inp.value.trim());
+    inp.placeholder=req?'Nome do pai, mãe ou responsável':'';
+  }
 }
 
 /* Motivo da perda so existe quando a etapa e' "perdido"; fora disso fica nulo */
@@ -1551,6 +1598,8 @@ function resetIntPanes(){
   $('paneEf').style.display='';$('paneNe').style.display='none';
   $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
   $('nemotivo').value='';$('neobs').value='';$('nedata').value='';$('nedatah').value='';
+  $('iproxcanal').value='whatsapp';$('neproxcanal').value='whatsapp';
+  canalTocado.ef=false;canalTocado.ne=false;
   neCheck();
 }
 
@@ -1584,7 +1633,7 @@ async function loadInts(id){
         +(ne?'<span class="itipo nef">Não efetivo'+(i.motivo_nao_efetivo?' · '+esc(MOTIVOS_NE[i.motivo_nao_efetivo]||i.motivo_nao_efetivo):'')+'</span>':'')
         +'<span>'+ds+'</span></div>'
         +'<p>'+(txt||'<i>sem observação</i>')+'</p>'
-        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+(i.proximo_contato_hora?' às '+String(i.proximo_contato_hora).slice(0,5):'')+'</div>':'')
+        +(i.proximo_contato?'<div class="iprox">&#9200; Próximo contato agendado: '+brDate(i.proximo_contato)+(i.proximo_contato_hora?' às '+String(i.proximo_contato_hora).slice(0,5):'')+(i.proximo_canal?' · '+esc(canalNome(i.proximo_canal)):'')+'</div>':'')
         +'</div>';
     }).join('');
   }catch(e){
@@ -1593,7 +1642,7 @@ async function loadInts(id){
 }
 
 /* Depois de qualquer contato registrado: grava agendamento no registro e atualiza tela */
-async function afterContato(id,prox,proxh){
+async function afterContato(id,prox,proxh,pcanal){
   const cfg=CFG[tab];
   const nf=NF(cfg);
   const hf=nf+'_hora';
@@ -1601,14 +1650,12 @@ async function afterContato(id,prox,proxh){
   const patch={updated_at:new Date().toISOString()};
   patch[nf]=prox||null;
   patch[hf]=prox?(proxh||null):null;
+  patch.proximo_canal=prox?(pcanal||null):null;
   if(tab==='leads')patch.ultimo_contato=hoje;
   try{
     await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(patch)});
     const s=(DATA[tab]||[]).find(function(x){return x.id===id;});
-    if(s){s[nf]=prox||null;s[hf]=patch[hf];if(tab==='leads')s.ultimo_contato=hoje;}
-    const i1=document.querySelector('#form [data-k='+nf+']');if(i1)i1.value=prox||'';
-    const i1h=document.querySelector('#form [data-k='+hf+']');
-    if(i1h){i1h.value=patch[hf]?String(patch[hf]).slice(0,5):'';i1h.classList.toggle('need',!!prox&&!patch[hf]);}
+    if(s){s[nf]=prox||null;s[hf]=patch[hf];s.proximo_canal=patch.proximo_canal;if(tab==='leads')s.ultimo_contato=hoje;syncMsub(s);}
     if(tab==='leads'){const i2=document.querySelector('#form [data-k=ultimo_contato]');if(i2)i2.value=hoje;}
     render();
   }catch(e){}
@@ -1636,6 +1683,21 @@ function neCheck(){
   $(idf).addEventListener('input',neCheck);
 });
 
+/* O canal do proximo contato herda o canal do contato que acabou de ser registrado,
+   ate alguem trocar na mao. Fricao zero no caso comum. */
+var canalTocado={ef:false,ne:false};
+function espelhaCanal(origem,destino,flag){
+  const o=$(origem),d=$(destino);
+  if(!o||!d)return;
+  o.addEventListener('change',function(){
+    if(canalTocado[flag])return;
+    if(CANAIS[o.value])d.value=o.value;
+  });
+  d.addEventListener('change',function(){canalTocado[flag]=true;});
+}
+espelhaCanal('itipo','iproxcanal','ef');
+espelhaCanal('necanal','neproxcanal','ne');
+
 $('neadd').onclick=async function(){
   if(!editing)return;
   const btn=$('neadd');
@@ -1652,15 +1714,16 @@ $('neadd').onclick=async function(){
   if(prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
   if(prox===hojeISO()&&proxh<agoraHM()){toast('Esse horário já passou. Escolha uma hora à frente.');return;}
   btn.disabled=true;   // trava anti duplo-envio
-  const body={tipo:$('necanal').value,autor:currentUser,efetivo:false,motivo_nao_efetivo:motivo,proximo_contato:prox,proximo_contato_hora:proxh};
+  const pcanal=$('neproxcanal').value||null;
+  const body={tipo:$('necanal').value,autor:currentUser,efetivo:false,motivo_nao_efetivo:motivo,proximo_contato:prox,proximo_contato_hora:proxh,proximo_canal:pcanal};
   body[tx]=$('neobs').value.trim()||('Tentativa sem sucesso: '+(MOTIVOS_NE[motivo]||motivo));
   body[cfg.fk]=editing;
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
-    await afterContato(editing,prox,proxh);
+    await afterContato(editing,prox,proxh,pcanal);
     $('nemotivo').value='';$('neobs').value='';$('nedata').value='';$('nedatah').value='';
     loadInts(editing);
-    toast('Tentativa registrada. Próximo contato em '+brDate(prox)+' às '+proxh+'.');
+    toast('Tentativa registrada. Próximo contato em '+brDate(prox)+' às '+proxh+(pcanal?' por '+canalNome(pcanal):'')+'.');
   }catch(e){
     toast('Não foi possível registrar. Tente de novo.');
   }
@@ -1682,12 +1745,13 @@ $('iadd').onclick=async function(){
   if(prox&&prox<hojeISO()){toast('O próximo contato precisa ser hoje ou uma data futura.');return;}
   if(prox&&prox===hojeISO()&&proxh<agoraHM()){toast('Esse horário já passou. Escolha uma hora à frente.');return;}
   btn.disabled=true;   // trava anti duplo-envio
-  const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox,proximo_contato_hora:prox?proxh:null};
+  const pcanal=prox?($('iproxcanal').value||null):null;
+  const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox,proximo_contato_hora:prox?proxh:null,proximo_canal:pcanal};
   body[tx]=resumo;
   body[cfg.fk]=editing;
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
-    await afterContato(editing,prox,proxh);
+    await afterContato(editing,prox,proxh,pcanal);
     $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
     loadInts(editing);
   }catch(e){toast('Não foi possível registrar. Tente de novo.');}
@@ -1706,6 +1770,18 @@ $('save').onclick=async function(){
   if(tab==='leads'){
     if(body.etapa!=='perdido')body.motivo_perda=null;
     else if(!body.motivo_perda){toast('Escolha o motivo da perda.');syncPerda();return;}
+    if(body.idade!=null){
+      const idn=parseInt(body.idade,10);
+      if(isNaN(idn)||idn<1||idn>120){toast('Idade inválida. Informe um número entre 1 e 120.');return;}
+      body.idade=idn;
+      if(idn<16&&!body.responsavel_legal){
+        syncResp();
+        const rl=document.querySelector('#form [data-k=responsavel_legal]');
+        if(rl)rl.focus();
+        toast('Aluno com menos de 16 anos: informe o nome do responsável pelo aluno.');
+        return;
+      }
+    }
   }
   var semHora=null;
   cfg.fields.forEach(function(f){
@@ -2084,7 +2160,7 @@ async function loadAlerts(){
   for(var i=0;i<keys.length;i++){
     const k=keys[i],ac=AGCFG[k],cfg=CFG[k];
     try{
-      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,'+ac.nf+','+ac.nf+'_hora,'+ac.sf
+      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,proximo_canal,'+ac.nf+','+ac.nf+'_hora,'+ac.sf
         +'&'+ac.nf+'=lte.'+limite
         +'&responsavel=eq.'+encodeURIComponent(currentUser)
         +'&order='+ac.nf+'.asc');
@@ -2094,7 +2170,7 @@ async function loadAlerts(){
         const d=r[ac.nf];
         if(!d)return;
         itens.push({tab:k,id:r.id,nome:r.nome,whatsapp:r.whatsapp||r.telefone,data:d,
-          hora:hhmm(r[ac.nf+'_hora'])||'09:00',rot:ac.rot,etapa:st?st.n:''});
+          hora:hhmm(r[ac.nf+'_hora'])||'09:00',rot:ac.rot,etapa:st?st.n:'',canal:r.proximo_canal||''});
       });
     }catch(e){}
   }
@@ -2170,7 +2246,7 @@ function agItem(it){
   const wa=waLink(it.whatsapp);
   return '<div class="agi" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'
     +'<div class="agn"><b>'+esc(it.nome)+'</b><span class="agr">'+esc(it.rot)+(it.etapa?' · '+esc(it.etapa):'')+'</span></div>'
-    +'<div class="agd">'+brDate(it.data)+(it.hora?' · '+it.hora:'')+'</div>'
+    +'<div class="agd">'+brDate(it.data)+(it.hora?' · '+it.hora:'')+(it.canal?' · '+esc(canalNome(it.canal)):'')+'</div>'
     +'<div class="aga">'+(wa?'<a class="wa" aria-label="WhatsApp" target="_blank" rel="noopener" href="'+wa+'">'+WAICO+'</a>':'')
     +'<button class="btn">Abrir</button></div></div>';
 }
