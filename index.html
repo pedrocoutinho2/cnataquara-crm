@@ -318,8 +318,8 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .acard li i{font-style:normal;font-weight:600;color:var(--blue)}
 
 /* ===== Relatorios v2: grade, KPIs e canais ===== */
-.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}
-.rgrid>.rcard,.rgrid>.acard{margin-bottom:0;height:100%}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:14px;align-items:start}
+.rgrid>.rcard,.rgrid>.acard,.rgrid>.sug{margin-bottom:0;height:100%}
 .rgrid>.wide{grid-column:1/-1}
 @media(max-width:920px){.rgrid{grid-template-columns:1fr}}
 .rkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:10px;margin-bottom:14px}
@@ -356,6 +356,61 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .rtab td.hl{font-weight:700;color:var(--ok)}
 .rtab td .sub{display:block;font-size:10.5px;color:var(--gray);font-weight:400}
 .rempty{font-size:12.5px;color:var(--gray);padding:6px 0}
+
+/* ===== Relatorios v3: sem rolagem lateral, funil compacto, sugestoes ===== */
+.fnlrow{display:block}
+.fnlbar{height:38px}
+.fnlinfo{text-align:center;font-size:11px;padding:3px 0 7px;line-height:1.4}
+.rtabw{overflow-x:hidden}
+.rtab{min-width:0;table-layout:fixed}
+.rtab th,.rtab td{overflow-wrap:anywhere}
+.rtab th{font-size:10px;padding:7px 6px;line-height:1.25}
+.rtab td{padding:7px 6px}
+.rtab th:first-child,.rtab td:first-child{width:32%}
+@media(max-width:760px){
+  .rtab,.rtab tbody,.rtab tr,.rtab td{display:block;width:100%}
+  .rtab tr.hd{display:none}
+  .rtab tr{padding:10px 0;border-bottom:1px solid var(--line)}
+  .rtab tr:last-child{border-bottom:none}
+  .rtab tr:nth-child(even) td{background:none}
+  .rtab td{border:none;padding:2px 0;text-align:left}
+  .rtab td:first-child{font-family:'Poppins';font-weight:600;font-size:13px;margin-bottom:3px}
+  .rtab td[data-l]:not(:first-child){display:flex;justify-content:space-between;gap:10px;font-size:12px}
+  .rtab td[data-l]:not(:first-child):before{content:attr(data-l);color:var(--gray)}
+}
+.mgrid{overflow-x:hidden}
+.mcol{min-width:0}
+.mbars i{width:100%;max-width:18px}
+.mcol .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* barras de canal por consultor */
+.cbars{display:flex;flex-direction:column;gap:13px}
+.cbrow .cbh{display:flex;align-items:baseline;gap:8px;font-size:12.5px;margin-bottom:5px}
+.cbrow .cbn{font-family:'Poppins';font-weight:600;color:var(--ink)}
+.cbrow .cbq{margin-left:auto;color:var(--gray);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cbstack{display:flex;height:20px;border-radius:var(--r-sm);overflow:hidden;background:var(--surface)}
+.cbstack i{display:block;height:100%}
+/* sugestoes */
+.sug{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:var(--r-lg);padding:16px}
+.sug h3{font-family:'Poppins';font-size:13.5px;color:var(--red);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.sug .asub{font-size:11px;color:var(--gray);margin-bottom:12px}
+.sug ol{list-style:none;display:flex;flex-direction:column;gap:11px}
+.sug li{font-size:13px;line-height:1.5;padding-left:30px;position:relative}
+.sug li:before{content:attr(data-n);position:absolute;left:0;top:1px;width:21px;height:21px;border-radius:50%;background:var(--surface);color:var(--gray);font-family:'Poppins';font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.sug li.alta:before{background:var(--dangerBg);color:var(--danger)}
+.sug li.media:before{background:var(--warnBg);color:var(--warn)}
+.sug li.boa:before{background:var(--okBg);color:var(--ok)}
+.sug li b{color:var(--redDark)}
+.sug li i{font-style:normal;font-weight:600;color:var(--blue)}
+.sug li em{display:block;font-style:normal;color:var(--gray);font-size:11.5px;margin-top:2px}
+/* editor de consultores */
+.cedit{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--white);padding:14px 16px;margin-bottom:14px}
+.cedit h3{font-family:'Poppins';font-size:13px;color:var(--blue);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.cerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line)}
+.cerow:last-of-type{border-bottom:none}
+.cerow .cen{font-family:'Poppins';font-weight:600;font-size:13px;min-width:110px}
+.cerow label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray)}
+.cerow input[type=time]{border:1px solid var(--line);border-radius:var(--r-sm);padding:5px 7px;font-size:12px}
+.cerow input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue)}
 
 /* ===== Equipe ===== */
 .eq{max-width:1080px;margin:0 auto;padding:4px 18px 30px;flex:1;overflow-y:auto}
@@ -2666,9 +2721,9 @@ function renderReports(){
     const ks=Object.keys(g).sort(function(a,b){return g[b].n-g[a].n;});
     if(!ks.length)return '';
     return '<div class="rcard"><h3>'+titulo+'</h3><div class="rtabw"><table class="rtab">'+
-      '<tr><th>'+rotulo+'</th><th class="num">Leads</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+      '<tr class="hd"><th>'+rotulo+'</th><th class="num">Leads</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
       ks.map(function(k){
-        return '<tr><td>'+esc(k)+'</td><td class="num">'+g[k].n+'</td><td class="num">'+g[k].f+'</td><td class="num">'+pct(g[k].f,g[k].n)+'</td></tr>';
+        return '<tr><td>'+esc(k)+'</td><td class="num" data-l="Leads">'+g[k].n+'</td><td class="num" data-l="Matrículas">'+g[k].f+'</td><td class="num" data-l="Conversão">'+pct(g[k].f,g[k].n)+'</td></tr>';
       }).join('')+'</table></div></div>';
   }
 
@@ -2775,16 +2830,90 @@ function renderReports(){
     return rk[b].n-rk[a].n;
   });
   const cardRank=rkKeys.length?'<div class="rcard"><h3>Ranking de consultores</h3><div class="rtabw"><table class="rtab">'+
-    '<tr><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
     rkKeys.map(function(k){
       const g=rk[k];
       return '<tr><td>'+esc(k)+(g.p?'<span class="sub">'+g.p+' perdidos</span>':'')+'</td>'+
-        '<td class="num">'+g.n+'</td><td class="num">'+g.ct+'</td>'+
-        '<td class="num">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
-        '<td class="num'+(g.f?' hl':'')+'">'+g.f+'</td>'+
-        '<td class="num">'+pct(g.f,g.n)+'</td></tr>';
+        '<td class="num" data-l="Leads">'+g.n+'</td><td class="num" data-l="Contatos">'+g.ct+'</td>'+
+        '<td class="num" data-l="Efetividade">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
+        '<td class="num'+(g.f?' hl':'')+'" data-l="Matrículas">'+g.f+'</td>'+
+        '<td class="num" data-l="Conversão">'+pct(g.f,g.n)+'</td></tr>';
     }).join('')+'</table></div>'+
     '<div class="rnote">Contatos e efetividade contam as interações registradas por cada um no período. Leads e matrículas contam quem está como responsável.</div></div>':'';
+
+  // ---------- contexto para as sugestoes ----------
+  function topoDe(obj,minN){
+    const ks=Object.keys(obj).filter(function(k){return k!=='—'&&obj[k].n>=(minN||0);});
+    return ks;
+  }
+  const gorig={};
+  leads.forEach(function(s){
+    const k=s.origem||'—';
+    if(!gorig[k])gorig[k]={n:0,f:0};
+    gorig[k].n++;if(s.etapa==='fechado')gorig[k].f++;
+  });
+  const origKs=topoDe(gorig,3);
+  let origemBoa=null,origemRuim=null;
+  if(origKs.length){
+    const ord=origKs.slice().sort(function(a,b){return (gorig[b].f/gorig[b].n)-(gorig[a].f/gorig[a].n);});
+    const melhor=ord[0],pior=ord[ord.length-1];
+    if(gorig[melhor].f>0)origemBoa={k:melhor,n:gorig[melhor].n,pct:pct(gorig[melhor].f,gorig[melhor].n)};
+    if(pior!==melhor&&gorig[pior].n>=5&&(gorig[pior].f/gorig[pior].n)<0.1)origemRuim={k:pior,n:gorig[pior].n,pct:pct(gorig[pior].f,gorig[pior].n)};
+  }
+
+  const gcan={};
+  interB2C.forEach(function(i){
+    if(!gcan[i.tipo])gcan[i.tipo]={n:0,ef:0};
+    gcan[i.tipo].n++;if(i.efetivo!==false)gcan[i.tipo].ef++;
+  });
+  const canKs=Object.keys(gcan).filter(function(k){return gcan[k].n>=5;});
+  let canalBom=null,canalRuim=null;
+  if(canKs.length>0){
+    const ordc=canKs.slice().sort(function(a,b){return (gcan[b].ef/gcan[b].n)-(gcan[a].ef/gcan[a].n);});
+    const cb=ordc[0],cr=ordc[ordc.length-1];
+    if(canKs.length>1&&(gcan[cb].ef/gcan[cb].n)>=0.6)canalBom={k:canalLbl(cb),pct:pct(gcan[cb].ef,gcan[cb].n)};
+    if((gcan[cr].ef/gcan[cr].n)<0.5)canalRuim={k:canalLbl(cr),n:gcan[cr].n,pct:pct(gcan[cr].ef,gcan[cr].n)};
+  }
+
+  let gargalo=null,pmax=0;
+  for(let i=0;i<FUNIL.length-1;i++){
+    if(!reached[i])continue;
+    const perda=Math.round(100*(reached[i]-reached[i+1])/reached[i]);
+    if(perda>pmax&&perda>=25){pmax=perda;gargalo={de:FUNIL[i].n,para:FUNIL[i+1].n,perda:perda,idx:i};}
+  }
+
+  const motivoTop=km.length&&perd.length?{k:km[0],n:gm[km[0]],pct:pct(gm[km[0]],perd.length)}:null;
+
+  let mediaEf='—',consultorAtencao=null;
+  const ctTot=Object.keys(rk).reduce(function(a,k){return a+rk[k].ct;},0);
+  const efTot=Object.keys(rk).reduce(function(a,k){return a+rk[k].ef;},0);
+  if(ctTot>=10){
+    mediaEf=pct(efTot,ctTot);
+    const cand=Object.keys(rk).filter(function(k){return k!=='—'&&rk[k].ct>=5;})
+      .sort(function(a,b){return (rk[a].ef/rk[a].ct)-(rk[b].ef/rk[b].ct);})[0];
+    if(cand&&(rk[cand].ef/rk[cand].ct)<(efTot/ctTot)-0.1)consultorAtencao={k:cand,pct:pct(rk[cand].ef,rk[cand].ct)};
+  }
+
+  const negParados=all.filter(function(s){
+    if(s.etapa!=='negociacao')return false;
+    if(!s.ultimo_contato)return true;
+    return (hoje-new Date(s.ultimo_contato))/86400000>5;
+  }).length;
+
+  const sugestoes=buildSugestoes({
+    nunca:bks[5].v,
+    esquecidos:esq.length,
+    tPrim:comE?somaE/comE:null,
+    gargalo:gargalo,
+    motivoTop:motivoTop,
+    origemBoa:origemBoa,
+    origemRuim:origemRuim,
+    canalBom:canalBom,
+    canalRuim:canalRuim,
+    consultorAtencao:consultorAtencao,
+    mediaEf:mediaEf,
+    negParados:negParados
+  });
 
   $('stats').innerHTML='';
   board.innerHTML='<div class="rscreen"><div class="rwrap">'+
@@ -2802,15 +2931,16 @@ function renderReports(){
       '<div class="rkpi"><b>'+tmed+'</b><span>Tempo até matrícula</span></div>'+
     '</div>'+
     '<div class="rgrid">'+
-      buildAnalise(all,histMap).replace('class="acard"','class="acard wide"')+
-      '<div class="rcard wide"><h3>Funil · até onde os leads chegam</h3>'+funil+'</div>'+
-      cardRank+
+      sugestoes+
+      buildAnalise(all,histMap)+
+      '<div class="rcard"><h3>Funil · até onde os leads chegam</h3>'+funil+'</div>'+
       cardTempo+
+      cardRank+
       evo+
       grupo('origem','Leads por origem','Origem')+
       grupo('curso','Cursos procurados','Curso')+
       motivos+
-      (alerta?alerta.replace('class="rcard"','class="rcard wide"'):'')+
+      alerta+
     '</div>'+
   '</div></div>';
   const sel=document.getElementById('rperiodo');
@@ -2818,6 +2948,82 @@ function renderReports(){
   bindSubnav();
 }
 
+
+/* ================= Sugestoes acionaveis ================= */
+function buildSugestoes(ctx){
+  const it=[];
+  const P={alta:0,media:1,boa:2};
+
+  /* 1. fila parada */
+  if(ctx.nunca>0){
+    it.push({p:'alta',t:'<b>'+ctx.nunca+' lead'+(ctx.nunca>1?'s':'')+' nunca receberam contato.</b> Distribua hoje entre os consultores: lead sem primeiro toque é dinheiro parado no funil.'});
+  }
+  if(ctx.esquecidos>0){
+    it.push({p:ctx.esquecidos>10?'alta':'media',t:'<i>'+ctx.esquecidos+' leads</i> estão sem contato há mais de 7 dias. Puxe os 5 mais antigos antes de qualquer prospecção nova.<em>A lista está no card "Precisam de follow-up".</em>'});
+  }
+
+  /* 2. velocidade da primeira resposta */
+  if(ctx.tPrim!=null){
+    if(ctx.tPrim>1.5){
+      it.push({p:'alta',t:'O primeiro contato está saindo em média em <i>'+ctx.tPrim.toFixed(1).replace('.',',')+' dias</i>. Combine com a equipe uma meta de resposta no mesmo dia: é a variável que mais mexe na conversão.'});
+    }else if(ctx.tPrim<=0.5){
+      it.push({p:'boa',t:'Primeiro contato saindo em média em <i>'+ctx.tPrim.toFixed(1).replace('.',',')+' dia</i>. Mantenha esse ritmo, está no melhor cenário.'});
+    }
+  }
+
+  /* 3. gargalo do funil */
+  if(ctx.gargalo){
+    it.push({p:'media',t:'A maior perda do funil está entre <i>'+esc(ctx.gargalo.de)+'</i> e <i>'+esc(ctx.gargalo.para)+'</i>: '+ctx.gargalo.perda+'% não avançam.'+
+      (ctx.gargalo.idx>=3?'<em>Etapa de negociação. Revise argumento de valor e condição de pagamento no treinamento da semana.</em>':'<em>Etapa de topo. Revise a abordagem de abertura e o horário das tentativas.</em>')});
+  }
+
+  /* 4. motivo de perda dominante */
+  if(ctx.motivoTop){
+    const m=ctx.motivoTop.k, q=ctx.motivoTop.n, pc=ctx.motivoTop.pct;
+    let acao='Vale revisar o script para esse caso.';
+    if(m==='Preço')acao='Antes de falar valor, ancore no que está incluso: material, professor formado na UniCNA, CNA Net e turma pequena.';
+    else if(m==='Sem retorno')acao='Monte uma cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.';
+    else if(m==='Contato inválido')acao='O problema é de captação. Confira o formulário do anúncio e o preenchimento do WhatsApp no cadastro.';
+    else if(m==='Fora da região')acao='Aperte a segmentação geográfica dos anúncios para Taquara e bairros vizinhos.';
+    it.push({p:'media',t:'<i>'+esc(m)+'</i> responde por '+pc+' das perdas ('+q+' leads).<em>'+acao+'</em>'});
+  }
+
+  /* 5. origens */
+  if(ctx.origemRuim){
+    it.push({p:'media',t:'A origem <i>'+esc(ctx.origemRuim.k)+'</i> trouxe '+ctx.origemRuim.n+' leads e converteu '+ctx.origemRuim.pct+'. Ou o público está errado, ou o atendimento desses leads precisa de um script próprio.'});
+  }
+  if(ctx.origemBoa){
+    it.push({p:'boa',t:'<i>'+esc(ctx.origemBoa.k)+'</i> é a origem que mais converte ('+ctx.origemBoa.pct+' em '+ctx.origemBoa.n+' leads). Vale colocar mais verba e mais atenção aí.'});
+  }
+
+  /* 6. canais */
+  if(ctx.canalRuim){
+    it.push({p:'media',t:'O canal <i>'+esc(ctx.canalRuim.k)+'</i> tem só '+ctx.canalRuim.pct+' de contatos efetivos em '+ctx.canalRuim.n+' tentativas. Teste outro horário ou troque de canal depois da segunda tentativa sem resposta.'});
+  }
+  if(ctx.canalBom){
+    it.push({p:'boa',t:'<i>'+esc(ctx.canalBom.k)+'</i> é o canal com melhor efetividade ('+ctx.canalBom.pct+'). Use ele como primeira tentativa em lead novo.'});
+  }
+
+  /* 7. equipe */
+  if(ctx.consultorAtencao){
+    it.push({p:'media',t:'<i>'+esc(ctx.consultorAtencao.k)+'</i> está com '+ctx.consultorAtencao.pct+' de contatos efetivos, abaixo da média da equipe ('+ctx.mediaEf+'). Vale ouvir junto algumas abordagens.'});
+  }
+
+  /* 8. parados em negociacao */
+  if(ctx.negParados>0){
+    it.push({p:'alta',t:'<b>'+ctx.negParados+' lead'+(ctx.negParados>1?'s':'')+' em negociação</b> sem contato há mais de 5 dias. Esses são os mais quentes da base e estão esfriando.'});
+  }
+
+  if(!it.length)it.push({p:'boa',t:'Nada crítico no período. Base pequena ainda: quanto mais a equipe registrar contato e motivo, mais afiada fica esta análise.'});
+
+  it.sort(function(a,b){return P[a.p]-P[b.p];});
+
+  return '<div class="sug"><h3>O que fazer agora</h3>'+
+    '<div class="asub">Sugestões geradas a partir dos números do período, em ordem de urgência.</div>'+
+    '<ol>'+it.slice(0,7).map(function(x,i){
+      return '<li class="'+x.p+'" data-n="'+(i+1)+'">'+x.t+'</li>';
+    }).join('')+'</ol></div>';
+}
 
 /* ================= Canais de contato ================= */
 const CANAL_INFO={
@@ -2956,31 +3162,37 @@ function renderCanais(){
         (notas?' Não entram aqui '+notas+' anotação'+(notas>1?'ões':'')+' interna'+(notas>1?'s':'')+', que não são contato com o cliente.':'')+'</div></div>';
   }
 
-  let cardMatriz='<div class="rcard wide"><h3>Quem usa qual canal</h3><div class="rempty">Sem contatos no período.</div></div>';
+  let cardMatriz='<div class="rcard"><h3>Quem usa qual canal</h3><div class="rempty">Sem contatos no período.</div></div>';
   if(consult.length&&canais.length){
-    cardMatriz='<div class="rcard wide"><h3>Quem usa qual canal</h3><div class="rtabw"><table class="rtab">'+
-      '<tr><th>Consultor</th>'+canais.map(function(k){return '<th class="num">'+esc(canalLbl(k))+'</th>';}).join('')+
-      '<th class="num">Total</th><th class="num">Efetividade</th></tr>'+
+    const mxu=gu[consult[0]].n;
+    cardMatriz='<div class="rcard"><h3>Quem usa qual canal</h3><div class="cbars">'+
       consult.map(function(u){
         const g=gu[u];
-        return '<tr><td>'+esc(u)+'</td>'+canais.map(function(k){
-          const v=g.c[k]||0;
-          return '<td class="num">'+(v?v:'·')+'</td>';
-        }).join('')+'<td class="num">'+g.n+'</td><td class="num'+(g.n&&g.ef/g.n>=0.7?' hl':'')+'">'+pct(g.ef,g.n)+'</td></tr>';
-      }).join('')+
-      '<tr><td><b>Total</b></td>'+canais.map(function(k){return '<td class="num"><b>'+gc[k].n+'</b></td>';}).join('')+
-      '<td class="num"><b>'+totalCt+'</b></td><td class="num"><b>'+pct(totalEf,totalCt)+'</b></td></tr>'+
-      '</table></div>'+
-      '<div class="rnote">Cruze a linha do consultor com a coluna do canal para ver por onde cada um está puxando o cliente.</div></div>';
+        const usados=Object.keys(g.c).sort(function(a,b){return g.c[b]-g.c[a];});
+        return '<div class="cbrow"><div class="cbh"><span class="cbn">'+esc(u)+'</span>'+
+          '<span class="cbq">'+g.n+' contatos · '+pct(g.ef,g.n)+' efetivo</span></div>'+
+          '<div class="cbstack" style="width:'+Math.max(100*g.n/mxu,14)+'%">'+
+            usados.map(function(k){
+              return '<i style="background:'+canalCor(k)+';width:'+(100*g.c[k]/g.n)+'%" title="'+esc(canalLbl(k))+': '+g.c[k]+'"></i>';
+            }).join('')+
+          '</div>'+
+          '<div class="rnote" style="margin-top:5px">'+usados.map(function(k){
+            return esc(canalLbl(k))+' '+g.c[k];
+          }).join(' · ')+'</div></div>';
+      }).join('')+'</div>'+
+      '<div class="chleg">'+canais.map(function(k){
+        return '<span><i style="background:'+canalCor(k)+'"></i>'+esc(canalLbl(k))+'</span>';
+      }).join('')+'</div>'+
+      '<div class="rnote">A largura total da barra é o volume de contatos da pessoa. As fatias mostram por onde ela fala com o cliente.</div></div>';
   }
 
   let cardConv='';
   if(convRows.length){
     cardConv='<div class="rcard"><h3>Canal x matrícula</h3><div class="rtabw"><table class="rtab">'+
-      '<tr><th>Canal</th><th class="num">Leads tocados</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+      '<tr class="hd"><th>Canal</th><th class="num">Leads tocados</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
       convRows.map(function(x){
-        return '<tr><td>'+esc(canalLbl(x.k))+'</td><td class="num">'+x.n+'</td>'+
-          '<td class="num'+(x.f?' hl':'')+'">'+x.f+'</td><td class="num">'+pct(x.f,x.n)+'</td></tr>';
+        return '<tr><td>'+esc(canalLbl(x.k))+'</td><td class="num" data-l="Leads tocados">'+x.n+'</td>'+
+          '<td class="num'+(x.f?' hl':'')+'" data-l="Matrículas">'+x.f+'</td><td class="num" data-l="Conversão">'+pct(x.f,x.n)+'</td></tr>';
       }).join('')+'</table></div>'+
       '<div class="rnote">Leads B2C que receberam pelo menos um contato por aquele canal no período e hoje estão como matrícula fechada. O mesmo lead pode aparecer em mais de um canal.</div></div>';
   }
@@ -3050,13 +3262,17 @@ let DIA={payload:null,serie:[]};
 const DTIPO={lead:'B2C',escola:'Escola',empresa:'Empresa',tarefa:'Tarefa'};
 
 function uInfo(nome){return USERS.find(function(x){return x.nome===nome;})||null;}
+function soConsultores(){return USERS.filter(function(u){return u.consultor;});}
 function consultoresLista(){
   const c=USERS.filter(function(u){return u.consultor;});
-  return c.length?c:USERS;
+  const o=USERS.filter(function(u){return !u.consultor;});
+  const t=c.concat(o);
+  return t.length?t:USERS;
 }
 function diaConsultor(){
   if(!isAdmin())return currentUser;
   if(window._dcons&&USERS.some(function(u){return u.nome===window._dcons;}))return window._dcons;
+  if(USERS.some(function(u){return u.nome===currentUser;}))return currentUser;
   const c=consultoresLista()[0];
   return c?c.nome:currentUser;
 }
@@ -3159,18 +3375,42 @@ function renderMeuDia(){
   }
 
   const tab='<div class="rtabw"><table class="rtab">'+
-    '<tr><th>Dia</th><th class="num">Agendados</th><th class="num">Feitos</th><th class="num">Cumprimento</th><th class="num">Matrículas</th><th class="num">Leads novos</th></tr>'+
+    '<tr class="hd"><th>Dia</th><th class="num">Agendados</th><th class="num">Feitos</th><th class="num">Cumprimento</th><th class="num">Matrículas</th><th class="num">Leads novos</th></tr>'+
     serie.slice().reverse().map(function(x){
-      return '<tr><td>'+brDate(x.data)+'</td><td class="num">'+x.ag+'</td><td class="num">'+x.fe+
-        '</td><td class="num">'+String(x.cp==null?0:x.cp).replace('.',',')+'%</td><td class="num">'+x.mt+
-        '</td><td class="num">'+x.ln+'</td></tr>';
+      return '<tr><td>'+brDate(x.data)+'</td><td class="num" data-l="Agendados">'+x.ag+'</td><td class="num" data-l="Feitos">'+x.fe+
+        '</td><td class="num" data-l="Cumprimento">'+String(x.cp==null?0:x.cp).replace('.',',')+'%</td><td class="num" data-l="Matrículas">'+x.mt+
+        '</td><td class="num" data-l="Leads novos">'+x.ln+'</td></tr>';
     }).join('')+'</table></div>';
 
+  function optsDe(arr){
+    return arr.map(function(x){
+      return '<option value="'+esc(x.nome)+'"'+(x.nome===c?' selected':'')+'>'+esc(x.nome)+'</option>';
+    }).join('');
+  }
+  const cons=USERS.filter(function(u){return u.consultor;});
+  const outros=USERS.filter(function(u){return !u.consultor;});
   const selCons=isAdmin()
-    ? '<select id="dcons" class="dctl">'+consultoresLista().map(function(x){
-        return '<option value="'+esc(x.nome)+'"'+(x.nome===c?' selected':'')+'>'+esc(x.nome)+'</option>';
-      }).join('')+'</select>'
+    ? '<select id="dcons" class="dctl">'+
+        (cons.length?'<optgroup label="Consultores">'+optsDe(cons)+'</optgroup>':'')+
+        (outros.length?'<optgroup label="Outros da equipe">'+optsDe(outros)+'</optgroup>':'')+
+      '</select>'+
+      '<button class="dctl" id="dcfg" title="Editar consultores">Consultores</button>'
     : '';
+
+  let editor='';
+  if(isAdmin()&&window._dedit){
+    editor='<div class="cedit"><h3>Quem é consultor e qual a jornada</h3>'+
+      USERS.map(function(u){
+        return '<div class="cerow" data-u="'+esc(u.id)+'">'+
+          '<span class="cen">'+esc(u.nome)+'</span>'+
+          '<label><input type="checkbox" data-f="consultor"'+(u.consultor?' checked':'')+'> Consultor</label>'+
+          '<label>Entrada <input type="time" data-f="hora_inicio" value="'+esc(hhmm(u.hora_inicio)||'09:00')+'"></label>'+
+          '<label>Saída <input type="time" data-f="hora_fim" value="'+esc(hhmm(u.hora_fim)||'18:00')+'"></label>'+
+        '</div>';
+      }).join('')+
+      '<div class="rnote">Consultor é quem entra no fechamento automático de dia, no aviso de fim de expediente e no ranking. Qualquer pessoa da equipe pode ter o dia consultado aqui, marcada ou não. As alterações salvam na hora.</div>'+
+    '</div>';
+  }
 
   const btn='<button class="dbtn" id="dfechar"'+(d>hoje?' disabled':'')+'>'+(snap?'Refazer fechamento':'Fechar o dia')+'</button>';
 
@@ -3179,6 +3419,7 @@ function renderMeuDia(){
       '<input type="date" id="ddata" class="dctl" value="'+esc(d)+'" max="'+hoje+'">'+btn+'</div>'+
     '<div class="dstat"><b style="color:var(--blue)">'+esc(c)+'</b> · jornada '+ini+' às '+fim+
       ' · '+brDate(d)+status+'</div>'+
+    editor+
     kpis+
     '<div class="rcard"><h3>Agenda do dia</h3>'+agHtml+'</div>'+
     '<div class="rcard"><h3>Contatos realizados</h3>'+reHtml+'</div>'+
@@ -3192,6 +3433,25 @@ function renderMeuDia(){
   if(sc)sc.onchange=function(){window._dcons=sc.value;openMeuDia();};
   const sd=document.getElementById('ddata');
   if(sd)sd.onchange=function(){window._ddata=sd.value||hojeISO();openMeuDia();};
+  const bc=document.getElementById('dcfg');
+  if(bc)bc.onclick=function(){window._dedit=!window._dedit;renderMeuDia();};
+  document.querySelectorAll('.cedit .cerow').forEach(function(row){
+    const id=row.dataset.u;
+    row.querySelectorAll('[data-f]').forEach(function(inp){
+      inp.onchange=async function(){
+        const f=inp.dataset.f;
+        const v=f==='consultor'?inp.checked:(inp.value||null);
+        try{
+          const body={};body[f]=v;
+          await api('/crm_usuarios?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+          const u=USERS.find(function(x){return String(x.id)===String(id);});
+          if(u)u[f]=v;
+          toast('Equipe atualizada.');
+          if(f==='consultor')renderMeuDia();
+        }catch(e){toast('Não foi possível salvar. Tente de novo.');}
+      };
+    });
+  });
   const bf=document.getElementById('dfechar');
   if(bf)bf.onclick=async function(){
     bf.disabled=true;bf.textContent='Fechando...';
