@@ -606,6 +606,8 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .aga .wa{background:var(--ok);color:var(--white);border-radius:var(--r-sm);padding:6px 11px;font-size:11.5px;font-weight:600;text-decoration:none}
 .aga .btn{padding:6px 10px;font-size:11.5px}
 /* sub-abas do historico */
+.aggrp.pv h4{color:var(--blue)}
+.pvtoggle{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);cursor:pointer}
 .isub{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .isub button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer}
 .isub button.on{background:var(--red);border-color:var(--red);color:var(--white)}
@@ -621,6 +623,8 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .dtwrap input[type=date]{flex:1 1 58%}
 .dtwrap input[type=time]{flex:1 1 42%}
 .dtwrap input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
+.persel{border:1px solid var(--line);border-radius:var(--r-pill);padding:7px 12px;background:var(--white);font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;max-width:200px}
+.persel.on{border-color:var(--blue);color:var(--blue);background:var(--pastelBlue)}
 .f input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .f input:disabled,.f select:disabled{background:#F4F4F6;color:#8A8A8E;cursor:not-allowed}
 .f label b.req{color:var(--red)}
@@ -692,6 +696,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 <div class="toolbar">
   <input type="search" id="q" placeholder="Buscar por nome, decisor, bairro...">
   <button class="btn" id="fbtn">Filtro <span class="fbadge" id="fcount" style="display:none">0</span> <span id="fcaret">▾</span></button>
+  <select class="persel" id="persel" title="Período de cadastro do lead" style="display:none"></select>
   <div class="spacer"></div>
   <button class="btn" id="csv"><span class="lg">Exportar </span>CSV</button>
   <button class="btn" id="reload" title="Recarregar dados">↻</button>
@@ -958,7 +963,23 @@ const CFG={
 /* ================= Estado ================= */
 let tab='escolas';
 const DATA={escolas:null,empresas:null,leads:null};
-function emptyFilters(){return {q:'',prio:null,tipo:null,resp:null,ag:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};}
+/* Presets de periodo da aba B2C. O recorte e' sobre a DATA DE CADASTRO do lead. */
+const PERIODOS=[['hoje','Hoje'],['7','Últimos 7 dias'],['15','Últimos 15 dias'],['30','Últimos 30 dias'],['mes','Mês atual'],['custom','Período específico'],['tudo','Todo o histórico']];
+function fimDoMes(iso){const y=+iso.slice(0,4),m=+iso.slice(5,7);const d=new Date(Date.UTC(y,m,0));return d.toISOString().slice(0,10);}
+function periodoRange(pp){
+  const h=hojeISO();
+  if(pp==='hoje')return [h,h];
+  if(pp==='7')return [addDias(h,-6),h];
+  if(pp==='15')return [addDias(h,-14),h];
+  if(pp==='30')return [addDias(h,-29),h];
+  if(pp==='mes')return [h.slice(0,8)+'01',fimDoMes(h)];
+  return [null,null];
+}
+function emptyFilters(){
+  const f={q:'',prio:null,tipo:null,resp:null,ag:null,per:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};
+  if(tab==='leads'){const r=periodoRange('mes');f.per='mes';f.entradaDe=r[0];f.entradaAte=r[1];}
+  return f;
+}
 let filters=emptyFilters();
 let editing=null;   // id em edição ou null (novo)
 let dragId=null;
@@ -1875,7 +1896,8 @@ function activeFilterCount(){
   if(filters.prio)n++;
   if(filters.tipo)n++;
   if(filters.resp)n++;
-  if(filters.entradaDe||filters.entradaAte)n++;
+  /* o recorte de periodo tem seletor proprio na toolbar; so conta aqui quando e' faixa manual */
+  if((filters.entradaDe||filters.entradaAte)&&(tab!=='leads'||filters.per==='custom'))n++;
   if(filters.proxDe||filters.proxAte)n++;
   return n;
 }
@@ -1928,6 +1950,8 @@ function buildChips(){
     inp.onchange=function(){
       filters[inp.dataset.fk]=inp.value||null;
       inp.classList.toggle('on',!!inp.value);
+      /* mexeu na faixa na mao: o preset vira "Período específico" */
+      if(tab==='leads'&&(inp.dataset.fk==='entradaDe'||inp.dataset.fk==='entradaAte')){filters.per='custom';buildPeriodo();}
       updateFBtn();render();
     };
   });
@@ -1936,9 +1960,31 @@ function buildChips(){
     filters=emptyFilters();filters.q=q;
     buildChips();render();
   };
+  buildPeriodo();
   updateFBtn();
   $('add').textContent=isMobile()?(cfg.addShort||'+ Novo'):cfg.addLabel;
 }
+
+/* Seletor de periodo: so existe na aba B2C, sempre visivel, para ninguem esquecer que ha recorte */
+function buildPeriodo(){
+  const sel=$('persel');
+  if(!sel)return;
+  if(tab!=='leads'){sel.style.display='none';return;}
+  sel.style.display='';
+  const v=filters.per||'tudo';
+  sel.innerHTML=PERIODOS.map(function(o){
+    return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>';
+  }).join('');
+  sel.classList.toggle('on',v!=='tudo');
+}
+$('persel').onchange=function(){
+  const v=$('persel').value;
+  filters.per=v;
+  if(v==='tudo'){filters.entradaDe=null;filters.entradaAte=null;}
+  else if(v==='custom'){$('fpanel').classList.add('open');}
+  else{const r=periodoRange(v);filters.entradaDe=r[0];filters.entradaAte=r[1];}
+  buildChips();render();
+};
 
 $('board').addEventListener('wheel',function(e){
   if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc'||tab==='turmas')return;
@@ -2155,14 +2201,16 @@ const AGCFG={
   escolas:{table:'crm_escolas',nf:'proximo_contato',sf:'status',rot:'Escola',tel:true},
   empresas:{table:'crm_empresas',nf:'proximo_contato',sf:'status',rot:'Empresa',tel:true}
 };
-let ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],total:0};
+let ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],posvenda:[],total:0};
+let PVTODOS=safeGet('crmPvTodos')==='1';
 let AGITENS=[];      // itens crus, re-agrupados a cada minuto
 let AGVISTOS={};     // chaves ja avisadas nesta sessao
 let AGBOOT=false;    // evita enxurrada de toast no primeiro carregamento
 
 async function loadAlerts(){
   if(!currentUser)return;
-  const hoje=hojeISO(),limite=addDias(hoje,3);
+  /* funil olha 3 dias a frente; pos-venda e' agendado semanas antes, entao tem janela propria */
+  const hoje=hojeISO(),limite=addDias(hoje,3),limitePV=addDias(hoje,30);
   const itens=[];
   const keys=Object.keys(AGCFG);
   for(var i=0;i<keys.length;i++){
@@ -2183,8 +2231,9 @@ async function loadAlerts(){
     }catch(e){}
   }
   try{
-    const qs='status=eq.pendente&data_prevista=lte.'+limite
-      +'&responsavel=eq.'+encodeURIComponent(currentUser)+'&order=data_prevista.asc';
+    const qs='status=eq.pendente&data_prevista=lte.'+limitePV
+      +(PVTODOS&&isAdmin()?'':'&responsavel=eq.'+encodeURIComponent(currentUser))
+      +'&order=data_prevista.asc';
     var tr=null,emb=true;
     try{ tr=await api('/crm_tarefas?select=*,crm_leads(nome,whatsapp,etapa)&'+qs); }
     catch(e){ emb=false; }
@@ -2203,7 +2252,8 @@ async function loadAlerts(){
       const L=t.crm_leads||{};
       if(L.etapa!=='fechado')return;
       itens.push({tab:'leads',id:t.lead_id,nome:L.nome||'Lead',whatsapp:L.whatsapp,
-        data:t.data_prevista,hora:hhmm(t.hora_prevista)||'09:00',rot:'Pós-venda',etapa:pvNome(t.tipo)});
+        data:t.data_prevista,hora:hhmm(t.hora_prevista)||'09:00',rot:'Pós-venda',
+        etapa:pvNome(t.tipo)+(t.responsavel&&t.responsavel!==currentUser?' · '+t.responsavel:''),pv:true});
     });
   }catch(e){}
   AGITENS=itens;
@@ -2213,16 +2263,17 @@ async function loadAlerts(){
 /* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
 function bucketAlerts(){
   const hoje=hojeISO(),hm=agoraHM();
-  const at=[],ag=[],hj=[],px=[];
+  const at=[],ag=[],hj=[],px=[],pv=[];
   AGITENS.forEach(function(it){
     const h=it.hora||'09:00';
     if(it.data<hoje)at.push(it);
     else if(it.data===hoje){if(h<=hm)ag.push(it);else hj.push(it);}
+    else if(it.pv&&it.data>addDias(hoje,3))pv.push(it);   /* pos-venda distante tem lista propria */
     else px.push(it);
   });
   const ord=function(a,b){const ka=a.data+' '+(a.hora||'09:00'),kb=b.data+' '+(b.hora||'09:00');return ka<kb?-1:1;};
-  at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);
-  ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,total:at.length+ag.length};
+  at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);pv.sort(ord);
+  ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,posvenda:pv,total:at.length+ag.length};
   renderAlertBadge();
   const novos=[];
   ag.forEach(function(it){
@@ -2241,13 +2292,14 @@ function bucketAlerts(){
 function renderAlertBadge(){
   const b=$('abtn'),c=$('acount');
   if(!b)return;
-  const n=ALERTS.total,resto=ALERTS.hoje.length+ALERTS.proximos.length;
+  const n=ALERTS.total,resto=ALERTS.hoje.length+ALERTS.proximos.length+ALERTS.posvenda.length;
   if(!n&&!resto){b.style.display='none';return;}
   b.style.display='';
   b.classList.toggle('late',ALERTS.atrasados.length>0||ALERTS.agora.length>0);
   c.textContent=n||resto;
   b.title=ALERTS.atrasados.length+' atrasado(s) · '+ALERTS.agora.length+' na hora agora · '
-    +ALERTS.hoje.length+' ainda hoje · '+ALERTS.proximos.length+' nos próximos 3 dias';
+    +ALERTS.hoje.length+' ainda hoje · '+ALERTS.proximos.length+' nos próximos 3 dias · '
+    +ALERTS.posvenda.length+' de pós-venda a caminho';
 }
 
 function agItem(it){
@@ -2260,15 +2312,24 @@ function agItem(it){
 }
 
 function openAlerts(){
-  const grupos=[['atrasados','Atrasados','late'],['agora','Na hora agora','late'],['hoje','Ainda hoje','today'],['proximos','Próximos 3 dias','soon']];
+  const grupos=[['atrasados','Atrasados','late'],['agora','Na hora agora','late'],['hoje','Ainda hoje','today'],['proximos','Próximos dias','soon'],['posvenda','Pós-venda agendado','pv']];
   var html='';
   grupos.forEach(function(g){
-    const arr=ALERTS[g[0]];
+    const arr=ALERTS[g[0]]||[];
     if(!arr.length)return;
     html+='<div class="aggrp '+g[2]+'"><h4>'+g[1]+' <span>'+arr.length+'</span></h4>'+arr.map(agItem).join('')+'</div>';
   });
   if(!html)html='<div class="empty">Nenhum contato agendado para os próximos dias.</div>';
+  if(isAdmin()){
+    html='<label class="pvtoggle"><input type="checkbox" id="pvall"'+(PVTODOS?' checked':'')+'> '
+      +'Mostrar o pós-venda de toda a equipe</label>'+html;
+  }
   $('alist').innerHTML=html;
+  const pvb=$('pvall');
+  if(pvb)pvb.onchange=function(){
+    PVTODOS=pvb.checked;safeSet('crmPvTodos',PVTODOS?'1':'');
+    loadAlerts().then(openAlerts);
+  };
   $('asub').textContent=currentUser+(ALERTS.total?' · '+ALERTS.total+' para acionar agora':' · em dia');
   document.querySelectorAll('#alist .agi').forEach(function(el){
     el.onclick=function(e){
@@ -2321,7 +2382,7 @@ $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();})
 $('logout').onclick=function(){
   currentUser=null;safeSet('crmAuth','');
   DIAAVISADO=false;window._dcons=null;window._ddata=null;RVIEW='dia';
-  ALERTS={atrasados:[],hoje:[],proximos:[],total:0};renderAlertBadge();
+  ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],posvenda:[],total:0};renderAlertBadge();
   showLogin();
 };
 
