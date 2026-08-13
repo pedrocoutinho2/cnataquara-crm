@@ -773,6 +773,51 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
   .agn{flex:1 1 100%}
   .aga{margin-left:auto}
 }
+
+/* ================= Conversas (WhatsApp) ================= */
+.wawrap{display:grid;grid-template-columns:330px 1fr;gap:var(--s3);height:calc(100vh - 210px);min-height:430px}
+.wacol{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--white);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.wahead{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex:none;min-height:52px}
+.wahead b{font-family:var(--display);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wahead .sub{font-size:12px;color:var(--gray)}
+.waback{display:none;border:none;background:none;font-size:20px;line-height:1;color:var(--ink);cursor:pointer;padding:0 4px}
+.wafiltros{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex:none}
+.wafiltros button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 11px;font-size:12px;cursor:pointer;color:var(--gray)}
+.wafiltros button.on{background:var(--red);border-color:var(--red);color:var(--white)}
+.wascroll{overflow-y:auto;flex:1;min-height:0}
+.wai{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.wai:hover{background:var(--surface)}
+.wai.on{background:var(--pastelRed)}
+.wai .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--white);font-weight:600;font-size:13px;flex:none}
+.wai .mid{flex:1;min-width:0}
+.wai .n{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wai .p{font-size:12px;color:var(--gray);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.wai .r{text-align:right;flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.wai .t{font-size:11px;color:var(--muted)}
+.wai .nl{background:var(--red);color:var(--white);border-radius:var(--r-pill);font-size:11px;font-weight:700;min-width:18px;height:18px;padding:0 5px;display:grid;place-items:center}
+.waj{font-size:11px;padding:2px 8px;border-radius:var(--r-pill);white-space:nowrap}
+.waj.ok{background:var(--okBg);color:var(--ok)}
+.waj.off{background:var(--dangerBg);color:var(--danger)}
+.wamsgs{flex:1;min-height:0;overflow-y:auto;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.wam{max-width:74%;padding:8px 11px;border-radius:var(--r-lg);font-size:13.5px;line-height:1.45;box-shadow:var(--shadow-1);word-wrap:break-word;white-space:pre-wrap}
+.wam.ent{background:var(--white);align-self:flex-start;border-top-left-radius:var(--s1)}
+.wam.sai{background:var(--pastelBlue);align-self:flex-end;border-top-right-radius:var(--s1)}
+.wam .meta{font-size:10.5px;color:var(--muted);margin-top:4px;display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.wam.falhou{background:var(--dangerBg);border:1px solid var(--dangerLine)}
+.wam .mdbtn{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:5px 10px;font-size:12px;cursor:pointer;margin-top:4px}
+.wam img.md{max-width:100%;border-radius:var(--r-sm);margin-top:4px;display:block}
+.wadia{align-self:center;background:var(--white);border:1px solid var(--line);color:var(--gray);font-size:11px;padding:2px 12px;border-radius:var(--r-pill)}
+.wacomp{border-top:1px solid var(--line);padding:10px;display:flex;gap:8px;align-items:flex-end;flex:none;background:var(--white)}
+.wacomp textarea{flex:1;border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;font:inherit;font-size:13.5px;resize:none;max-height:120px;min-height:40px}
+.wafechada{border-top:1px solid var(--line);padding:10px;flex:none;background:var(--warnBg);font-size:12.5px;color:var(--warn)}
+.wafechada select{width:100%;margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:var(--r-md);font:inherit;font-size:13px;background:var(--white)}
+.wavazio{flex:1;display:grid;place-items:center;color:var(--gray);font-size:13.5px;padding:24px;text-align:center}
+.walead{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 11px;font-size:12px;cursor:pointer;white-space:nowrap}
+.waamb{background:var(--warnBg);color:var(--warn);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;margin:10px 14px 0}
+@media(max-width:900px){.wawrap{grid-template-columns:1fr;height:calc(100vh - 200px)}
+  .wawrap.thread .wacol.lista{display:none}
+  .wawrap:not(.thread) .wacol.thread{display:none}
+  .waback{display:block}}
 </style>
 </head>
 <body>
@@ -787,6 +832,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
     <button data-t="mural">Mural</button>
     <button data-t="calc">Calculadora</button>
     <button data-t="turmas">Turmas</button>
+    <button data-t="conversas">Conversas</button>
     <button data-t="relatorios">Relatórios</button>
     <button data-t="equipe" id="tabEquipe" style="display:none">Equipe</button>
   </div>
@@ -2310,6 +2356,356 @@ $('csv').onclick=function(){
   a.download='crm-cna-'+tab+'.csv';a.click();
 };
 
+
+/* ================= Conversas (WhatsApp) ================= */
+const FUNCS='https://gpnwmsnayrqjcmhqrtpx.supabase.co/functions/v1';
+const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],filtro:'todas',poll:null,enviando:false};
+
+function waFn(nome,body){
+  return fetch(FUNCS+'/'+nome,{
+    method:'POST',
+    headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(body||{})
+  }).then(function(r){
+    return r.text().then(function(t){
+      let j={};try{j=t?JSON.parse(t):{};}catch(_){}
+      if(!r.ok){const e=new Error(j.detalhe||j.erro||('HTTP '+r.status));e.codigo=j.erro;throw e;}
+      return j;
+    });
+  });
+}
+function meuId(){const u=USERS.find(function(x){return x.nome===currentUser;});return u?u.id:null;}
+
+function waFmtNum(n){
+  const d=String(n==null?'':n).replace(/\D/g,'').replace(/^55/,'');
+  if(d.length===11)return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+  if(d.length===10)return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+  return String(n==null?'':n);
+}
+function waNome(c){
+  if(c.lead&&c.lead.nome)return c.lead.nome;
+  if(c.nome_perfil)return c.nome_perfil;
+  return waFmtNum(c.numero_e164||c.wa_id);
+}
+function waJanela(c){
+  const ms=c.janela_expira_em?(new Date(c.janela_expira_em).getTime()-Date.now()):-1;
+  if(ms<=0)return {aberta:false,txt:'Janela fechada'};
+  const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);
+  return {aberta:true,txt:'Responde até '+(h?(h+'h'+(m<10?'0':'')+m):(m+' min'))};
+}
+function waHora(ts){
+  if(!ts)return '';
+  const d=new Date(ts);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function waDia(ts){
+  if(!ts)return '';
+  const d=new Date(ts),hoje=new Date();
+  const md=d.toISOString().slice(0,10),mh=new Date(hoje.getTime()-hoje.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if(md===mh)return 'Hoje';
+  const ont=new Date(hoje.getTime()-86400000-hoje.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if(md===ont)return 'Ontem';
+  return d.toLocaleDateString('pt-BR');
+}
+function waQuando(ts){
+  if(!ts)return '';
+  const dia=waDia(ts);
+  return dia==='Hoje'?waHora(ts):dia;
+}
+function waCor(nome){
+  let h=0;for(let i=0;i<nome.length;i++)h=(h*31+nome.charCodeAt(i))%PALETA.length;
+  return PALETA[h];
+}
+const WASTATUS={pendente:'enviando...',enviado:'enviado',entregue:'entregue',lido:'lido',falhou:'falhou'};
+
+async function openConversas(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando conversas...</div>';
+  try{
+    const c=await api('/crm_wa_contas?select=*&ativa=is.true&limit=1');
+    WA.conta=(c&&c[0])||null;
+  }catch(e){WA.conta=null;}
+  if(!WA.conta){
+    $('board').innerHTML='<div class="pane"><div class="loading">'
+      +'Nenhum número de WhatsApp cadastrado ainda.<br><br>'
+      +'A integração está pronta no banco e nas funções de envio. Falta registrar o número da Meta Cloud API em <b>crm_wa_contas</b> para as conversas começarem a aparecer aqui.'
+      +'</div></div>';
+    return;
+  }
+  try{
+    WA.templates=await api('/crm_wa_templates?select=*&status=eq.aprovado&order=nome.asc');
+  }catch(e){WA.templates=[];}
+  await waCarregar(true);
+  waStartPoll();
+}
+
+async function waCarregar(render){
+  try{
+    WA.conversas=await api('/crm_wa_conversas?select=*,lead:crm_leads(id,nome,etapa,responsavel)'
+      +'&order=ultima_mensagem_em.desc.nullslast&limit=300');
+  }catch(e){
+    if(render)$('board').innerHTML='<div class="pane"><div class="loading">Não foi possível carregar as conversas.</div></div>';
+    return;
+  }
+  waBadge();
+  if(WA.sel){
+    const atual=WA.conversas.find(function(x){return x.id===WA.sel;});
+    if(atual)await waMsgs(WA.sel);
+  }
+  if(render!==false)renderConversas();
+}
+
+async function waMsgs(id){
+  try{
+    WA.msgs=await api('/crm_wa_mensagens?select=*&conversa_id=eq.'+id+'&order=wa_timestamp.asc&limit=400');
+  }catch(e){WA.msgs=[];}
+}
+
+function waStartPoll(){
+  if(WA.poll)clearInterval(WA.poll);
+  WA.poll=setInterval(function(){
+    if(tab!=='conversas'||document.hidden)return;
+    waCarregar();
+  },10000);
+}
+
+function waBadge(){
+  const n=WA.conversas.reduce(function(a,c){return a+(c.nao_lidas||0);},0);
+  const b=document.querySelector('#tabs button[data-t="conversas"]');
+  if(b)b.textContent=n?('Conversas ('+n+')'):'Conversas';
+}
+
+function waFiltradas(){
+  if(WA.filtro==='nao')return WA.conversas.filter(function(c){return (c.nao_lidas||0)>0;});
+  if(WA.filtro==='minhas')return WA.conversas.filter(function(c){
+    return c.atendente_id===meuId()||(c.lead&&c.lead.responsavel===currentUser);
+  });
+  if(WA.filtro==='abertas')return WA.conversas.filter(function(c){return waJanela(c).aberta;});
+  return WA.conversas;
+}
+
+function renderConversas(){
+  const lista=waFiltradas();
+  const sel=WA.sel?WA.conversas.find(function(x){return x.id===WA.sel;}):null;
+
+  let h='<div class="wawrap'+(sel?' thread':'')+'">';
+
+  /* coluna da lista */
+  h+='<div class="wacol lista">';
+  h+='<div class="wafiltros">'
+    +['todas|Todas','nao|Não lidas','minhas|Minhas','abertas|Janela aberta'].map(function(o){
+      const p=o.split('|');
+      return '<button data-f="'+p[0]+'"'+(WA.filtro===p[0]?' class="on"':'')+'>'+p[1]+'</button>';
+    }).join('')+'</div>';
+  h+='<div class="wascroll">';
+  if(!lista.length){
+    h+='<div class="wavazio">Nenhuma conversa por aqui ainda.</div>';
+  }else{
+    lista.forEach(function(c){
+      const n=waNome(c),j=waJanela(c);
+      h+='<div class="wai'+(c.id===WA.sel?' on':'')+'" data-c="'+c.id+'">'
+        +'<span class="av" style="background:'+waCor(n)+'">'+esc(n[0]||'?').toUpperCase()+'</span>'
+        +'<span class="mid"><span class="n">'+esc(n)+'</span>'
+        +'<span class="p">'+esc(c.ultima_previa||'Sem mensagens')+'</span></span>'
+        +'<span class="r"><span class="t">'+esc(waQuando(c.ultima_mensagem_em))+'</span>'
+        +(c.nao_lidas?'<span class="nl">'+c.nao_lidas+'</span>':(j.aberta?'<span class="waj ok">24h</span>':''))
+        +'</span></div>';
+    });
+  }
+  h+='</div></div>';
+
+  /* coluna da conversa */
+  h+='<div class="wacol thread">';
+  if(!sel){
+    h+='<div class="wavazio">Escolha uma conversa à esquerda para ver o histórico e responder.</div>';
+  }else{
+    const n=waNome(sel),j=waJanela(sel);
+    h+='<div class="wahead">'
+      +'<button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
+      +'<div style="flex:1;min-width:0"><b>'+esc(n)+'</b>'
+      +'<div class="sub">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))+'</div></div>'
+      +'<span class="waj '+(j.aberta?'ok':'off')+'">'+esc(j.txt)+'</span>'
+      +(sel.lead_id?'<button class="walead" id="wafichabtn">Abrir ficha</button>':'<button class="walead" id="wanovolead">Criar lead</button>')
+      +'</div>';
+    if(sel.lead_ambiguo){
+      h+='<div class="waamb">Este número aparece em mais de um lead. A conversa foi ligada ao cadastro mais recente, vale conferir e unificar.</div>';
+    }
+    h+='<div class="wamsgs" id="wamsgs">';
+    let ultimoDia='';
+    WA.msgs.forEach(function(m){
+      const d=waDia(m.wa_timestamp||m.created_at);
+      if(d!==ultimoDia){h+='<div class="wadia">'+esc(d)+'</div>';ultimoDia=d;}
+      const sai=m.direcao==='saida';
+      h+='<div class="wam '+(sai?'sai':'ent')+(m.status==='falhou'?' falhou':'')+'">'
+        +esc(m.texto||'['+m.tipo+']');
+      if(m.midia_path){
+        h+='<button class="mdbtn" data-md="'+m.id+'">Abrir '+esc(m.tipo)+'</button><span id="md'+m.id+'"></span>';
+      }
+      h+='<div class="meta">'
+        +(sai&&m.template_nome?'<span>template</span>':'')
+        +'<span>'+esc(waHora(m.wa_timestamp||m.created_at))+'</span>'
+        +(sai?'<span>'+esc(WASTATUS[m.status]||m.status||'')+'</span>':'')
+        +'</div>';
+      if(m.status==='falhou'&&m.erro_msg)h+='<div class="meta" style="justify-content:flex-start">'+esc(m.erro_msg)+'</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+    if(j.aberta){
+      h+='<div class="wacomp">'
+        +'<textarea id="watxt" rows="1" placeholder="Escreva a mensagem..."></textarea>'
+        +'<button class="btn primary" id="wasend">Enviar</button></div>';
+    }else{
+      h+='<div class="wafechada">A janela de 24 horas fechou. Fora dela o WhatsApp só entrega template aprovado.';
+      if(WA.templates.length){
+        h+='<select id="watpl"><option value="">Escolha um template aprovado</option>'
+          +WA.templates.map(function(t){return '<option value="'+esc(t.nome)+'">'+esc(t.nome)+(t.corpo?' · '+esc(t.corpo.slice(0,50)):'')+'</option>';}).join('')
+          +'</select>'
+          +'<div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="wasendtpl">Enviar template</button></div>';
+      }else{
+        h+=' Nenhum template aprovado cadastrado ainda.';
+      }
+      h+='</div>';
+    }
+  }
+  h+='</div></div>';
+
+  $('board').innerHTML=h;
+  waLigar();
+  const box=$('wamsgs');
+  if(box)box.scrollTop=box.scrollHeight;
+}
+
+function waLigar(){
+  document.querySelectorAll('.wafiltros button').forEach(function(b){
+    b.onclick=function(){WA.filtro=b.dataset.f;renderConversas();};
+  });
+  document.querySelectorAll('.wai').forEach(function(el){
+    el.onclick=function(){waAbrir(el.dataset.c);};
+  });
+  const volta=$('wavolta');
+  if(volta)volta.onclick=function(){WA.sel=null;WA.msgs=[];renderConversas();};
+  const ficha=$('wafichabtn');
+  if(ficha)ficha.onclick=function(){
+    const c=WA.conversas.find(function(x){return x.id===WA.sel;});
+    if(c&&c.lead_id)goToAlert('leads',c.lead_id);
+  };
+  const novo=$('wanovolead');
+  if(novo)novo.onclick=waCriarLead;
+  const send=$('wasend');
+  if(send)send.onclick=function(){waEnviar();};
+  const txt=$('watxt');
+  if(txt){
+    txt.focus();
+    txt.oninput=function(){txt.style.height='auto';txt.style.height=Math.min(120,txt.scrollHeight)+'px';};
+    txt.onkeydown=function(e){
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();waEnviar();}
+    };
+  }
+  const stpl=$('wasendtpl');
+  if(stpl)stpl.onclick=function(){
+    const v=$('watpl')?$('watpl').value:'';
+    if(!v){toast('Escolha o template.');return;}
+    waEnviar(v);
+  };
+  document.querySelectorAll('.mdbtn').forEach(function(b){
+    b.onclick=function(){waMidia(b.dataset.md,b);};
+  });
+}
+
+async function waAbrir(id){
+  WA.sel=id;WA.msgs=[];
+  renderConversas();
+  await waMsgs(id);
+  const c=WA.conversas.find(function(x){return x.id===id;});
+  if(c&&c.nao_lidas){
+    c.nao_lidas=0;
+    api('/crm_wa_conversas?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nao_lidas:0,atendente_id:meuId()})}).catch(function(){});
+    waBadge();
+  }
+  renderConversas();
+}
+
+async function waEnviar(template){
+  if(WA.enviando)return;
+  const c=WA.conversas.find(function(x){return x.id===WA.sel;});
+  if(!c)return;
+  const txt=$('watxt');
+  const corpo=txt?txt.value.trim():'';
+  if(!template&&!corpo)return;
+  WA.enviando=true;
+  const btn=$('wasend')||$('wasendtpl');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  try{
+    await waFn('wa-send',{
+      conversa_id:c.id,
+      texto:template?null:corpo,
+      template:template||null,
+      autor_id:meuId()
+    });
+    if(txt)txt.value='';
+    await waCarregar();
+  }catch(e){
+    if(e.codigo==='janela_fechada')toast('A janela de 24 horas fechou. Use um template.');
+    else toast('Não foi possível enviar: '+(e.message||e));
+    await waCarregar();
+  }finally{
+    WA.enviando=false;
+  }
+}
+
+async function waMidia(msgId,btn){
+  btn.disabled=true;btn.textContent='Abrindo...';
+  try{
+    const r=await waFn('wa-media',{mensagem_id:msgId});
+    const alvo=$('md'+msgId);
+    if(r.mime&&r.mime.indexOf('image/')===0&&alvo){
+      alvo.innerHTML='<img class="md" src="'+r.url+'" alt="Mídia recebida">';
+      btn.style.display='none';
+    }else if(r.mime&&r.mime.indexOf('audio/')===0&&alvo){
+      alvo.innerHTML='<audio class="md" controls src="'+r.url+'"></audio>';
+      btn.style.display='none';
+    }else{
+      window.open(r.url,'_blank');
+      btn.disabled=false;btn.textContent='Abrir de novo';
+    }
+  }catch(e){
+    toast('Não foi possível abrir a mídia: '+(e.message||e));
+    btn.disabled=false;btn.textContent='Tentar de novo';
+  }
+}
+
+async function waCriarLead(){
+  const c=WA.conversas.find(function(x){return x.id===WA.sel;});
+  if(!c)return;
+  const nome=(c.nome_perfil||'').trim()||('WhatsApp '+waFmtNum(c.numero_e164||c.wa_id));
+  try{
+    const r=await api('/crm_leads',{method:'POST',body:JSON.stringify({
+      nome:nome,
+      whatsapp:waFmtNum(c.numero_e164||c.wa_id),
+      etapa:CFG.leads.stages[0].id,
+      origem:'WhatsApp',
+      responsavel:currentUser
+    })});
+    const novo=r&&r[0];
+    if(novo){
+      await api('/crm_wa_conversas?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify({lead_id:novo.id})});
+      DATA.leads=null;
+      toast('Lead criado e ligado à conversa.');
+      await waCarregar();
+    }
+  }catch(e){toast('Não foi possível criar o lead: '+(e.message||e));}
+}
+
+/* mantém o contador da aba vivo mesmo fora das Conversas */
+setInterval(function(){
+  if(!currentUser||tab==='conversas'||document.hidden)return;
+  api('/crm_wa_conversas?select=nao_lidas&nao_lidas=gt.0').then(function(r){
+    const n=(r||[]).reduce(function(a,c){return a+(c.nao_lidas||0);},0);
+    const b=document.querySelector('#tabs button[data-t="conversas"]');
+    if(b)b.textContent=n?('Conversas ('+n+')'):'Conversas';
+  }).catch(function(){});
+},60000);
+
 /* ================= Tabs e usuário ================= */
 function setTab(t){
   tab=t;filters=emptyFilters();$('q').value='';$('fpanel').classList.remove('open');
@@ -2322,7 +2718,7 @@ function setTab(t){
       try{tb.scrollTo({left:Math.max(0,alvo),behavior:'smooth'});}catch(_){tb.scrollLeft=Math.max(0,alvo);}
     }
   });
-  const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas');
+  const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -2331,6 +2727,7 @@ function setTab(t){
   if(t==='mural'){openMural();return;}
   if(t==='calc'){openCalc();return;}
   if(t==='turmas'){openTurmas();return;}
+  if(t==='conversas'){openConversas();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t);};});
