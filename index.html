@@ -224,6 +224,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .waico{width:15px;height:15px;fill:currentColor;display:block;flex:none}
 .acts a.wa,.aga .wa{display:inline-flex;align-items:center;justify-content:center}
 .f label .waico{width:16px;height:16px}
+.f label.wal{display:flex;align-items:center;gap:5px}
 .itipo .waico{width:12px;height:12px;display:inline-block;vertical-align:-2px}
 .tel{background:#EDF2FB;color:var(--blue)}
 .ig{background:#FDEEF2;color:var(--redDark)}
@@ -241,7 +242,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .ov.open{display:flex}
 .modal{background:var(--white);border-radius:16px;width:100%;max-width:860px;margin:0;display:flex;flex-direction:column;max-height:calc(100% - 8px)}
 .mhead{padding:20px 20px 0;position:relative;flex:0 0 auto}
-.mbody{padding:14px 20px 0;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+.mbody{padding:14px 20px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
 .mx{display:none;position:absolute;top:14px;right:14px;border:1px solid var(--line);background:var(--white);border-radius:50%;width:34px;height:34px;font-size:15px;color:var(--gray);line-height:1}
 .modal h2{font-family:'Poppins';font-size:18px;color:var(--red);margin-bottom:2px;padding-right:40px}
 .modal .msub{font-size:12px;color:var(--gray)}
@@ -703,7 +704,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
   .modal{max-width:none;border-radius:18px 18px 0 0;max-height:92%}
   .mhead{padding:16px 16px 0;border-radius:18px 18px 0 0}
   .mx{display:block;top:12px;right:12px}
-  .mbody{padding:12px 16px 0}
+  .mbody{padding:12px 16px 16px}
   .mfoot{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
   .mfoot .spacer{display:none}
   .mfoot #save{flex:1 1 auto}
@@ -1211,15 +1212,15 @@ const CFG={
       return (s.origem||'')+(d?' · '+d:'')+(pa?' · ⏰ '+pa:'');
     },
     fields:[
-      {k:'nome',l:'Nome do aluno',t:'text',full:true},
-      {k:'idade',l:'Idade do aluno',t:'number'},
-      {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
+      {k:'nome',l:'Nome do prospect',t:'text',full:true},
       {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['','—'],['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
       {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
+      {k:'idade',l:'Idade do aluno',t:'number'},
+      {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
       {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return hojeISO();}},
       {k:'ultimo_contato',l:'Último contato',t:'date',def:function(){return hojeISO();}},
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
@@ -1787,7 +1788,7 @@ function openModal(id){
   cfg.fields.forEach(function(f){
     const d=document.createElement('div');
     d.className='f'+(f.full?' full':'');
-    let inner='<label>'+(f.licon?WAICO:esc(f.l))+'</label>';
+    let inner='<label'+(f.licon?' class="wal"':'')+'>'+(f.licon?WAICO+'<span>'+esc(f.l)+'</span>':esc(f.l))+'</label>';
     const v=s?(s[f.k]==null?'':s[f.k]):'';
     if(f.t==='textarea'){
       inner+='<textarea data-k="'+f.k+'">'+esc(v)+'</textarea>';
@@ -2315,7 +2316,7 @@ $('save').onclick=async function(){
   document.querySelectorAll('#form [data-k]').forEach(function(el){
     body[el.getAttribute('data-k')]=el.value.trim()===''?null:el.value.trim();
   });
-  if(!body.nome){toast('O nome do aluno é obrigatório.');return;}
+  if(!body.nome){toast('O nome do prospect é obrigatório.');return;}
   if(tab==='leads'){
     if(!editing&&!body.curso){toast('Escolha o curso de interesse.');return;}
     if(!editing&&!body.origem){toast('Informe a origem do lead. É o que alimenta o relatório de canais.');return;}
@@ -2424,7 +2425,8 @@ $('del').onclick=async function(){
 
 $('close').onclick=closeModal;
 $('closex').onclick=closeModal;
-$('ov').addEventListener('click',function(e){if(e.target===$('ov'))closeModal();});
+/* clicar fora NAO fecha a ficha: um toque errado no meio do cadastro perdia tudo */
+$('ov').addEventListener('click',function(e){if(e.target===$('ov'))toast('Use o botão Fechar para sair da ficha.');});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('ov').classList.contains('open'))closeModal();});
 
 /* ================= Toolbar ================= */
