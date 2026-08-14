@@ -898,6 +898,43 @@ input[type=date].dvazio{color:#C9C9CE}
 .wafcard .acoes{display:flex;gap:8px;margin-top:9px;align-items:center}
 .wafcard .nota{font-size:11.5px;color:var(--gray);flex:1}
 .wafpanel{flex:1;min-height:0;overflow-y:auto;padding:14px;background:var(--surface)}
+
+/* ===== Tela inicial (painel do dia) ===== */
+.snav>a{border-bottom:1px solid var(--line);padding-top:11px;padding-bottom:11px}
+.ihead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.ihead h1{font-family:'Poppins';font-size:19px;color:var(--red)}
+.ihead .isub{font-size:12px;color:var(--gray)}
+.ihead .ibtn{margin-left:auto}
+.ibox{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;background:var(--white);border:1px solid var(--line);
+  border-left:4px solid var(--gray);border-radius:var(--r-lg);padding:12px 15px;margin-bottom:10px;box-shadow:var(--shadow-1)}
+.ibox b{font-family:'Poppins';font-size:13px;display:block;margin-bottom:2px;color:var(--ink)}
+.ibox p{font-size:12.5px;line-height:1.45;color:var(--ink);margin:0}
+.ibox .itx{flex:1;min-width:190px}
+.ibox.bad{border-left-color:var(--red);background:var(--dangerBg)}
+.ibox.bad b{color:var(--redDark)}
+.ibox.warn{border-left-color:var(--warn);background:var(--warnBg)}
+.ibox.warn b{color:var(--warn)}
+.ibox.ok{border-left-color:var(--ok);background:var(--okBg)}
+.ibox.ok b{color:var(--ok)}
+.ibox .dbtn{flex:none}
+.metabox{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:var(--r-lg);
+  padding:14px 16px 15px;margin-bottom:14px;box-shadow:var(--shadow-1)}
+.metabox h3{font-family:'Poppins';font-size:13.5px;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.metatop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.metatop .mn{font-family:'Poppins';font-size:30px;line-height:1;color:var(--blue);letter-spacing:-.5px}
+.metatop .mn.hit{color:var(--ok)}
+.metatop .mt{font-size:12.5px;color:var(--gray)}
+.metabar{height:14px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);overflow:hidden}
+.metabar i{display:block;height:100%;background:var(--blue);border-radius:var(--r-pill);transition:width .35s ease}
+.metabar i.hit{background:var(--ok)}
+.drow.clik{cursor:pointer}
+.drow.clik:hover{background:var(--surface)}
+.drow .dh.late{color:var(--redDark);font-weight:700}
+.drow .wa{display:inline-flex;align-items:center;justify-content:center;padding:5px 9px;border-radius:var(--r-sm);text-decoration:none}
+#iniwrap .drow{grid-template-columns:66px 1fr auto}
+.mbars .me{background:var(--blue)}
+.mbars .me.hit{background:var(--ok)}
+.mgoal{position:relative}
 </style>
 </head>
 <body>
@@ -905,7 +942,7 @@ input[type=date].dvazio{color:#C9C9CE}
 <header>
   <button class="mbtn" id="menubtn" aria-label="Abrir menu">&#9776;</button>
   <div class="brand"><img class="logoImg" alt="CNA idiomas"><span class="sub">CRM · Taquara</span></div>
-  <h1 class="ptitle" id="ptitle">Escolas</h1>
+  <h1 class="ptitle" id="ptitle">Início</h1>
   <div class="hright">
     <button class="abtn" id="abtn" title="Meus agendamentos" style="display:none">&#128276;<b id="acount">0</b></button>
     <div class="stats" id="stats"></div>
@@ -925,6 +962,7 @@ input[type=date].dvazio{color:#C9C9CE}
     <button class="sclose" id="sclose" type="button" aria-label="Fechar menu">&#10005;</button>
   </div>
   <nav class="snav" id="snav">
+    <a data-t="inicio" title="Início"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10.4 12 3.6l8.4 6.8v9.2a1.4 1.4 0 0 1-1.4 1.4H5a1.4 1.4 0 0 1-1.4-1.4v-9.2Z"/><path d="M9.4 21v-7.2h5.2V21"/></svg><span>Início</span></a>
     <div class="sgroup open" id="sg_comercial">
       <button class="sgh" type="button" data-g="comercial">Comercial<span class="chev"></span></button>
       <div class="sgi">
@@ -1001,7 +1039,7 @@ input[type=date].dvazio{color:#C9C9CE}
           </div>
           <div class="agform" id="agform" style="display:none">
             <div class="dtwrap"><input type="date" id="agd"><input type="time" step="900" id="agh"></div>
-            <select id="agc"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select>
+            <select id="agc"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option><option value="teste_nivel">Teste de nível</option><option value="experimental">Aula experimental</option></select>
             <button type="button" class="agb ok" id="agsave">Salvar</button>
             <button type="button" class="agb" id="agcancel">Cancelar</button>
           </div>
@@ -1021,7 +1059,7 @@ input[type=date].dvazio{color:#C9C9CE}
           </select>
           <input id="iresumo" placeholder="O que aconteceu nesse contato?">
           <div class="nesched"><label>Próximo contato (data e hora)</label><div class="dtwrap"><input type="date" id="iprox" class="ok"><input type="time" step="900" id="iproxh" class="ok"></div></div>
-          <div class="nesched"><label>Canal do próximo contato</label><select id="iproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select></div>
+          <div class="nesched"><label>Canal do próximo contato</label><select id="iproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option><option value="teste_nivel">Teste de nível</option><option value="experimental">Aula experimental</option></select></div>
           <button class="btn primary" id="iadd">Registrar</button>
         </div>
         <div class="iadd ne" id="paneNe" style="display:none">
@@ -1043,7 +1081,7 @@ input[type=date].dvazio{color:#C9C9CE}
           </select>
           <input id="neobs" placeholder="Observação (opcional)">
           <div class="nesched"><label>Próximo contato: data e hora <b>*</b></label><div class="dtwrap"><input type="date" id="nedata"><input type="time" step="900" id="nedatah"></div></div>
-          <div class="nesched"><label>Canal do próximo contato</label><select id="neproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option></select></div>
+          <div class="nesched"><label>Canal do próximo contato</label><select id="neproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option><option value="teste_nivel">Teste de nível</option><option value="experimental">Aula experimental</option></select></div>
           <button class="btn primary" id="neadd" disabled>Registrar e agendar</button>
         </div>
         <div class="ilist" id="ilist"></div>
@@ -1113,7 +1151,7 @@ const PALETA=['#E6143C','#19408B','#B87500','#7A3E9D','#1E7A46','#C2410C','#0E74
 const WAICO='<svg class="waico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
 const ITIPOS={nota:'Nota',whatsapp:WAICO,ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
 const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_errado:'Número errado',pediu_retorno:'Pediu retorno depois',nao_leu:'Mensagem não lida',recusou:'Recusou falar',ausente:'Decisor ausente'};
-const CANAIS={whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião'};
+const CANAIS={whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião',teste_nivel:'Teste de nível',experimental:'Aula experimental'};
 function canalNome(c){return CANAIS[c]||'';}
 
 const CFG={
@@ -1235,7 +1273,7 @@ const CFG={
 };
 
 /* ================= Estado ================= */
-let tab='escolas';
+let tab='inicio';
 const DATA={escolas:null,empresas:null,leads:null};
 /* Presets de periodo da aba B2C. O recorte e' sobre a DATA DE CADASTRO do lead. */
 const PERIODOS=[['hoje','Hoje'],['7','Últimos 7 dias'],['15','Últimos 15 dias'],['30','Últimos 30 dias'],['mes','Mês atual'],['custom','Período específico'],['tudo','Todo o histórico']];
@@ -3090,10 +3128,11 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas');
+  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
+  if(t==='inicio'){openInicio();return;}
   if(t==='relatorios'){openReports();return;}
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
@@ -3112,11 +3151,11 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 });
 
 /* ================= Menu lateral ================= */
-const NAVGRP={leads:'comercial',escolas:'comercial',empresas:'comercial',
+const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',
   conversas:'atendimento',calc:'atendimento',
   turmas:'operacao',mural:'operacao',
   relatorios:'gestao',equipe:'gestao'};
-const NAVTIT={leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
+const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
   calc:'Calculadora',turmas:'Turmas',mural:'Mural',relatorios:'Relatórios',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
@@ -3422,6 +3461,7 @@ function bucketAlerts(){
   renderAlertBadge();
   disparaAlerta(ag,at);
   AGBOOT=true;
+  iniSync();
 }
 
 function chaveAg(it){return it.tab+':'+it.id+':'+it.data+' '+(it.hora||'09:00');}
@@ -3544,11 +3584,11 @@ function entrar(){
   $('uav').textContent=currentUser[0];
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
   $('tabEquipe').style.display=isAdmin()?'':'none';
-  setTab('escolas');
+  setTab('inicio');
   loadAlerts().then(function(){
-    if(ALERTS.total>0)openAlerts();
+    if(tab==='inicio')renderInicio();
   });
-  DIAAVISADO=false;
+  DIAAVISADO=false;DIAVEZES=0;
   checarFechamento();
   if(!window._dtimer)window._dtimer=setInterval(checarFechamento,300000);
 }
@@ -3557,7 +3597,7 @@ $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
 $('logout').onclick=function(){
   currentUser=null;safeSet('crmAuth','');
-  DIAAVISADO=false;window._dcons=null;window._ddata=null;RVIEW='dia';
+  DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};window._dcons=null;window._ddata=null;RVIEW='dia';
   ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
   showLogin();
 };
@@ -4478,21 +4518,246 @@ function renderMeuDia(){
   };
 }
 
-/* aviso de fim de expediente */
-let DIAAVISADO=false;
+/* ================= Tela inicial (painel do dia) ================= */
+const META_EF=30;                                  /* meta diaria de contatos efetivos por consultor */
+const AGPRESENCIAL={teste_nivel:1,experimental:1,visita:1,reuniao:1};
+let INI={dia:null,serie:null,erro:'',sig:''};
+
+function saudacao(){const h=new Date().getHours();return h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');}
+const DIASEM=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+function diaSemana(iso){const p=String(iso).split('-');return DIASEM[new Date(+p[0],+p[1]-1,+p[2]).getDay()];}
+/* domingo nao conta: na segunda o dia a conferir e' o sabado */
+function diaAnteriorUtil(iso){
+  var d=addDias(iso,-1),p=d.split('-');
+  if(new Date(+p[0],+p[1]-1,+p[2]).getDay()===0)d=addDias(d,-1);
+  return d;
+}
+
+async function openInicio(silencioso){
+  $('stats').innerHTML='';
+  if(!silencioso)$('board').innerHTML='<div class="loading">Montando o painel do dia...</div>';
+  const hoje=hojeISO();
+  INI.erro='';
+  try{
+    const r=await Promise.all([
+      api('/rpc/crm_relatorio_dia',{method:'POST',body:JSON.stringify({p_data:hoje,p_consultor:currentUser})}),
+      api('/crm_relatorio_diario?consultor=eq.'+encodeURIComponent(currentUser)+
+          '&select=data,agendados,efetivos,pendentes,matriculas,leads_novos,cumprimento,fechado_em,fechado_por&order=data.desc&limit=10')
+    ]);
+    INI.dia=r[0]||{};INI.serie=r[1]||[];
+  }catch(e){
+    INI.erro=(e&&e.message)?e.message:'';
+    if(!INI.dia)INI.dia={};
+    if(!INI.serie)INI.serie=[];
+  }
+  renderInicio();
+}
+
+/* re-desenha sozinho quando a fila de alertas muda, sem piscar a tela a cada 15s */
+function iniSync(){
+  if(tab!=='inicio')return;
+  const sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length].join('/');
+  if(sig===INI.sig)return;
+  renderInicio();
+}
+
+function iniRow(it,hoje){
+  const wa=waLink(it.whatsapp);
+  const atrasado=(it.data<hoje)||(it.data===hoje&&(it.hora||'09:00')<=agoraHM());
+  const quando=(it.data<hoje?brDate(it.data).slice(0,5)+' · ':'')+(it.hora||'--:--');
+  const sub=[it.rot,it.etapa,it.canal?canalNome(it.canal):''].filter(Boolean).join(' · ');
+  return '<div class="drow clik" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'+
+    '<span class="dh'+(atrasado?' late':'')+'">'+esc(quando)+'</span>'+
+    '<span class="dn">'+esc(it.nome||'')+(sub?'<span class="dsub">'+esc(sub)+'</span>':'')+'</span>'+
+    (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
+  '</div>';
+}
+
+function iniLista(arr,hoje,vazio){
+  if(!arr||!arr.length)return '<div class="empty">'+vazio+'</div>';
+  return arr.map(function(it){return iniRow(it,hoje);}).join('');
+}
+
+function kd(atual,anterior,rotulo){
+  if(anterior==null)return '';
+  const d=atual-anterior;
+  const cls=d>0?' up':(d<0?' down':'');
+  const sinal=d>0?'+':'';
+  return '<i class="kd'+cls+'">'+sinal+d+' '+rotulo+'</i>';
+}
+
+function renderInicio(){
+  const p=INI.dia||{},k=p.kpis||{},hoje=hojeISO();
+  const u=uInfo(currentUser)||{},jini=hhmm(u.hora_inicio)||'09:00',jfim=hhmm(u.hora_fim)||'18:00';
+  const serie=INI.serie||[];
+  const ontem=serie.filter(function(x){return x.data<hoje;})[0]||null;
+  const fechadoHoje=serie.filter(function(x){return x.data===hoje;})[0]||null;
+  const agMin=(function(){const d=new Date();return d.getHours()*60+d.getMinutes();})();
+  const fimMin=minDe(jfim);
+
+  INI.sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length].join('/');
+
+  /* ---- meta do dia ---- */
+  const ef=k.efetivos||0;
+  const falta=Math.max(0,META_EF-ef);
+  const pctMeta=Math.min(100,Math.round(100*ef/META_EF));
+  const bateu=ef>=META_EF;
+  const meta='<div class="metabox"><h3>Meta do dia · contatos efetivos</h3>'+
+    '<div class="metatop"><span class="mn'+(bateu?' hit':'')+'">'+ef+'</span>'+
+      '<span class="mt">de '+META_EF+' · '+(bateu?'meta batida, tudo que vier agora é a mais':'faltam <b>'+falta+'</b> para fechar a meta')+'</span></div>'+
+    '<div class="metabar"><i class="'+(bateu?'hit':'')+'" style="width:'+pctMeta+'%"></i></div>'+
+    '<div class="rnote">Conta toda interação marcada como efetiva hoje, em B2C, escolas, empresas e pós-venda. Atualiza sozinho a cada registro.</div>'+
+  '</div>';
+
+  /* ---- avisos ---- */
+  var avisos='';
+  if(INI.erro){
+    avisos+='<div class="ibox warn"><div class="itx"><b>Não foi possível carregar os números do dia</b>'+
+      '<p>'+esc(INI.erro)+'. Toque em Recarregar para tentar de novo.</p></div>'+
+      '<button class="dbtn" id="irecarrega">Recarregar</button></div>';
+  }
+  if(ALERTS.atrasados.length){
+    avisos+='<div class="ibox bad"><div class="itx"><b>'+ALERTS.atrasados.length+' repique'+(ALERTS.atrasados.length>1?'s':'')+' atrasado'+(ALERTS.atrasados.length>1?'s':'')+'</b>'+
+      '<p>Ficaram para trás em dias anteriores. Comece por eles: lead esfriado raramente volta sozinho.</p></div></div>';
+  }
+  if(ALERTS.agora.length){
+    avisos+='<div class="ibox warn"><div class="itx"><b>'+ALERTS.agora.length+' contato'+(ALERTS.agora.length>1?'s':'')+' na hora agora</b>'+
+      '<p>A hora marcada já passou hoje. Estão na lista de repiques abaixo.</p></div></div>';
+  }
+  /* dia anterior: fechado a mao, fechado pelo automatico ou nao fechado */
+  const dAnt=diaAnteriorUtil(hoje);
+  const snapAnt=serie.filter(function(x){return x.data===dAnt;})[0];
+  if(u.consultor){
+    if(!snapAnt){
+      avisos+='<div class="ibox bad"><div class="itx"><b>O dia '+brDate(dAnt)+' não foi fechado</b>'+
+        '<p>Sem fechamento os números daquele dia não entram no histórico. Feche agora, leva menos de um minuto.</p></div>'+
+        '<button class="dbtn" data-ifecha="'+dAnt+'">Abrir '+brDate(dAnt).slice(0,5)+'</button></div>';
+    }else if(snapAnt.fechado_por==='automático'){
+      avisos+='<div class="ibox warn"><div class="itx"><b>'+brDate(dAnt)+' foi fechado automaticamente</b>'+
+        '<p>O sistema fechou às 23:30 porque ninguém fechou na mão. Confira os números e refaça o fechamento se algo ficou de fora.</p></div>'+
+        '<button class="dbtn" data-ifecha="'+dAnt+'">Conferir</button></div>';
+    }
+  }
+  /* fim de expediente de hoje */
+  if(u.consultor&&!fechadoHoje&&agMin>=fimMin-30){
+    avisos+='<div class="ibox '+(agMin>=fimMin?'bad':'warn')+'"><div class="itx"><b>Hora de atualizar o CRM e fechar o dia</b>'+
+      '<p>Seu expediente termina às '+jfim+'. Registre os contatos que ficaram pendentes, reagende o que não deu certo e feche o dia.</p></div>'+
+      '<button class="dbtn" data-ifecha="'+hoje+'">Fechar o dia</button></div>';
+  }
+  if(fechadoHoje){
+    avisos+='<div class="ibox ok"><div class="itx"><b>Dia fechado</b>'+
+      '<p>Fechado '+(fechadoHoje.fechado_por==='automático'?'automaticamente':'por '+esc(fechadoHoje.fechado_por||currentUser))+
+      '. O que for registrado depois disso só entra no histórico se você refizer o fechamento.</p></div>'+
+      '<button class="dbtn" data-ifecha="'+hoje+'">Abrir</button></div>';
+  }
+  if(!avisos&&!ALERTS.total){
+    avisos='<div class="ibox ok"><div class="itx"><b>Tudo em dia por aqui</b>'+
+      '<p>Nenhum repique atrasado e nenhum contato vencido. Bom momento para prospectar novos leads.</p></div></div>';
+  }
+
+  /* ---- big numbers ---- */
+  const kpis='<div class="rkpis">'+
+    '<div class="rkpi'+(bateu?' ok':'')+'"><b>'+ef+'</b><span>Contatos efetivos hoje</span>'+kd(ef,ontem?ontem.efetivos:null,'vs. '+(ontem?brDate(ontem.data).slice(0,5):''))+'</div>'+
+    '<div class="rkpi'+(falta?'':' ok')+'"><b>'+falta+'</b><span>Faltam para a meta</span></div>'+
+    '<div class="rkpi"><b>'+(k.agendados||0)+'</b><span>Agendados hoje</span>'+kd(k.agendados||0,ontem?ontem.agendados:null,'vs. '+(ontem?brDate(ontem.data).slice(0,5):''))+'</div>'+
+    '<div class="rkpi ok"><b>'+(k.cumpridos||0)+'</b><span>Já acionados</span></div>'+
+    '<div class="rkpi'+((k.pendentes||0)?' bad':'')+'"><b>'+(k.pendentes||0)+'</b><span>Ainda em aberto</span></div>'+
+    '<div class="rkpi"><b>'+String(k.cumprimento==null?0:k.cumprimento).replace('.',',')+'%</b><span>Cumprimento</span></div>'+
+    '<div class="rkpi ok"><b>'+(k.matriculas||0)+'</b><span>Matrículas hoje</span></div>'+
+    '<div class="rkpi"><b>'+(k.leads_novos||0)+'</b><span>Leads novos</span></div>'+
+    '<div class="rkpi"><b>'+(k.realizados||0)+'</b><span>Interações registradas</span></div>'+
+    '<div class="rkpi"><b>'+(k.amanha||0)+'</b><span>Agenda de amanhã</span></div>'+
+  '</div>';
+
+  /* ---- repiques ---- */
+  const repAtras=ALERTS.atrasados||[];
+  const repHoje=(ALERTS.agora||[]).concat(ALERTS.hoje||[]);
+  const cardAtras=repAtras.length
+    ? '<div class="rcard"><h3>Repiques atrasados ('+repAtras.length+')</h3>'+iniLista(repAtras,hoje,'')+'</div>'
+    : '';
+  const cardHoje='<div class="rcard"><h3>Repiques de hoje ('+repHoje.length+')</h3>'+
+    iniLista(repHoje,hoje,'Nenhum contato agendado para hoje.')+'</div>';
+
+  /* ---- agendamentos presenciais do dia ---- */
+  const presenciais=(AGITENS||[]).filter(function(it){
+    return it.data===hoje&&AGPRESENCIAL[it.canal];
+  }).sort(function(a,b){return (a.hora||'')<(b.hora||'')?-1:1;});
+  const cardPres='<div class="rcard"><h3>Agendamentos do dia</h3>'+
+    iniLista(presenciais,hoje,'Nenhum teste de nível, visita ou aula experimental marcado para hoje.')+
+    '<div class="rnote">Entram aqui os contatos cujo canal do próximo atendimento é teste de nível, aula experimental, visita ou reunião.</div></div>';
+
+  /* ---- pos-venda a caminho ---- */
+  const pv=ALERTS.posvenda||[];
+  const cardPv=pv.length
+    ? '<div class="rcard"><h3>Pós-venda a caminho ('+pv.length+')</h3>'+iniLista(pv.slice(0,8),hoje,'')+'</div>'
+    : '';
+
+  /* ---- evolucao dos ultimos dias ---- */
+  const hist=serie.slice().filter(function(x){return x.data<hoje;}).slice(0,7).reverse();
+  hist.push({data:hoje,efetivos:ef,parcial:true});
+  const mx=Math.max.apply(null,hist.map(function(x){return x.efetivos||0;}).concat([META_EF]));
+  const evo='<div class="mgrid">'+hist.map(function(x){
+    const v=x.efetivos||0;
+    return '<div class="mcol"><div class="mv">'+v+'</div><div class="mbars">'+
+      '<i class="me'+(v>=META_EF?' hit':'')+'" style="height:'+Math.max(100*v/mx,3)+'%"></i>'+
+    '</div><div class="mn">'+dLabel(x.data)+(x.parcial?' *':'')+'</div></div>';
+  }).join('')+'</div>'+
+  '<div class="mleg"><span><i style="background:var(--ok)"></i>Meta batida</span>'+
+  '<span><i style="background:var(--blue)"></i>Abaixo da meta de '+META_EF+'</span><span>* dia em andamento</span></div>';
+  const cardEvo='<div class="rcard wide"><h3>Contatos efetivos dia a dia</h3>'+evo+'</div>';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap" id="iniwrap">'+
+    '<div class="ihead"><h1>'+saudacao()+', '+esc(currentUser||'')+'</h1>'+
+      '<span class="isub">'+diaSemana(hoje)+', '+brDate(hoje)+' · jornada '+jini+' às '+jfim+'</span>'+
+      '<button class="dctl ibtn" id="inirec" title="Atualizar os números">↻ Atualizar</button></div>'+
+    avisos+meta+kpis+
+    '<div class="rgrid">'+cardAtras+cardHoje+cardPres+cardPv+cardEvo+'</div>'+
+  '</div></div>';
+
+  document.querySelectorAll('#iniwrap .drow.clik').forEach(function(el){
+    el.onclick=function(e){
+      if(e.target.tagName==='A'||e.target.closest('a'))return;
+      goToAlert(el.dataset.t,el.dataset.id);
+    };
+  });
+  document.querySelectorAll('#iniwrap [data-ifecha]').forEach(function(b){
+    b.onclick=function(){
+      window._ddata=b.dataset.ifecha;window._dcons=currentUser;RVIEW='dia';
+      setTab('relatorios');
+    };
+  });
+  const br=$('inirec');
+  if(br)br.onclick=function(){loadAlerts();openInicio();};
+  const bre=$('irecarrega');
+  if(bre)bre.onclick=function(){openInicio();};
+}
+
+/* enquanto a tela inicial estiver aberta, os numeros se refazem sozinhos */
+setInterval(function(){
+  if(currentUser&&tab==='inicio'&&!document.hidden)openInicio(true);
+},120000);
+
+/* aviso diario: atualizar o CRM e fechar o dia perto do fim do expediente.
+   Repete a cada 15 min, no maximo 3 vezes, e para assim que o dia for fechado. */
+let DIAAVISADO=false,DIAVEZES=0,DIAULT=0;
 async function checarFechamento(){
-  if(!currentUser||DIAAVISADO)return;
+  if(!currentUser||DIAAVISADO||DIAVEZES>=3)return;
   const u=uInfo(currentUser);
   if(!u||!u.consultor)return;
   const ag=new Date();
-  if(ag.getHours()*60+ag.getMinutes()<minDe(u.hora_fim)-15)return;
+  if(ag.getHours()*60+ag.getMinutes()<minDe(u.hora_fim)-30)return;
+  if(DIAVEZES&&Date.now()-DIAULT<900000)return;
   try{
     const r=await api('/crm_relatorio_diario?consultor=eq.'+encodeURIComponent(currentUser)+
                       '&data=eq.'+hojeISO()+'&select=id');
-    if(r&&r.length){DIAAVISADO=true;return;}
+    if(r&&r.length){DIAAVISADO=true;if(tab==='inicio')openInicio(true);return;}
   }catch(e){return;}
-  DIAAVISADO=true;
-  toast('Seu expediente está terminando. Abra Relatórios e feche o dia.');
+  DIAVEZES++;DIAULT=Date.now();
+  const pend=(INI.dia&&INI.dia.kpis?INI.dia.kpis.pendentes:0)||0;
+  const msg='Fim de expediente: atualize os contatos'+(pend?' ('+pend+' ainda em aberto)':'')+' e feche o dia.';
+  toast(msg);bipe(1);
+  notifica('CNA Taquara · fechamento do dia',msg);
+  if(tab==='inicio')openInicio(true);
 }
 
 /* ================= Análise do andamento ================= */
