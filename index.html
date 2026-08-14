@@ -225,6 +225,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .acts a.wa,.aga .wa{display:inline-flex;align-items:center;justify-content:center}
 .f label .waico{width:16px;height:16px}
 .f label.wal{display:flex;align-items:center;gap:5px}
+.f .mesmoq{margin-top:6px;border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 10px;font-size:11.5px;font-weight:600;color:var(--blue);cursor:pointer}
 .itipo .waico{width:12px;height:12px;display:inline-block;vertical-align:-2px}
 .tel{background:#EDF2FB;color:var(--blue)}
 .ig{background:#FDEEF2;color:var(--redDark)}
@@ -1219,6 +1220,7 @@ const CFG={
       {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
+      {k:'nome_aluno',l:'Nome do aluno',t:'text',full:true},
       {k:'idade',l:'Idade do aluno',t:'number'},
       {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
       {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return hojeISO();}},
@@ -1228,7 +1230,7 @@ const CFG={
       {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
+    csv:['nome','nome_aluno','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
   }
 };
 
@@ -1478,7 +1480,8 @@ function cardEl(s,st,showStage){
 
   c.innerHTML=
     '<div class="top"><span class="dot '+pr[2]+'" title="'+esc(pr[1])+'"></span><h3>'+esc(s.nome)+'</h3>'+av+'</div>'+
-    (s.responsavel_legal?'<div class="cresp">Resp.: '+esc(s.responsavel_legal)+'</div>':'')+
+    (s.nome_aluno&&s.nome_aluno!==s.nome?'<div class="cresp">Aluno: '+esc(s.nome_aluno)+'</div>':'')+
+    (s.responsavel_legal&&s.responsavel_legal!==s.nome?'<div class="cresp">Resp.: '+esc(s.responsavel_legal)+'</div>':'')+
     '<div class="meta">'+
       (sub?'<span>'+esc(sub)+'</span>':'')+
       (dec?'<span class="sep">·</span><span>'+esc(dec)+'</span>':'')+
@@ -1822,6 +1825,7 @@ function openModal(id){
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
     if(f.k==='nivel')d.id='fNivel';
+    if(f.k==='nome_aluno')d.id='fAluno';
     if(f.k==='turma')d.id='fTurma';
     if(f.k==='data_inicio_aulas')d.id='fInicio';
     form.appendChild(d);
@@ -1835,7 +1839,7 @@ function openModal(id){
     hi.addEventListener('input',marca);
   });
   const selEt=form.querySelector('[data-k=etapa]');
-  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();});
+  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();});
   syncPerda();
   const inpId=form.querySelector('[data-k=idade]');
   if(inpId){
@@ -1846,7 +1850,9 @@ function openModal(id){
   if(selCur)selCur.addEventListener('change',function(){syncFaixa();syncNivel();});
   const inpRL=form.querySelector('[data-k=responsavel_legal]');
   if(inpRL)inpRL.addEventListener('input',function(){syncResp(true);});
-  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();marcaDatasVazias(form);
+  const inpAl=form.querySelector('[data-k=nome_aluno]');
+  if(inpAl)inpAl.addEventListener('input',syncAluno);
+  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();syncAluno();marcaDatasVazias(form);
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -2007,6 +2013,39 @@ function syncResp(preserva){
   if(lab)lab.innerHTML='Responsável pelo aluno'+(req?' <b class="req">*</b>':'');
 }
 
+/* Nome do aluno: em muito lead quem procura a escola e a mae ou o pai, entao o
+   nome do prospect e o do aluno sao pessoas diferentes. Quando forem a mesma,
+   o atalho copia o nome de cima em vez de obrigar a digitar duas vezes. */
+function syncAluno(){
+  const w=$('fAluno');
+  if(!w)return;
+  const inp=w.querySelector('[data-k=nome_aluno]');
+  if(!inp)return;
+  let atalho=w.querySelector('.mesmoq');
+  if(!atalho){
+    atalho=document.createElement('button');
+    atalho.type='button';
+    atalho.className='mesmoq';
+    atalho.textContent='É o próprio prospect';
+    atalho.addEventListener('click',function(){
+      const np=document.querySelector('#form [data-k=nome]');
+      if(np&&np.value.trim()){inp.value=np.value.trim();syncAluno();inp.focus();}
+      else toast('Preencha antes o nome do prospect.');
+    });
+    w.appendChild(atalho);
+  }
+  const req=alunoObrigatorio();
+  const lab=w.querySelector('label');
+  if(lab)lab.innerHTML='Nome do aluno'+(req?' <b class="req">*</b>':'');
+  inp.placeholder=req?'Nome de quem vai estudar':'Preenche depois do primeiro contato efetivo';
+  inp.classList.toggle('need',req&&!inp.value.trim());
+  atalho.style.display=inp.value.trim()?'none':'';
+}
+function alunoObrigatorio(){
+  const se=document.querySelector('#form [data-k=etapa]');
+  return tab==='leads'&&!!se&&!!ETAPAS_NIVEL[se.value];
+}
+
 /* Nivel: a lista muda com o idioma e o campo vira obrigatorio quando o lead
    passa do teste de nivel, que e o momento em que o nivel deixa de ser chute. */
 const ETAPAS_NIVEL={experimental:1,negociacao:1,fechado:1};
@@ -2072,7 +2111,7 @@ async function avancaEtapa(id,alvo){
     logEtapa(id,alvo);
     if(editing===id){
       const se=document.querySelector('#form [data-k=etapa]');
-      if(se){se.value=alvo;syncPerda();syncNivel(true);syncMatricula();}
+      if(se){se.value=alvo;syncPerda();syncNivel(true);syncMatricula();syncAluno();}
     }
     render();
   }catch(e){}
@@ -2320,6 +2359,13 @@ $('save').onclick=async function(){
   if(tab==='leads'){
     if(!editing&&!body.curso){toast('Escolha o curso de interesse.');return;}
     if(!editing&&!body.origem){toast('Informe a origem do lead. É o que alimenta o relatório de canais.');return;}
+    if(!body.nome_aluno&&alunoObrigatorio()){
+      syncAluno();
+      const sa=document.querySelector('#form [data-k=nome_aluno]');
+      if(sa)sa.focus();
+      toast('A partir do teste de nível o nome do aluno é obrigatório.');
+      return;
+    }
     if(!body.nivel&&nivelObrigatorio()){
       syncNivel(true);
       const sn=document.querySelector('#form [data-k=nivel]');
