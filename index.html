@@ -787,9 +787,11 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .dica{margin-top:6px;font-size:11.5px;line-height:1.45;color:var(--blue);background:var(--pastelBlue);border-radius:var(--r-md);padding:6px 9px}
 .dica.alerta{color:var(--red);background:var(--pastelRed)}
 .dica b{font-weight:700}
-.f input.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
+.f input.need,.f select.need{border:1px solid var(--red)!important;background:var(--pastelRed)!important}
 .f input:disabled,.f select:disabled{background:#F4F4F6;color:#8A8A8E;cursor:not-allowed}
 .f label b.req{color:var(--red)}
+input[type=date].dvazio::-webkit-datetime-edit{color:#C9C9CE}
+input[type=date].dvazio{color:#C9C9CE}
 .iadd .btn:disabled{opacity:.45;cursor:not-allowed}
 .int.ne{background:#FDF6F7;border-left:3px solid var(--dangerLine)}
 .itipo.nef{background:var(--pastelRed);color:var(--redDark);font-weight:700}
@@ -1192,7 +1194,7 @@ const CFG={
     intTable:'crm_leads_interacoes',intText:'nota',intOrder:'created_at.desc',intDateOnly:true,
     stages:[
       {id:'novo',n:'Novo lead',c:'#8A8A8E'},
-      {id:'contato_feito',n:'Contato feito',c:'#19408B'},
+      {id:'contato_feito',n:'Contatado, sem retorno',c:'#8A6D3B'},
       {id:'respondeu',n:'Respondeu',c:'#19408B'},
       {id:'experimental',n:'Experimental / Teste',c:'#B87500'},
       {id:'negociacao',n:'Negociação',c:'#E6143C'},
@@ -1209,20 +1211,20 @@ const CFG={
       return (s.origem||'')+(d?' · '+d:'')+(pa?' · ⏰ '+pa:'');
     },
     fields:[
-      {k:'nome',l:'Nome',t:'text',full:true},
-      {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return new Date().toISOString().slice(0,10);}},
-      {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
+      {k:'nome',l:'Nome do aluno',t:'text',full:true},
       {k:'idade',l:'Idade do aluno',t:'number'},
       {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
-      {k:'origem',l:'Origem',t:'select',opts:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
-      {k:'curso',l:'Curso de interesse',t:'select',opts:[['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
+      {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
+      {k:'curso',l:'Curso de interesse',t:'select',opts:[['','—'],['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
+      {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
+      {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
-      {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
-      {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
+      {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return hojeISO();}},
+      {k:'ultimo_contato',l:'Último contato',t:'date',def:function(){return hojeISO();}},
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
+      {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
       {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
-      {k:'ultimo_contato',l:'Último contato',t:'date'},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
     csv:['nome','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
@@ -1510,11 +1512,36 @@ function cardEl(s,st,showStage){
 
 
 /* ================= Pós-venda (matrícula fechada) ================= */
-const NIVEIS=['Yard 1','Yard 2','Garden 1','Garden 2','Garden 3','Garden 4',
+/* Ordem de progressao do estagio menor para o maior. A unidade nao trabalha com Yard. */
+const NIV_ING=['Garden 1','Garden 2','Garden 3','Garden 4',
   'Fun 1','Fun 2','Fun 3','Fun 4','Kids 1','Kids 2','Kids 3','Kids 4',
   'Teen Up 1','Teen Up 2','Teen Up 3','Teen Up 4','Teen Up 5','Teen Up 6',
-  'Fly','Progression','Expansion','Gold','Platinum','Senior','Turbo','ACC',
-  'En Contacto 1','En Contacto 2','En Contacto 3','En Contacto 4','En Contacto 5','CAC'];
+  'Fly','Progression','Expansion','Gold','Platinum','Senior','Turbo','ACC'];
+const NIV_ESP=['En Contacto 1','En Contacto 2','En Contacto 3','En Contacto 4','En Contacto 5','Turbo','CAC'];
+const NIVEIS=NIV_ING.concat(NIV_ESP.filter(function(n){return NIV_ING.indexOf(n)<0;}));
+/* Nivel oferecido depende do curso escolhido: espanhol nao entra em Garden, ingles nao entra em En Contacto */
+function niveisDoCurso(c){
+  if(c==='Espanhol')return NIV_ESP;
+  if(c==='Inglês')return NIV_ING;
+  return NIVEIS;
+}
+/* Ordena qualquer lista de niveis pela progressao real. O mapa de turmas vem do CNA Box
+   com grafia mista (A1.1/FLY 1, PADV 1, YOUNG KIDS 3/FUN 3), entao o casamento e por padrao. */
+const NIVEL_ORDEM=[
+  [/GARDEN\s*(\d)?/,100],[/(?:YOUNG\s*KIDS|FUN)\s*(\d)?/,200],[/KIDS\s*(\d)?/,300],
+  [/TEENS?\s*UP?\s*(\d)?/,400],[/(?:FLY|A1\.)\s*(\d)?/,500],[/(?:QUEST|PROGRESS\w*|A2\.)\s*(\d)?/,600],
+  [/PADV\s*(\d)?/,800],[/(?:ADV\w*|EXPANS\w*)\s*(\d)?/,700],[/GOLD\s*(\d)?/,850],
+  [/(?:MASTER|PLATIN\w*|B2)\s*(\d)?/,900],[/SENIOR/,930],[/TURBO/,940],[/ACC/,950],
+  [/CONTACTO\s*(\d)?/,1000],[/CAC/,1100]
+];
+function nivelOrd(c){
+  const u=String(c||'').toUpperCase();
+  for(var i=0;i<NIVEL_ORDEM.length;i++){
+    const m=u.match(NIVEL_ORDEM[i][0]);
+    if(m)return NIVEL_ORDEM[i][1]+(m[1]?parseInt(m[1],10):0);
+  }
+  return 9000;
+}
 
 /* off = dias em relação ao início das aulas · dir = para onde empurrar se cair em fim de semana */
 const PV=[
@@ -1766,15 +1793,17 @@ function openModal(id){
       inner+='<textarea data-k="'+f.k+'">'+esc(v)+'</textarea>';
     }else if(f.t==='select'||f.t==='stage'){
       const opts=f.t==='stage'?cfg.stages.map(function(x){return [x.id,x.n];}):(typeof f.opts==='function'?f.opts():f.opts);
+      /* o padrao e calculado UMA vez. Antes era por opcao, entao todas saiam marcadas
+         como selected e o navegador ficava com a ultima da lista num cadastro novo. */
+      const dv0=(v!==''&&v!=null)?v:(f.t==='stage'?cfg.stages[0].id:(f.k==='responsavel'?currentUser:(opts.length?opts[0][0]:'')));
       inner+='<select data-k="'+f.k+'">'+opts.map(function(o){
-        const dv=v||(f.t==='stage'?cfg.stages[0].id:(f.k==='responsavel'?currentUser:o[0]));
-        return '<option value="'+esc(o[0])+'"'+(String(dv)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';
+        return '<option value="'+esc(o[0])+'"'+(String(dv0)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';
       }).join('')+'</select>';
     }else if(f.t==='number'){
       inner+='<input type="number" inputmode="numeric" min="1" max="120" data-k="'+f.k+'" value="'+esc(v)+'">';
     }else if(f.t==='date'){
       const dv=v||(s?'':(f.def?f.def():''));
-      inner+='<input type="date" data-k="'+f.k+'" value="'+esc(dv)+'">';
+      inner+='<input type="date" class="'+(dv?'':'dvazio')+'" data-k="'+f.k+'" value="'+esc(dv)+'">';
     }else if(f.t==='datetime'){
       const hv=s?(s[f.hk]==null?'':String(s[f.hk]).slice(0,5)):'';
       inner='<label>'+esc(f.l)+' <b class="req">*</b></label>'
@@ -1791,6 +1820,9 @@ function openModal(id){
     if(f.k==='motivo_perda')d.id='fPerda';
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
+    if(f.k==='nivel')d.id='fNivel';
+    if(f.k==='turma')d.id='fTurma';
+    if(f.k==='data_inicio_aulas')d.id='fInicio';
     form.appendChild(d);
     if(f.t==='turmas')fillTurmas(d.querySelector('select'),v);
   });
@@ -1802,7 +1834,7 @@ function openModal(id){
     hi.addEventListener('input',marca);
   });
   const selEt=form.querySelector('[data-k=etapa]');
-  if(selEt)selEt.addEventListener('change',syncPerda);
+  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();});
   syncPerda();
   const inpId=form.querySelector('[data-k=idade]');
   if(inpId){
@@ -1810,10 +1842,10 @@ function openModal(id){
     inpId.addEventListener('change',function(){syncResp();syncFaixa();});
   }
   const selCur=form.querySelector('[data-k=curso]');
-  if(selCur)selCur.addEventListener('change',syncFaixa);
+  if(selCur)selCur.addEventListener('change',function(){syncFaixa();syncNivel();});
   const inpRL=form.querySelector('[data-k=responsavel_legal]');
   if(inpRL)inpRL.addEventListener('input',function(){syncResp(true);});
-  syncResp(true);syncFaixa();
+  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();marcaDatasVazias(form);
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -1831,8 +1863,7 @@ function openModal(id){
 /* Faixa etaria -> estagio de entrada. O mapa de turmas usa a grafia do CNA Box
    (A1.1/FLY 1, PADV 1, YOUNG KIDS 3/FUN 3), entao o casamento e' por faixa, nao por nome exato. */
 function faixaIdade(n){
-  if(n<3)return {cedo:true};
-  if(n<=4)return {f:'Yard',ent:'Yard 1'};
+  if(n<5)return {cedo:true};
   if(n<=6)return {f:'Garden',ent:'Garden 1'};
   if(n<=8)return {f:'Fun',ent:'Fun 1'};
   if(n<=10)return {f:'Kids',ent:'Kids 1'};
@@ -1870,7 +1901,7 @@ async function syncFaixa(){
     return;
   }
   const fx=faixaIdade(n);
-  if(fx.cedo){el.classList.add('alerta');el.innerHTML='O CNA Yard começa aos 3 anos.';return;}
+  if(fx.cedo){el.classList.add('alerta');el.innerHTML='A unidade não abre turma de Yard. A entrada começa no <b>Garden 1</b>, a partir dos 5 anos.';return;}
   el.innerHTML='Faixa <b>'+esc(fx.f)+'</b> · entrada em <b>'+esc(fx.ent)+'</b>';
   let rows=[];
   try{rows=(await turmasCache())||[];}catch(e){return;}
@@ -1960,16 +1991,90 @@ function syncResp(preserva){
   const w=$('fRespLegal');
   if(!w)return;
   const req=respObrigatorio();
-  const lab=w.querySelector('label');
-  if(lab)lab.innerHTML='Responsável pelo aluno'+(req?' <b class="req">*</b>':'');
   const inp=w.querySelector('[data-k=responsavel_legal]');
   if(inp){
     if(!req&&!preserva)inp.value='';
-    inp.disabled=!req;
+    inp.disabled=false;
     inp.classList.toggle('need',req&&!inp.value.trim());
-    inp.placeholder=req?'Nome do pai, mãe ou responsável'
-      :(idadeForm()===null?'Informe a idade do aluno':'Maior de 18, não se aplica');
+    inp.placeholder='Nome do pai, mãe ou responsável';
   }
+  /* o bloco do responsavel so abre quando o aluno e menor de idade,
+     ou quando ja existe um nome gravado na ficha */
+  const tem=!!(inp&&inp.value.trim());
+  w.style.display=(req||tem)?'':'none';
+  const lab=w.querySelector('label');
+  if(lab)lab.innerHTML='Responsável pelo aluno'+(req?' <b class="req">*</b>':'');
+}
+
+/* Nivel: a lista muda com o idioma e o campo vira obrigatorio quando o lead
+   passa do teste de nivel, que e o momento em que o nivel deixa de ser chute. */
+const ETAPAS_NIVEL={experimental:1,negociacao:1,fechado:1};
+function nivelObrigatorio(){
+  const se=document.querySelector('#form [data-k=etapa]');
+  return tab==='leads'&&!!se&&!!ETAPAS_NIVEL[se.value];
+}
+function syncNivel(preserva){
+  const sel=document.querySelector('#form [data-k=nivel]');
+  if(!sel)return;
+  const selC=document.querySelector('#form [data-k=curso]');
+  const lista=niveisDoCurso(selC?selC.value:'');
+  const atual=sel.value;
+  const manter=preserva?atual:(lista.indexOf(atual)>=0?atual:'');
+  let h='<option value="">—</option>';
+  if(manter&&lista.indexOf(manter)<0)h+='<option value="'+esc(manter)+'" selected>'+esc(manter)+' (fora do curso)</option>';
+  lista.forEach(function(n){h+='<option value="'+esc(n)+'"'+(n===manter?' selected':'')+'>'+esc(n)+'</option>';});
+  sel.innerHTML=h;
+  const req=nivelObrigatorio();
+  const w=$('fNivel');
+  const lab=w?w.querySelector('label'):null;
+  if(lab)lab.innerHTML='Nível'+(req?' <b class="req">*</b>':'');
+  sel.classList.toggle('need',req&&!sel.value);
+}
+
+/* Turma e inicio das aulas so aparecem quando a matricula entra em jogo.
+   Antes ficavam abertos em lead novo, com data vazia, so poluindo a ficha. */
+const ETAPAS_MATRICULA={negociacao:1,fechado:1};
+function syncMatricula(){
+  const se=document.querySelector('#form [data-k=etapa]');
+  const on=tab==='leads'&&!!se&&!!ETAPAS_MATRICULA[se.value];
+  [['fTurma','turma'],['fInicio','data_inicio_aulas']].forEach(function(p){
+    const w=$(p[0]);if(!w)return;
+    const el=w.querySelector('[data-k='+p[1]+']');
+    w.style.display=(on||!!(el&&el.value))?'':'none';
+  });
+}
+
+/* Campo de data vazio mostra dd/mm/aaaa em preto cheio e parece preenchido errado.
+   Em cinza claro fica claro que esta em branco. */
+function marcaDatasVazias(root){
+  (root||document).querySelectorAll('input[type=date]').forEach(function(i){i.classList.toggle('dvazio',!i.value);});
+}
+['input','change'].forEach(function(ev){
+  document.addEventListener(ev,function(e){
+    const t=e.target;
+    if(t&&t.tagName==='INPUT'&&t.type==='date')t.classList.toggle('dvazio',!t.value);
+  },true);
+});
+
+/* Registrar contato move a etapa sozinho. Sem isso a coluna so reflete quem
+   lembrou de arrastar o card, e a tentativa sem retorno some no meio dos novos. */
+async function avancaEtapa(id,alvo){
+  if(tab!=='leads')return;
+  const s=(DATA.leads||[]).find(function(x){return x.id===id;});
+  if(!s||s.etapa==='fechado'||s.etapa==='perdido')return;
+  const ordem=CFG.leads.stages.map(function(x){return x.id;});
+  const at=ordem.indexOf(s.etapa),nv=ordem.indexOf(alvo);
+  if(at<0||nv<0||nv<=at)return;
+  try{
+    await api('/crm_leads?id=eq.'+id,{method:'PATCH',body:JSON.stringify({etapa:alvo,updated_at:new Date().toISOString()})});
+    s.etapa=alvo;
+    logEtapa(id,alvo);
+    if(editing===id){
+      const se=document.querySelector('#form [data-k=etapa]');
+      if(se){se.value=alvo;syncPerda();syncNivel(true);syncMatricula();}
+    }
+    render();
+  }catch(e){}
 }
 
 /* Motivo da perda so existe quando a etapa e' "perdido"; fora disso fica nulo */
@@ -2007,7 +2112,7 @@ async function fillTurmas(sel,atual){
     if(!grupos[g]){grupos[g]=[];ordem.push(g);}
     grupos[g].push(t);
   });
-  ordem.sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+  ordem.sort(function(a,b){const d=nivelOrd(a)-nivelOrd(b);return d||a.localeCompare(b,'pt-BR');});
   var achou=false,h='<option value="">— sem turma —</option>';
   ordem.forEach(function(g){
     h+='<optgroup label="'+esc(g)+'">';
@@ -2163,6 +2268,7 @@ $('neadd').onclick=async function(){
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
     await afterContato(editing,prox,proxh,pcanal);
+    await avancaEtapa(editing,'contato_feito');
     $('nemotivo').value='';$('neobs').value='';$('nedata').value='';$('nedatah').value='';
     loadInts(editing);
     toast('Tentativa registrada. Próximo contato em '+brDate(prox)+' às '+proxh+(pcanal?' por '+canalNome(pcanal):'')+'.');
@@ -2194,6 +2300,7 @@ $('iadd').onclick=async function(){
   try{
     await api('/'+it,{method:'POST',body:JSON.stringify(body)});
     await afterContato(editing,prox,proxh,pcanal);
+    if($('itipo').value!=='nota')await avancaEtapa(editing,'respondeu');
     $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
     loadInts(editing);
   }catch(e){toast('Não foi possível registrar. Tente de novo.');}
@@ -2208,8 +2315,17 @@ $('save').onclick=async function(){
   document.querySelectorAll('#form [data-k]').forEach(function(el){
     body[el.getAttribute('data-k')]=el.value.trim()===''?null:el.value.trim();
   });
-  if(!body.nome){toast('O nome é obrigatório.');return;}
+  if(!body.nome){toast('O nome do aluno é obrigatório.');return;}
   if(tab==='leads'){
+    if(!editing&&!body.curso){toast('Escolha o curso de interesse.');return;}
+    if(!editing&&!body.origem){toast('Informe a origem do lead. É o que alimenta o relatório de canais.');return;}
+    if(!body.nivel&&nivelObrigatorio()){
+      syncNivel(true);
+      const sn=document.querySelector('#form [data-k=nivel]');
+      if(sn)sn.focus();
+      toast('A partir do teste de nível o nível do aluno é obrigatório.');
+      return;
+    }
     if(body.etapa!=='perdido')body.motivo_perda=null;
     else if(!body.motivo_perda){toast('Escolha o motivo da perda.');syncPerda();return;}
     if(body.idade!=null){
@@ -2269,7 +2385,15 @@ $('save').onclick=async function(){
     }else{
       const res=await api('/'+cfg.table,{method:'POST',body:JSON.stringify(body)});
       if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';
-        if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');}
+        if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');
+        /* leva o consultor direto para o historico: e o que evita o relato do
+           contato ir parar no campo Observacoes */
+        setTimeout(function(){
+          const p=$('ints');if(!p)return;
+          p.scrollIntoView({behavior:'smooth',block:'start'});
+          const r=$('iresumo');if(r)r.focus();
+          toast('Cadastro salvo. Registre agora o que aconteceu no contato.');
+        },250);}
     }
     if(tab==='leads'&&editing){
       const cur=(DATA.leads||[]).find(function(x){return x.id===editing;});
@@ -2325,9 +2449,9 @@ function updateFBtn(){
 function dateGroup(label,kDe,kAte){
   return '<div class="fgroup"><span class="fglabel">'+label+'</span>'+
     '<div class="drange">'+
-    '<input type="date" data-fk="'+kDe+'" value="'+(filters[kDe]||'')+'" class="'+(filters[kDe]?'on':'')+'">'+
+    '<input type="date" data-fk="'+kDe+'" value="'+(filters[kDe]||'')+'" class="'+(filters[kDe]?'on':'dvazio')+'">'+
     '<span>até</span>'+
-    '<input type="date" data-fk="'+kAte+'" value="'+(filters[kAte]||'')+'" class="'+(filters[kAte]?'on':'')+'">'+
+    '<input type="date" data-fk="'+kAte+'" value="'+(filters[kAte]||'')+'" class="'+(filters[kAte]?'on':'dvazio')+'">'+
     '</div></div>';
 }
 function selGroup(label,key,opts){
@@ -3460,7 +3584,7 @@ async function openFunil(){
 /* índice do funil: até onde cada lead chegou */
 const FUNIL=[
   {id:'novo',n:'Novo lead',c:'#8A8A8E'},
-  {id:'contato_feito',n:'Contato feito',c:'#19408B'},
+  {id:'contato_feito',n:'Contatado, sem retorno',c:'#8A6D3B'},
   {id:'respondeu',n:'Respondeu',c:'#2C5AB5'},
   {id:'experimental',n:'Experimental / Teste',c:'#B87500'},
   {id:'negociacao',n:'Negociação',c:'#E6143C'},
