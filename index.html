@@ -822,6 +822,19 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
   .wawrap.thread .wacol.lista{display:none}
   .wawrap:not(.thread) .wacol.thread{display:none}
   .waback{display:block}}
+
+.wasug{padding:9px 12px;border-bottom:1px solid var(--line);background:var(--warnBg);cursor:pointer;font-size:12.5px;color:var(--warn);display:flex;align-items:center;gap:8px;flex:none}
+.wasug b{font-family:var(--display)}
+.wasug.on{background:var(--red);color:var(--white)}
+.wafcard{border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;margin-bottom:12px;background:var(--white)}
+.wafcard .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+.wafcard .top b{font-family:var(--display);font-size:14px}
+.wafcard .rg{font-size:11px;color:var(--gray)}
+.wafcard textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:9px;font:inherit;font-size:13px;resize:vertical;min-height:76px;margin-top:8px}
+.wafcard textarea[readonly]{background:var(--surface);color:var(--gray)}
+.wafcard .acoes{display:flex;gap:8px;margin-top:9px;align-items:center}
+.wafcard .nota{font-size:11.5px;color:var(--gray);flex:1}
+.wafpanel{flex:1;min-height:0;overflow-y:auto;padding:14px;background:var(--surface)}
 </style>
 </head>
 <body>
@@ -2363,7 +2376,7 @@ $('csv').onclick=function(){
 
 /* ================= Conversas (WhatsApp) ================= */
 const FUNCS='https://gpnwmsnayrqjcmhqrtpx.supabase.co/functions/v1';
-const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],filtro:'todas',poll:null,enviando:false};
+const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
 
 function waFn(nome,body){
   return fetch(FUNCS+'/'+nome,{
@@ -2439,6 +2452,7 @@ async function openConversas(){
   try{
     WA.templates=await api('/crm_wa_templates?select=*&status=eq.aprovado&order=nome.asc');
   }catch(e){WA.templates=[];}
+  await waFila();
   await waCarregar(true);
   waStartPoll();
 }
@@ -2452,7 +2466,8 @@ async function waCarregar(render){
     return;
   }
   waBadge();
-  if(WA.sel){
+  await waFila();
+  if(WA.sel&&WA.sel!=='__fila__'){
     const atual=WA.conversas.find(function(x){return x.id===WA.sel;});
     if(atual)await waMsgs(WA.sel);
   }
@@ -2490,12 +2505,19 @@ function waFiltradas(){
 
 function renderConversas(){
   const lista=waFiltradas();
-  const sel=WA.sel?WA.conversas.find(function(x){return x.id===WA.sel;}):null;
+  const verFila=(WA.sel==='__fila__');
+  const sel=(WA.sel&&!verFila)?WA.conversas.find(function(x){return x.id===WA.sel;}):null;
 
-  let h='<div class="wawrap'+(sel?' thread':'')+'">';
+  let h='<div class="wawrap'+((sel||verFila)?' thread':'')+'">';
 
   /* coluna da lista */
   h+='<div class="wacol lista">';
+  if(WA.fila.length){
+    h+='<div class="wasug'+(WA.sel==='__fila__'?' on':'')+'" id="wasugbar">'
+      +'<b>'+WA.fila.length+'</b> '
+      +(WA.fila.length===1?'sugestão de mensagem esperando você':'sugestões de mensagem esperando você')
+      +'</div>';
+  }
   h+='<div class="wafiltros">'
     +['todas|Todas','nao|Não lidas','minhas|Minhas','abertas|Janela aberta'].map(function(o){
       const p=o.split('|');
@@ -2520,7 +2542,9 @@ function renderConversas(){
 
   /* coluna da conversa */
   h+='<div class="wacol thread">';
-  if(!sel){
+  if(verFila){
+    h+=renderFilaPainel();
+  }else if(!sel){
     h+='<div class="wavazio">Escolha uma conversa à esquerda para ver o histórico e responder.</div>';
   }else{
     const n=waNome(sel),j=waJanela(sel);
@@ -2580,6 +2604,9 @@ function renderConversas(){
 }
 
 function waLigar(){
+  const sug=$('wasugbar');
+  if(sug)sug.onclick=function(){WA.sel='__fila__';WA.msgs=[];renderConversas();};
+  waLigarFila();
   document.querySelectorAll('.wafiltros button').forEach(function(b){
     b.onclick=function(){WA.filtro=b.dataset.f;renderConversas();};
   });
@@ -2709,6 +2736,91 @@ setInterval(function(){
     if(b)b.textContent=n?('Conversas ('+n+')'):'Conversas';
   }).catch(function(){});
 },60000);
+
+
+/* ---- fila de sugestoes ---- */
+async function waFila(){
+  try{
+    WA.fila=await api('/crm_wa_fila?select=*,lead:crm_leads(id,nome,whatsapp),regra:crm_wa_regras(chave,nome,categoria)'
+      +'&status=eq.sugerido&order=agendado_para.asc&limit=100');
+  }catch(e){WA.fila=[];}
+}
+
+function renderFilaPainel(){
+  let h='<div class="wahead"><button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
+    +'<div style="flex:1"><b>Sugestões de mensagem</b>'
+    +'<div class="sub">Nada sai sem você aprovar</div></div></div>';
+  h+='<div class="wafpanel">';
+  if(!WA.fila.length){
+    h+='<div class="wavazio">Nenhuma sugestão pendente agora.</div>';
+  }else{
+    WA.fila.forEach(function(f){
+      const nome=(f.lead&&f.lead.nome)||waFmtNum(f.wa_chave);
+      const trava=!!f.template_nome;
+      h+='<div class="wafcard" data-f="'+f.id+'">'
+        +'<div class="top"><b>'+esc(nome)+'</b>'
+        +'<span class="rg">'+esc(f.regra?f.regra.nome:'')+'</span></div>'
+        +'<textarea id="ft'+f.id+'"'+(trava?' readonly':'')+'>'+esc(f.texto_previa||'')+'</textarea>'
+        +'<div class="acoes">'
+        +'<span class="nota">'+(trava
+            ? 'Janela fechada, vai como template <b>'+esc(f.template_nome)+'</b>. O texto do template não pode ser editado aqui.'
+            : 'Janela aberta, vai como texto livre. Pode editar antes de enviar.')+'</span>'
+        +'<button class="btn" data-desc="'+f.id+'">Descartar</button>'
+        +'<button class="btn primary" data-env="'+f.id+'">Enviar</button>'
+        +'</div></div>';
+    });
+  }
+  h+='</div>';
+  return h;
+}
+
+function waLigarFila(){
+  document.querySelectorAll('[data-env]').forEach(function(b){
+    b.onclick=function(){waFilaEnviar(b.dataset.env,b);};
+  });
+  document.querySelectorAll('[data-desc]').forEach(function(b){
+    b.onclick=function(){waFilaDescartar(b.dataset.desc);};
+  });
+}
+
+async function waFilaEnviar(id,btn){
+  const f=WA.fila.find(function(x){return x.id===id;});
+  if(!f)return;
+  btn.disabled=true;btn.textContent='Enviando...';
+  const ta=$('ft'+id);
+  const corpo=ta?ta.value.trim():'';
+  const body={autor_id:meuId()};
+  if(f.conversa_id)body.conversa_id=f.conversa_id;
+  else body.wa_id=(f.lead&&f.lead.whatsapp)||f.wa_chave;
+  if(f.template_nome){
+    body.template=f.template_nome;
+    body.variaveis=f.variaveis||[];
+    body.texto=f.texto_previa;
+  }else{
+    body.texto=corpo;
+  }
+  try{
+    const r=await waFn('wa-send',body);
+    await api('/crm_wa_fila?id=eq.'+id,{method:'PATCH',body:JSON.stringify({
+      status:'enviado',decidido_por:currentUser,decidido_em:new Date().toISOString(),
+      mensagem_id:r.mensagem_id||null
+    })});
+    toast('Mensagem enviada.');
+    await waFila();await waCarregar();
+  }catch(e){
+    toast('Não foi possível enviar: '+(e.message||e));
+    btn.disabled=false;btn.textContent='Enviar';
+  }
+}
+
+async function waFilaDescartar(id){
+  try{
+    await api('/crm_wa_fila?id=eq.'+id,{method:'PATCH',body:JSON.stringify({
+      status:'descartado',decidido_por:currentUser,decidido_em:new Date().toISOString()
+    })});
+    await waFila();renderConversas();
+  }catch(e){toast('Não foi possível descartar.');}
+}
 
 /* ================= Tabs e usuário ================= */
 function setTab(t){
