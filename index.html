@@ -704,6 +704,10 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 /* sub-abas do historico */
 .aggrp.pv h4{color:var(--blue)}
 .pvtoggle{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);cursor:pointer}
+.sndbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.sndbar .pvtoggle{margin:0;padding:0;border-bottom:0}
+.sndbar .btn{padding:6px 10px;font-size:11.5px;white-space:nowrap}
+.sndbar .btn.on{background:var(--pastelRed);border-color:var(--red);color:var(--redDark)}
 .isub{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .isub button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer}
 .isub button.on{background:var(--red);border-color:var(--red);color:var(--white)}
@@ -2863,6 +2867,73 @@ async function tryLogin(){
   }
 }
 
+/* ================= Alerta sonoro e notificacao ================= */
+/* o navegador so libera audio depois de um gesto do usuario: o contexto nasce no primeiro toque */
+const SNDCFG={repique:300000,maxrep:3};
+let SND={ctx:null,on:safeGet('crmSom')!=='0',vol:parseFloat(safeGet('crmSomVol')||'0.45'),mudo:parseInt(safeGet('crmSomMudo')||'0',10)||0};
+
+function somUnlock(){
+  if(SND.ctx)return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    SND.ctx=new AC();
+    const b=SND.ctx.createBuffer(1,1,22050),src=SND.ctx.createBufferSource();
+    src.buffer=b;src.connect(SND.ctx.destination);src.start(0);
+  }catch(e){}
+}
+['pointerdown','keydown','touchstart'].forEach(function(ev){
+  document.addEventListener(ev,somUnlock,{once:true,capture:true});
+});
+
+function somAtivo(){return SND.on&&Date.now()>=SND.mudo;}
+
+/* dois toques curtos gerados na hora: sem arquivo, sem rede, funciona offline */
+function bipe(reps){
+  if(!somAtivo())return;
+  if(!SND.ctx)somUnlock();
+  if(!SND.ctx)return;
+  try{
+    if(SND.ctx.state==='suspended')SND.ctx.resume();
+    const t0=SND.ctx.currentTime,n=reps||2;
+    for(var i=0;i<n;i++){
+      const t=t0+i*0.30;
+      const o=SND.ctx.createOscillator(),g=SND.ctx.createGain();
+      o.type='sine';
+      o.frequency.setValueAtTime(880,t);
+      o.frequency.setValueAtTime(1174,t+0.10);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.02,SND.vol),t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.24);
+      o.connect(g);g.connect(SND.ctx.destination);
+      o.start(t);o.stop(t+0.26);
+    }
+  }catch(e){}
+  if(navigator.vibrate){try{navigator.vibrate([120,70,120]);}catch(e){}}
+}
+
+function pedeNotif(){
+  try{
+    if(!('Notification' in window))return;
+    if(Notification.permission==='default')Notification.requestPermission();
+  }catch(e){}
+}
+/* so aparece com a aba em segundo plano: com o CRM na frente o toast ja resolve */
+function notifica(titulo,corpo){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    if(!document.hidden)return;
+    const n=new Notification(titulo,{body:corpo,tag:'crm-agenda',renotify:true});
+    n.onclick=function(){try{window.focus();}catch(e){}openAlerts();n.close();};
+  }catch(e){}
+}
+
+function somToggle(v){SND.on=!!v;safeSet('crmSom',SND.on?'1':'0');if(SND.on){SND.mudo=0;safeSet('crmSomMudo','0');bipe(1);}}
+function somMudo(){
+  if(SND.mudo>Date.now()){SND.mudo=0;safeSet('crmSomMudo','0');toast('Som reativado.');}
+  else{SND.mudo=Date.now()+3600000;safeSet('crmSomMudo',String(SND.mudo));toast('Som silenciado por 1 hora. Os avisos na tela continuam.');}
+}
+
 /* ================= Agendamentos e alertas ================= */
 const AGCFG={
   leads:{table:'crm_leads',nf:'proximo_atendimento',sf:'etapa',rot:'Cliente B2C',tel:false},
@@ -2943,18 +3014,40 @@ function bucketAlerts(){
   at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);pv.sort(ord);
   ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,posvenda:pv,total:at.length+ag.length};
   renderAlertBadge();
-  const novos=[];
-  ag.forEach(function(it){
-    const k=it.tab+':'+it.id+':'+it.data+' '+(it.hora||'09:00');
-    if(AGVISTOS[k])return;
-    AGVISTOS[k]=1;novos.push(it);
-  });
-  if(AGBOOT&&novos.length){
-    toast(novos.length===1
-      ?('\u23F0 '+novos[0].hora+' · hora de falar com '+novos[0].nome)
-      :('\u23F0 '+novos.length+' contatos chegaram na hora agendada'));
-  }
+  disparaAlerta(ag,at);
   AGBOOT=true;
+}
+
+function chaveAg(it){return it.tab+':'+it.id+':'+it.data+' '+(it.hora||'09:00');}
+
+/* toca na hora marcada e repica a cada 5 min, no maximo 3 vezes, ate o consultor acionar */
+function disparaAlerta(ag,at){
+  const agora=Date.now();
+  if(!AGBOOT){
+    /* primeiro carregamento do dia: marca tudo como visto e da um unico aviso de abertura */
+    ag.forEach(function(it){AGVISTOS[chaveAg(it)]={n:1,t:agora};});
+    if(ag.length+at.length)bipe(1);
+    return;
+  }
+  const novos=[],repique=[];
+  ag.forEach(function(it){
+    const k=chaveAg(it);
+    var st=AGVISTOS[k];
+    if(!st){AGVISTOS[k]={n:1,t:agora};novos.push(it);return;}
+    if(st.n>=SNDCFG.maxrep)return;
+    if(agora-st.t<SNDCFG.repique)return;
+    st.n++;st.t=agora;repique.push(it);
+  });
+  const lista=novos.concat(repique);
+  if(!lista.length)return;
+  const um=lista.length===1;
+  toast(um
+    ?('\u23F0 '+lista[0].hora+' · hora de falar com '+lista[0].nome)
+    :('\u23F0 '+lista.length+' contatos esperando retorno agora'));
+  bipe(novos.length?2:1);
+  notifica('CNA Taquara · contato agendado',
+    um?(lista[0].nome+' · '+lista[0].rot+(lista[0].etapa?' · '+lista[0].etapa:''))
+      :(lista.length+' contatos esperando retorno agora'));
 }
 
 function renderAlertBadge(){
@@ -2992,7 +3085,15 @@ function openAlerts(){
     html='<label class="pvtoggle"><input type="checkbox" id="pvall"'+(PVTODOS?' checked':'')+'> '
       +'Mostrar o pós-venda de toda a equipe</label>'+html;
   }
+  html='<div class="sndbar"><label class="pvtoggle"><input type="checkbox" id="somchk"'+(SND.on?' checked':'')+'> '
+    +'Alerta sonoro</label>'
+    +'<button class="btn'+(SND.mudo>Date.now()?' on':'')+'" id="sommudo">'
+    +(SND.mudo>Date.now()?'Reativar som':'Silenciar 1h')+'</button></div>'+html;
   $('alist').innerHTML=html;
+  const sck=$('somchk');
+  if(sck)sck.onchange=function(){somToggle(sck.checked);if(sck.checked)pedeNotif();openAlerts();};
+  const smb=$('sommudo');
+  if(smb)smb.onclick=function(){somMudo();openAlerts();};
   const pvb=$('pvall');
   if(pvb)pvb.onchange=function(){
     PVTODOS=pvb.checked;safeSet('crmPvTodos',PVTODOS?'1':'');
@@ -3020,7 +3121,7 @@ async function goToAlert(t,id){
 }
 $('abtn').onclick=openAlerts;
 /* o alerta dispara na hora marcada: re-agrupa a cada 30s e recarrega do banco a cada 5min */
-setInterval(function(){if(currentUser&&AGITENS.length)bucketAlerts();},30000);
+setInterval(function(){if(currentUser&&AGITENS.length)bucketAlerts();},15000);
 setInterval(function(){if(currentUser)loadAlerts();},300000);
 $('aclose').onclick=closeAlerts;
 $('aok').onclick=closeAlerts;
@@ -3031,6 +3132,7 @@ function isAdmin(){
   return !!(u&&u.admin);
 }
 function entrar(){
+  somUnlock();pedeNotif();
   $('login').classList.add('off');
   $('unome').textContent=currentUser;
   $('uav').textContent=currentUser[0];
@@ -3050,7 +3152,7 @@ $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();})
 $('logout').onclick=function(){
   currentUser=null;safeSet('crmAuth','');
   DIAAVISADO=false;window._dcons=null;window._ddata=null;RVIEW='dia';
-  ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],posvenda:[],total:0};renderAlertBadge();
+  ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
   showLogin();
 };
 
