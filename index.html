@@ -627,6 +627,8 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .cmsg textarea{width:100%;min-height:158px;border:1px solid var(--line);border-radius:var(--r-md);padding:10px 11px;font-size:12.5px;line-height:1.55;font-family:'Inter',system-ui,sans-serif;background:var(--white);resize:vertical;color:var(--ink)}
 .cmsg textarea:focus{outline:none;border-color:var(--blue)}
 .cmsg .nota{display:block;font-size:11px;color:var(--gray);margin-top:5px;line-height:1.5}
+.cmsg.trava textarea{background:var(--surface);color:var(--gray);cursor:default}
+.cmsg.trava textarea:focus{border-color:var(--line)}
 .ctpl{margin-top:0;border-top:none;padding:0 14px 14px}
 .ctpl textarea{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
 .ctpl .vars{font-size:11.5px;color:var(--gray);line-height:1.9;margin-bottom:9px}
@@ -5263,17 +5265,19 @@ function resultadoHTML(R){
        : '')+
      '</div>';
 
-  /* mensagem que vai para o cliente, editavel antes de copiar */
-  const msgTxt=(CALCMSG.override!=null)?CALCMSG.override:propostaTexto(R);
-  h+='<div class="cmsg"><h5>Mensagem que vai ser copiada</h5>'+
-     '<textarea id="c_txt" spellcheck="false">'+esc(msgTxt)+'</textarea>'+
-     '<span class="nota">Pode ajustar o texto aqui antes de copiar. A edi\u00e7\u00e3o vale s\u00f3 para esta proposta e some ao mudar n\u00edvel, desconto ou parcelamento.'+
-     (isAdmin()?' Para mudar o padr\u00e3o de toda a equipe, use <b>Editar modelo</b>.':'')+'</span></div>';
+  /* mensagem que vai para o cliente. so admin edita. */
+  const adm=isAdmin();
+  const msgTxt=(adm&&CALCMSG.override!=null)?CALCMSG.override:propostaTexto(R);
+  h+='<div class="cmsg'+(adm?'':' trava')+'"><h5>Mensagem que vai ser copiada</h5>'+
+     '<textarea id="c_txt" spellcheck="false"'+(adm?'':' readonly')+'>'+esc(msgTxt)+'</textarea>'+
+     '<span class="nota">'+(adm
+       ? 'Pode ajustar o texto aqui antes de copiar. A edi\u00e7\u00e3o vale s\u00f3 para esta proposta e some ao mudar n\u00edvel, desconto ou parcelamento. Para mudar o padr\u00e3o de toda a equipe, use <b>Editar modelo</b>.'
+       : 'Texto padr\u00e3o da unidade. Se precisar de outra reda\u00e7\u00e3o, fale com a administra\u00e7\u00e3o.')+'</span></div>';
 
   h+='<div class="cbtns"><button class="btn primary" id="c_copy">Copiar proposta</button>'+
-     '<button class="btn" id="c_regen">Refazer mensagem</button>'+
+     (adm?'<button class="btn" id="c_regen">Refazer mensagem</button>':'')+
      '<button class="btn" id="c_reset">Limpar descontos</button>'+
-     (isAdmin()?'<button class="btn" id="c_tpl_open">Editar modelo</button>':'')+
+     (adm?'<button class="btn" id="c_tpl_open">Editar modelo</button>':'')+
      '<span id="c_msg" style="font-size:12.5px;color:var(--ok);align-self:center"></span></div>';
   return h;
 }
@@ -5456,18 +5460,19 @@ function wireResultado(){
   if($('c_reset'))$('c_reset').onclick=function(){CALC.d1=0;CALC.d2=0;CALC.dm1=0;CALC.dm2=0;CALCMSG.override=null;renderCalc();};
 
   const ta=$('c_txt');
-  if(ta)ta.oninput=function(e){CALCMSG.override=e.target.value;};
+  if(ta&&isAdmin())ta.oninput=function(e){CALCMSG.override=e.target.value;};
 
   if($('c_regen'))$('c_regen').onclick=function(){CALCMSG.override=null;atualizaResultado();};
 
   if($('c_tpl_open'))$('c_tpl_open').onclick=function(){
+    if(!isAdmin())return;
     CALCMSG.editando=true;CALCMSG.draft=tplAtual();renderCalc();
     const t=$('c_tpl');if(t)t.focus();
   };
 
   if($('c_copy'))$('c_copy').onclick=function(){
     const box=$('c_txt');
-    const txt=box?box.value:propostaTexto(calcular());
+    const txt=(isAdmin()&&box)?box.value:propostaTexto(calcular());
     const done=function(){const m=$('c_msg');if(m){m.textContent='Copiado ✓';setTimeout(function(){if($('c_msg'))$('c_msg').textContent='';},2200);}};
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(done).catch(function(){fallbackCopy(txt);done();});
