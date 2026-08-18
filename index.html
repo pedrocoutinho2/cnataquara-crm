@@ -67,6 +67,10 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .shead .logoImg{width:86px}
 .shead .ssub{font-family:var(--display);font-weight:600;font-size:11px;color:var(--blue);white-space:nowrap}
 .snav{flex:1;min-height:0;overflow-y:auto;padding:6px 0 10px}
+.spwform{display:flex;flex-direction:column;gap:10px}
+.spwform input{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;width:100%}
+.spwregra{font-size:12px;color:var(--gray);line-height:1.5}
+.spwerr{font-size:12.5px;color:var(--red);font-weight:600;min-height:16px}
 .permgrp{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
 .permgrp:first-child{margin-top:0}
 .permrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
@@ -1195,6 +1199,27 @@ input[type=date].dvazio{color:#C9C9CE}
     </div>
     <div class="mbody" id="agmbody"></div>
     <div class="mfoot" id="agmfoot"></div>
+  </div>
+</div>
+
+<div class="ov" id="sov">
+  <div class="modal" style="max-width:440px">
+    <div class="mhead">
+      <h2>Crie a sua senha</h2>
+      <div class="msub" id="smsub"></div>
+    </div>
+    <div class="mbody">
+      <div class="spwform">
+        <input id="snova" type="password" autocomplete="new-password" placeholder="Nova senha">
+        <input id="sconf" type="password" autocomplete="new-password" placeholder="Repita a nova senha">
+        <div class="spwregra">M&iacute;nimo de 8 caracteres, com pelo menos uma letra e um n&uacute;mero. Precisa ser diferente da senha que voc&ecirc; acabou de usar.</div>
+        <div class="spwerr" id="serr"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn primary" id="ssalvar">Salvar e entrar</button>
+      <button class="btn" id="scancelar">Sair</button>
+    </div>
   </div>
 </div>
 
@@ -3416,15 +3441,63 @@ async function tryLogin(){
     const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_nome:loginSel,p_senha:senha})});
     bt.disabled=false;
     if(!r||!r.nome){$('lerr').textContent='Senha incorreta.';$('pin').value='';$('pin').focus();return;}
+    $('pin').value='';
+    if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,senha);return;}
     currentUser=r.nome;
     safeSet('crmAuth',r.nome);
-    $('pin').value='';
     entrar();
   }catch(e){
     bt.disabled=false;
     $('lerr').textContent='Erro ao entrar: '+(e&&e.message?e.message:e);
   }
 }
+
+/* ---- troca obrigatoria no primeiro acesso ---- */
+var TROCA=null;   /* {nome, atual} enquanto a pessoa ainda nao entrou */
+
+function abrirTrocaObrigatoria(nome,atual){
+  TROCA={nome:nome,atual:atual};
+  $('smsub').textContent=nome+', a senha que voc\u00ea usou \u00e9 tempor\u00e1ria. Defina uma s\u00f3 sua para continuar.';
+  $('snova').value='';$('sconf').value='';$('serr').textContent='';
+  $('sov').classList.add('open');
+  document.body.classList.add('modal-open');
+  setTimeout(function(){$('snova').focus();},80);
+}
+function fecharTroca(){
+  TROCA=null;
+  $('snova').value='';$('sconf').value='';$('serr').textContent='';
+  $('sov').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+async function salvarTrocaObrigatoria(){
+  if(!TROCA)return;
+  const nova=$('snova').value, conf=$('sconf').value, err=$('serr');
+  if(!senhaValida(nova)){err.textContent=SENHAREGRA;$('snova').focus();return;}
+  if(nova!==conf){err.textContent='As duas senhas n\u00e3o bateram.';$('sconf').focus();return;}
+  if(nova===TROCA.atual){err.textContent='A nova senha precisa ser diferente da tempor\u00e1ria.';$('snova').focus();return;}
+  const bt=$('ssalvar');
+  bt.disabled=true;err.textContent='';
+  try{
+    const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
+      body:JSON.stringify({p_nome:TROCA.nome,p_atual:TROCA.atual,p_nova:nova})});
+    if(ok!==true){bt.disabled=false;err.textContent='N\u00e3o foi poss\u00edvel confirmar a senha tempor\u00e1ria. Entre de novo.';return;}
+    const nome=TROCA.nome;
+    fecharTroca();
+    bt.disabled=false;
+    currentUser=nome;
+    safeSet('crmAuth',nome);
+    await loadUsers();
+    toast('Senha criada. Bem-vinda ao CRM.');
+    entrar();
+  }catch(e){
+    bt.disabled=false;
+    err.textContent=(e&&e.message)?String(e.message).slice(0,160):'N\u00e3o foi poss\u00edvel salvar a senha.';
+  }
+}
+$('ssalvar').onclick=salvarTrocaObrigatoria;
+$('scancelar').onclick=function(){fecharTroca();showLogin();};
+$('sconf').addEventListener('keydown',function(e){if(e.key==='Enter')salvarTrocaObrigatoria();});
+$('snova').addEventListener('keydown',function(e){if(e.key==='Enter')$('sconf').focus();});
 
 /* ---- senha: regra unica usada no login, na troca e no reset ---- */
 function senhaValida(v){
@@ -5833,7 +5906,7 @@ async function openTeam(){
     '<div class="rcard"><h3>Adicionar pessoa</h3>'+
       '<div class="eqform">'+
         '<input type="text" id="nun" placeholder="Nome">'+
-        '<input type="password" id="nup" autocomplete="new-password" placeholder="Senha inicial">'+
+        '<input type="password" id="nup" autocomplete="new-password" placeholder="Senha inicial (a pessoa troca ao entrar)">'+
         '<select id="nupap" class="papelsel">'+
           PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
         '</select>'+
@@ -5877,8 +5950,8 @@ async function openTeam(){
             const nova=window.prompt('Nova senha de '+u.nome+' (mínimo 8 caracteres, com letra e número):');
             if(nova==null)return;
             if(!senhaValida(nova)){toast(SENHAREGRA);return;}
-            await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova})});
-            toast('Senha de '+u.nome+' redefinida. Peça para ela trocar no primeiro acesso.');
+            await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova,p_temporaria:true})});
+            toast('Senha de '+u.nome+' redefinida. Ela vai ter que criar uma nova no próximo acesso.');
           }else if(a==='cor'){
             const pick=row.querySelector('[data-a=corpick]');
             pick.onchange=async function(){
@@ -5913,7 +5986,7 @@ async function openTeam(){
     try{
       const criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,cor:cor,papel:papel,admin:papel==='admin'})});
       const novoId=(criado&&criado[0]&&criado[0].id)||null;
-      if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin})});
+      if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin,p_temporaria:true})});
       toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
       await loadUsers();openTeam();
     }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
