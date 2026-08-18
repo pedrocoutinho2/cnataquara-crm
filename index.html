@@ -518,19 +518,8 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .tbadge.no{background:var(--red);color:var(--white)}
 .tcard .tedit{margin-top:9px;display:flex;gap:6px}
 .tcard .tedit .btn{padding:3px 9px;font-size:11px}
-.tform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
-.tform label{font-size:10.5px;color:var(--gray);display:flex;flex-direction:column;gap:3px}
-.tform label.full{grid-column:1/-1}
-.tform input,.tform select{border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px;font-size:16px;font-family:inherit;color:var(--ink);background:var(--white)}
-.tfbtns{grid-column:1/-1;display:flex;gap:6px;margin-top:4px}
-.tfbtns .btn{padding:5px 12px;font-size:12px}
-.tfbtns .spacer{flex:1}
-.tformpanel{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:var(--r-lg);
-  background:var(--white);padding:14px 15px;margin-bottom:18px;box-shadow:0 2px 10px rgba(26,26,26,.06)}
-.tformpanel>h5{font-family:'Poppins';font-size:11.5px;color:var(--blue);text-transform:uppercase;
-  letter-spacing:.4px;margin:0 0 10px}
 .tcell.editando{background:var(--pastelBlue);box-shadow:inset 3px 0 0 var(--blue)}
-@media(max-width:640px){.tformpanel .tform{grid-template-columns:1fr}}
+.tcard.editando{box-shadow:inset 3px 0 0 var(--blue)}
 @media(max-width:640px){.tgrid{grid-template-columns:1fr}}
 .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--white);margin-bottom:22px}
 table.tmap{border-collapse:collapse;width:100%;table-layout:fixed}
@@ -1131,6 +1120,23 @@ input[type=date].dvazio{color:#C9C9CE}
     </div>
     <div class="mbody"><div id="alist"></div></div>
     <div class="mfoot"><div class="spacer"></div><button class="btn primary" id="aok">Entendi</button></div>
+  </div>
+</div>
+
+<div class="ov" id="tov">
+  <div class="modal" style="max-width:640px">
+    <div class="mhead">
+      <h2 id="ttitle">Turma</h2>
+      <div class="msub" id="tsub"></div>
+      <button class="mx" id="tx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody"><div class="grid f" id="tform"></div></div>
+    <div class="mfoot">
+      <button class="btn primary" id="tsave">Salvar</button>
+      <button class="btn" id="tcancel">Cancelar</button>
+      <div class="spacer"></div>
+      <button class="btn" id="tdel" style="color:var(--red)">Excluir</button>
+    </div>
   </div>
 </div>
 
@@ -5630,7 +5636,10 @@ async function openTurmas(){
   }catch(e){
     $('board').innerHTML='<div class="loading">Não foi possível carregar o mapa de turmas.</div>';return;
   }
-  tEdit=null;renderTurmas();
+  tEdit=null;
+  var ov=$('tov');if(ov)ov.classList.remove('open');
+  document.body.classList.remove('modal-open');
+  renderTurmas();
 }
 
 function tFiltradas(){
@@ -5646,7 +5655,39 @@ function tFiltradas(){
 }
 
 var tView='grade';
-var T_SALAS=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','AUDITÓRIO','GARDEN'];
+/* T_SALAS = ordem das colunas da grade (inclui legado como AUDITÓRIO para nao perder turma).
+   T_SALAS_OPC = o que o select de edicao oferece. */
+var T_SALAS=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','SALA 7','GARDEN','AUDITÓRIO'];
+var T_SALAS_OPC=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','SALA 7','GARDEN'];
+/* Niveis na grafia do mapa (CNA Box). A ordem final sai de nivelOrd(). */
+var T_NIVEIS=['GARDEN 1','GARDEN 2','GARDEN 3','GARDEN 4',
+  'YOUNG KIDS 1/FUN 1','YOUNG KIDS 2/FUN 2','YOUNG KIDS 3/FUN 3','YOUNG KIDS 4/FUN 4',
+  'KIDS 1','KIDS 2','KIDS 3','KIDS 4',
+  'TEEN UP 1','TEEN UP 2','TEEN UP 3','TEEN UP 4','TEEN UP 5','TEEN UP 6',
+  'A1.1/FLY 1','A1.2/FLY 2','A2.1/QUEST 1','A2.2/QUEST 2',
+  'ADV 1','ADV 2','PADV 1','PADV 2','MASTER 1','MASTER 2',
+  'SENIOR','TURBO','ACC',
+  'EN CONTACTO 1','EN CONTACTO 2','EN CONTACTO 3','EN CONTACTO 4','EN CONTACTO 5','CAC'];
+
+/* uniao da lista canonica com o que ja existe no mapa, ordenada pela progressao real */
+function tNiveisOpc(){
+  var out=T_NIVEIS.slice();
+  TURMAS.forEach(function(t){
+    if(t.curso&&out.indexOf(t.curso)<0)out.push(t.curso);
+  });
+  out.sort(function(a,b){
+    var d=nivelOrd(a)-nivelOrd(b);
+    return d||a.localeCompare(b,'pt-BR');
+  });
+  return out;
+}
+/* professores vindos do proprio mapa de turmas */
+function tProfsOpc(){
+  var out=[];
+  TURMAS.forEach(function(t){if(t.professor&&out.indexOf(t.professor)<0)out.push(t.professor);});
+  out.sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+  return out;
+}
 
 function tMin(hr){
   var m=String(hr||'').match(/(\d{1,2}):(\d{2})/);
@@ -5704,14 +5745,6 @@ function renderTurmas(){
   h+='</div>';
 
   h+='<div class="tsum"><b>'+lista.length+'</b> turmas · <b>'+totAl+'</b> alunos · <b>'+comVaga+'</b> turmas com vaga (<b>'+vagasTot+'</b> vagas livres)</div>';
-
-  if(tEdit&&tView==='grade'){
-    var alvo=TURMAS.filter(function(x){return x.id===tEdit;})[0];
-    if(alvo){
-      h+='<div class="tformpanel"><h5>'+(alvo.__nova?'Nova turma':'Editando '+esc(alvo.curso)+(alvo.codigo?' · '+esc(alvo.codigo):''))+'</h5>';
-      h+=tCardForm(alvo)+'</div>';
-    }
-  }
 
   if(!lista.length){
     h+='<div class="empty">Nenhuma turma encontrada com esses filtros.</div>';
@@ -5806,9 +5839,9 @@ function tLista(lista,adm){
 }
 
 function tCard(t,adm){
-  if(tEdit===t.id)return '<div class="tcard" style="grid-column:1/-1">'+tCardForm(t)+'</div>';
   var v=tVagas(t);
   var cls=t.sem_vaga?'cheia':(v>=9?'vaga':'');
+  if(tEdit===t.id)cls+=' editando';
   var badge=t.sem_vaga
     ? '<span class="tbadge no">Sem vaga</span>'
     : (v>0?'<span class="tbadge'+(v>=9?' ok':'')+'">'+v+' vaga'+(v>1?'s':'')+'</span>':'<span class="tbadge no">Lotada</span>');
@@ -5823,31 +5856,73 @@ function tCard(t,adm){
   return h;
 }
 
-function tCardForm(t){
-  var nova=!t.id;
-  function inp(k,l,tipo,full){
-    return '<label class="'+(full?'full':'')+'">'+l+'<input type="'+(tipo||'text')+'" data-f="'+k+'" value="'+esc(t[k]==null?'':t[k])+'"></label>';
-  }
-  var h='<div class="tform">';
-  h+='<label>Dias<select data-f="dias">';
-  T_DIAS.forEach(function(d){h+='<option value="'+d+'"'+(t.dias===d?' selected':'')+'>'+d+'</option>';});
-  h+='</select></label>';
-  h+=inp('horario','Horário');
-  h+=inp('sala','Sala');
-  h+=inp('curso','Curso');
-  h+=inp('codigo','Código');
-  h+=inp('professor','Professor');
-  h+=inp('alunos','Alunos','number');
-  h+=inp('capacidade','Capacidade','number');
-  h+='<label>Vagas<select data-f="sem_vaga"><option value="false"'+(t.sem_vaga?'':' selected')+'>Aceita aluno</option><option value="true"'+(t.sem_vaga?' selected':'')+'>Sem vaga</option></select></label>';
-  h+=inp('obs','Observação','text',true);
-  h+='<div class="tfbtns">';
-  h+='<button class="btn primary" id="tsave">Salvar</button>';
-  h+='<button class="btn" id="tcancel">Cancelar</button>';
-  h+='<div class="spacer"></div>';
-  if(!nova)h+='<button class="btn" id="tdel" style="color:var(--red)">Excluir</button>';
-  h+='</div></div>';
+/* Campo de texto/numero no mesmo padrao da ficha de lead */
+function tInp(t,k,l,tipo,full){
+  return '<div'+(full?' class="full"':'')+'><label>'+l+'</label>'
+    +'<input type="'+(tipo||'text')+'" data-f="'+k+'" value="'+esc(t[k]==null?'':t[k])+'"></div>';
+}
+/* Select com fallback: se o valor gravado estiver fora da lista, ele entra como
+   opcao extra marcada, para edicao nunca apagar dado legado sem o usuario ver. */
+function tSel(k,l,opcoes,valor,vazio,full){
+  var h='<div'+(full?' class="full"':'')+'><label>'+l+'</label><select data-f="'+k+'">';
+  if(vazio!=null)h+='<option value=""'+(valor?'':' selected')+'>'+esc(vazio)+'</option>';
+  var achou=false;
+  opcoes.forEach(function(o){
+    var sel=(String(valor||'')===o);
+    if(sel)achou=true;
+    h+='<option value="'+esc(o)+'"'+(sel?' selected':'')+'>'+esc(o)+'</option>';
+  });
+  if(valor&&!achou)h+='<option value="'+esc(valor)+'" selected>'+esc(valor)+' (fora do padrão)</option>';
+  return h+'</select></div>';
+}
+
+function tFormHTML(t){
+  var h='';
+  h+=tSel('curso','Nível',tNiveisOpc(),t.curso,'— selecione o nível —');
+  h+=tInp(t,'codigo','Código');
+  h+=tSel('sala','Sala',T_SALAS_OPC,t.sala,'— selecione a sala —');
+  h+=tSel('professor','Professor',tProfsOpc(),t.professor,'— sem professor —');
+  h+=tInp(t,'alunos','Qtd alunos','number');
+  h+=tInp(t,'capacidade','Capacidade','number');
+  h+='<div><label>Vagas</label><select data-f="sem_vaga">'
+    +'<option value="false"'+(t.sem_vaga?'':' selected')+'>Aceita aluno</option>'
+    +'<option value="true"'+(t.sem_vaga?' selected':'')+'>Sem vaga</option></select></div>';
+  h+=tSel('dias','Dias',T_DIAS,t.dias);
+  h+=tInp(t,'horario','Horário');
+  h+=tInp(t,'obs','Observação','text',true);
   return h;
+}
+
+/* ---- popup de edicao (mesmo shell da ficha de lead) ---- */
+function tOpenEdit(id){
+  var t=TURMAS.filter(function(x){return x.id===id;})[0];
+  if(!t)return;
+  tEdit=id;
+  renderTurmas();
+  $('ttitle').textContent=t.__nova?'Nova turma':'Editar turma';
+  var partes=[];
+  if(!t.__nova){
+    if(t.curso)partes.push(t.curso);
+    if(t.codigo)partes.push(t.codigo);
+    if(t.dias||t.horario)partes.push(((t.dias||'')+' '+(t.horario||'')).trim());
+    if(t.sala)partes.push(t.sala);
+  }else{
+    partes.push('Mapa '+tSemestre);
+  }
+  $('tsub').textContent=partes.join(' · ');
+  $('tform').innerHTML=tFormHTML(t);
+  $('tdel').style.display=t.__nova?'none':'';
+  var sv=$('tsave');sv.disabled=false;sv.textContent='Salvar';
+  $('tov').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+function tCloseEdit(){
+  $('tov').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  TURMAS=TURMAS.filter(function(t){return !t.__nova;});
+  tEdit=null;
+  renderTurmas();
 }
 
 function tBind(){
@@ -5865,27 +5940,23 @@ function tBind(){
   });
   var nv=$('tnova');
   if(nv)nv.onclick=function(){
-    tEdit='__nova__';
+    TURMAS=TURMAS.filter(function(t){return !t.__nova;});
     TURMAS.unshift({id:'__nova__',semestre:tSemestre,dias:'SEG/QUA',horario:'',sala:'',curso:'',codigo:'',professor:'',alunos:0,capacidade:16,sem_vaga:false,obs:'',ativa:true,__nova:true});
-    renderTurmas();
+    tOpenEdit('__nova__');
   };
   document.querySelectorAll('[data-ed]').forEach(function(b){
-    b.onclick=function(){tEdit=b.dataset.ed;renderTurmas();};
+    b.onclick=function(){tOpenEdit(b.dataset.ed);};
   });
-  var sv=$('tsave');
-  if(sv)sv.onclick=tSalvar;
-  var cc=$('tcancel');
-  if(cc)cc.onclick=function(){
-    TURMAS=TURMAS.filter(function(t){return !t.__nova;});
-    tEdit=null;renderTurmas();
-  };
-  var dl=$('tdel');
-  if(dl)dl.onclick=tExcluir;
+  $('tsave').onclick=tSalvar;
+  $('tcancel').onclick=tCloseEdit;
+  $('tx').onclick=tCloseEdit;
+  $('tdel').onclick=tExcluir;
+  $('tov').onclick=function(e){if(e.target===$('tov'))tCloseEdit();};
 }
 
 function tColeta(){
   var o={};
-  document.querySelectorAll('.tform [data-f]').forEach(function(el){
+  document.querySelectorAll('#tform [data-f]').forEach(function(el){
     var k=el.dataset.f,v=el.value;
     if(k==='alunos'||k==='capacidade')v=parseInt(v,10)||0;
     else if(k==='sem_vaga')v=(v==='true');
@@ -5897,7 +5968,7 @@ function tColeta(){
 
 async function tSalvar(){
   var o=tColeta();
-  if(!o.curso||!o.horario||!o.sala){toast('Curso, horário e sala são obrigatórios.');return;}
+  if(!o.curso||!o.horario||!o.sala){toast('Nível, sala e horário são obrigatórios.');return;}
   var atual=TURMAS.filter(function(t){return t.id===tEdit;})[0];
   var btn=$('tsave');if(btn){btn.disabled=true;btn.textContent='Salvando...';}
   try{
@@ -5916,6 +5987,9 @@ async function tSalvar(){
     if(btn){btn.disabled=false;btn.textContent='Salvar';}
     toast('Erro ao salvar: '+e.message);return;
   }
+  $('tov').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  TURMAS=TURMAS.filter(function(t){return !t.__nova;});
   tEdit=null;openTurmas();
 }
 
@@ -5926,6 +6000,8 @@ async function tExcluir(){
     await api('/crm_turmas?id=eq.'+tEdit,{method:'DELETE'});
     toast('Turma excluída.');
   }catch(e){toast('Erro ao excluir: '+e.message);return;}
+  $('tov').classList.remove('open');
+  document.body.classList.remove('modal-open');
   tEdit=null;openTurmas();
 }
 
