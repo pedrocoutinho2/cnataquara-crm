@@ -316,13 +316,10 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .lbrand .cna{font-family:'Poppins';font-weight:700;font-size:28px;color:var(--red)}
 .lbrand .sub{font-family:'Poppins';font-weight:600;font-size:14px;color:var(--blue)}
 .lmsg{font-size:13px;color:var(--gray);margin:10px 0 14px}
-.lusers{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
-.lusers button{border:1.5px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:8px 14px;font-family:'Poppins';font-weight:600;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:7px}
-.lusers button.on{border-color:var(--uc);background:var(--uc);color:var(--white)}
-.lusers .ldot{width:10px;height:10px;border-radius:50%;background:var(--uc)}
-.lusers button.on .ldot{background:var(--white)}
-.lpin{display:flex;gap:8px;justify-content:center}
-.lpin input{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;width:120px;text-align:center;font-size:18px;letter-spacing:4px}
+.lform{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.lform input{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;font-size:15px;width:100%;font-family:'Poppins';color:var(--ink)}
+.lform input:focus{outline:none;border-color:var(--blue)}
+.lform .btn{width:100%;justify-content:center;padding:11px}
 .lerr{color:var(--redDark);font-size:12.5px;min-height:16px;margin-top:10px;font-weight:600}
 
 /* ===== Tela de relatórios ===== */
@@ -1168,9 +1165,9 @@ input[type=date].dvazio{color:#C9C9CE}
 <div class="login" id="login">
   <div class="lbox">
     <div class="lbrand"><img class="logoImg big" alt="CNA idiomas"><span class="sub">CRM · Taquara</span></div>
-    <p class="lmsg">Quem está entrando?</p>
-    <div class="lusers" id="lusers"><div class="loading">Carregando equipe...</div></div>
-    <div class="lpin" id="lpin" style="display:none">
+    <p class="lmsg">Entre com o seu e-mail do CNA.</p>
+    <div class="lform" id="lform">
+      <input id="lmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="E-mail">
       <input id="pin" type="password" autocomplete="current-password" placeholder="Senha">
       <button class="btn primary" id="entrar">Entrar</button>
     </div>
@@ -3354,7 +3351,6 @@ sideMinLabel();
 
 /* ================= Login ================= */
 let USERS=[];
-let loginSel=null;
 
 function sha256js(ascii){
   function rr(v,c){return (v>>>c)|(v<<(32-c));}
@@ -3409,7 +3405,7 @@ async function sha256(txt){
 }
 
 async function loadUsers(){
-  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,email,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   RESP=USERS.map(function(u){return u.nome;});
   RESPC={};
   USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
@@ -3418,33 +3414,28 @@ async function loadUsers(){
 
 function showLogin(){
   $('login').classList.remove('off');
-  loginSel=null;$('pin').value='';$('lerr').textContent='';$('lpin').style.display='none';
-  $('lusers').innerHTML=USERS.map(function(u){
-    return '<button data-u="'+esc(u.nome)+'" style="--uc:'+(RESPC[u.nome])+'"><span class="ldot"></span>'+esc(u.nome)+'</button>';
-  }).join('');
-  document.querySelectorAll('#lusers button').forEach(function(b){
-    b.onclick=function(){
-      loginSel=b.dataset.u;
-      document.querySelectorAll('#lusers button').forEach(function(x){x.classList.toggle('on',x===b);});
-      $('lpin').style.display='flex';$('lerr').textContent='';$('pin').value='';$('pin').focus();
-    };
-  });
+  $('pin').value='';$('lerr').textContent='';
+  const ult=safeGet('crmUltimoEmail')||'';
+  $('lmail').value=ult;
+  setTimeout(function(){(ult?$('pin'):$('lmail')).focus();},80);
 }
 
 async function tryLogin(){
   const bt=$('entrar');
   try{
-    if(!loginSel){$('lerr').textContent='Escolha seu nome.';return;}
+    const email=($('lmail').value||'').trim();
     const senha=$('pin').value;
-    if(!senha){$('lerr').textContent='Digite sua senha.';return;}
+    if(!email){$('lerr').textContent='Digite seu e-mail.';$('lmail').focus();return;}
+    if(!senha){$('lerr').textContent='Digite sua senha.';$('pin').focus();return;}
     bt.disabled=true;$('lerr').textContent='';
-    const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_nome:loginSel,p_senha:senha})});
+    const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_email:email,p_senha:senha})});
     bt.disabled=false;
-    if(!r||!r.nome){$('lerr').textContent='Senha incorreta.';$('pin').value='';$('pin').focus();return;}
+    if(!r||!r.nome){$('lerr').textContent='E-mail ou senha incorretos.';$('pin').value='';$('pin').focus();return;}
     $('pin').value='';
-    if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,senha);return;}
-    currentUser=r.nome;
-    safeSet('crmAuth',r.nome);
+    safeSet('crmUltimoEmail',r.email||email);
+    if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,r.email||email,senha);return;}
+    currentUser=r.nome;MEUEMAIL=r.email||email;
+    safeSet('crmAuth',r.nome);safeSet('crmAuthEmail',MEUEMAIL);
     entrar();
   }catch(e){
     bt.disabled=false;
@@ -3453,10 +3444,11 @@ async function tryLogin(){
 }
 
 /* ---- troca obrigatoria no primeiro acesso ---- */
-var TROCA=null;   /* {nome, atual} enquanto a pessoa ainda nao entrou */
+var TROCA=null;   /* {nome, email, atual} enquanto a pessoa ainda nao entrou */
+var MEUEMAIL=null;
 
-function abrirTrocaObrigatoria(nome,atual){
-  TROCA={nome:nome,atual:atual};
+function abrirTrocaObrigatoria(nome,email,atual){
+  TROCA={nome:nome,email:email,atual:atual};
   $('smsub').textContent=nome+', a senha que voc\u00ea usou \u00e9 tempor\u00e1ria. Defina uma s\u00f3 sua para continuar.';
   $('snova').value='';$('sconf').value='';$('serr').textContent='';
   $('sov').classList.add('open');
@@ -3479,13 +3471,13 @@ async function salvarTrocaObrigatoria(){
   bt.disabled=true;err.textContent='';
   try{
     const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
-      body:JSON.stringify({p_nome:TROCA.nome,p_atual:TROCA.atual,p_nova:nova})});
+      body:JSON.stringify({p_email:TROCA.email,p_atual:TROCA.atual,p_nova:nova})});
     if(ok!==true){bt.disabled=false;err.textContent='N\u00e3o foi poss\u00edvel confirmar a senha tempor\u00e1ria. Entre de novo.';return;}
-    const nome=TROCA.nome;
+    const nome=TROCA.nome, mail=TROCA.email;
     fecharTroca();
     bt.disabled=false;
-    currentUser=nome;
-    safeSet('crmAuth',nome);
+    currentUser=nome;MEUEMAIL=mail;
+    safeSet('crmAuth',nome);safeSet('crmAuthEmail',mail);
     await loadUsers();
     toast('Senha criada. Bem-vinda ao CRM.');
     entrar();
@@ -3516,8 +3508,10 @@ async function trocarMinhaSenha(){
   if(conf==null)return;
   if(conf!==nova){toast('As duas senhas não bateram. Nada foi alterado.');return;}
   try{
+    const mail=MEUEMAIL||safeGet('crmAuthEmail')||'';
+    if(!mail){toast('Entre de novo para trocar a senha.');return;}
     const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
-      body:JSON.stringify({p_nome:currentUser,p_atual:atual,p_nova:nova})});
+      body:JSON.stringify({p_email:mail,p_atual:atual,p_nova:nova})});
     if(ok===true)toast('Senha alterada.');
     else toast('A senha atual não confere. Nada foi alterado.');
   }catch(e){toast('Não foi possível alterar a senha.');}
@@ -3946,8 +3940,9 @@ function entrar(){
 
 $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
+$('lmail').addEventListener('keydown',function(e){if(e.key==='Enter')$('pin').focus();});
 $('logout').onclick=function(){
-  currentUser=null;safeSet('crmAuth','');
+  currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
   DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};window._dcons=null;window._ddata=null;RVIEW='dia';
   ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
   showLogin();
@@ -3957,12 +3952,12 @@ async function BOOT(){
   try{
     await loadUsers();
   }catch(e){
-    $('lusers').innerHTML='<div class="empty">Não foi possível carregar a equipe.<br>Verifique a conexão e recarregue a página.</div>';
+    $('lerr').textContent='Não foi possível conectar. Verifique a conexão e recarregue a página.';
     return;
   }
   const saved=safeGet('crmAuth');
   if(saved&&RESP.indexOf(saved)>-1){
-    currentUser=saved;entrar();
+    currentUser=saved;MEUEMAIL=safeGet('crmAuthEmail')||null;entrar();
   }else{
     showLogin();
   }
@@ -5869,7 +5864,7 @@ async function openTeam(){
   let users;
   try{
     await loadPerms();
-    users=await api('/crm_usuarios?select=id,nome,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+    users=await api('/crm_usuarios?select=id,nome,email,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   }catch(e){
     board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
@@ -5879,7 +5874,7 @@ async function openTeam(){
       const ex=Object.keys(u.permissoes||{}).length;
       return '<div class="eqrow'+(u.ativo?'':' inativo')+'" data-id="'+u.id+'">'+
         '<span class="avatar" style="background:'+(u.cor||'#5A5A5A')+'">'+esc(u.nome[0])+'</span>'+
-        '<span class="en">'+esc(u.nome)+'</span>'+
+        '<span class="en">'+esc(u.nome)+(u.email?'<small style="display:block;font-weight:400;color:var(--gray);font-size:11px">'+esc(u.email)+'</small>':'<small style="display:block;font-weight:600;color:var(--red);font-size:11px">sem e-mail, n\u00e3o entra</small>')+'</span>'+
         '<select class="papelsel" data-a="papel" title="Papel de '+esc(u.nome)+'">'+
           PAPEIS.map(function(p){
             return '<option value="'+p[0]+'"'+(papelDe(u)===p[0]?' selected':'')+'>'+p[1]+'</option>';
@@ -5889,6 +5884,7 @@ async function openTeam(){
         (u.ativo?'':'<span class="badge off">Inativo</span>')+
         '<span class="ebtns">'+
           '<button class="btn" data-a="perm">Permiss\u00f5es</button>'+
+          '<button class="btn" data-a="email">E-mail</button>'+
           '<button class="btn" data-a="senha">Redefinir senha</button>'+
           '<button class="btn" data-a="cor">Cor</button>'+
           (u.nome!==currentUser?'<button class="btn" data-a="ativo">'+(u.ativo?'Desativar':'Reativar')+'</button>':'')+
@@ -5906,6 +5902,7 @@ async function openTeam(){
     '<div class="rcard"><h3>Adicionar pessoa</h3>'+
       '<div class="eqform">'+
         '<input type="text" id="nun" placeholder="Nome">'+
+        '<input type="email" id="numail" autocapitalize="off" spellcheck="false" placeholder="E-mail de acesso">'+
         '<input type="password" id="nup" autocomplete="new-password" placeholder="Senha inicial (a pessoa troca ao entrar)">'+
         '<select id="nupap" class="papelsel">'+
           PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
@@ -5946,6 +5943,14 @@ async function openTeam(){
         try{
           if(a==='perm'){
             abrirPermUsuario(u);
+          }else if(a==='email'){
+            const mail=window.prompt('E-mail de acesso de '+u.nome+':',u.email||'');
+            if(mail==null)return;
+            const lim=mail.trim().toLowerCase();
+            if(lim&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lim)){toast('E-mail inv\u00e1lido.');return;}
+            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({email:lim||null})});
+            await loadUsers();openTeam();
+            toast(lim?('E-mail de '+u.nome+' atualizado.'):('E-mail de '+u.nome+' removido. Ela n\u00e3o consegue mais entrar.'));
           }else if(a==='senha'){
             const nova=window.prompt('Nova senha de '+u.nome+' (mínimo 8 caracteres, com letra e número):');
             if(nova==null)return;
@@ -5976,15 +5981,18 @@ async function openTeam(){
   board.querySelector('#nuok').onclick=async function(){
     const btn=board.querySelector('#nuok');
     const nome=board.querySelector('#nun').value.trim();
+    const mail=board.querySelector('#numail').value.trim().toLowerCase();
     const pin=board.querySelector('#nup').value;
     const cor=board.querySelector('#nuc').value;
     const papel=board.querySelector('#nupap').value;
     if(!nome){toast('Digite o nome.');return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){toast('Digite um e-mail v\u00e1lido: \u00e9 com ele que a pessoa entra.');return;}
+    if(USERS.some(function(x){return (x.email||'').toLowerCase()===mail;})){toast('J\u00e1 existe alguém com esse e-mail.');return;}
     if(!senhaValida(pin)){toast(SENHAREGRA);return;}
     if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('Já existe alguém com esse nome.');return;}
     btn.disabled=true;
     try{
-      const criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,cor:cor,papel:papel,admin:papel==='admin'})});
+      const criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,email:mail,cor:cor,papel:papel,admin:papel==='admin'})});
       const novoId=(criado&&criado[0]&&criado[0].id)||null;
       if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin,p_temporaria:true})});
       toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
