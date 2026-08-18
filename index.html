@@ -972,6 +972,7 @@ input[type=date].dvazio{color:#C9C9CE}
 .agform textarea{min-height:64px;resize:vertical}
 .agform .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .agdet{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+#agmbody .agform,#agmbody .agdet{border:0;padding:0;background:transparent;border-radius:0}
 .agdet h3{margin:0 0 6px;font-size:16px}
 .agdet .dl{font-size:13px;margin:3px 0;color:var(--ink)}
 .agdet .dl b{color:var(--gray);font-weight:600;font-size:12px;text-transform:uppercase;margin-right:6px}
@@ -1171,6 +1172,18 @@ input[type=date].dvazio{color:#C9C9CE}
     </div>
     <div class="mbody"><div id="alist"></div></div>
     <div class="mfoot"><div class="spacer"></div><button class="btn primary" id="aok">Entendi</button></div>
+  </div>
+</div>
+
+<div class="ov" id="agov">
+  <div class="modal" style="max-width:640px">
+    <div class="mhead">
+      <h2 id="agmtitle">Evento</h2>
+      <div class="msub" id="agmsub"></div>
+      <button class="mx" id="agmx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody" id="agmbody"></div>
+    <div class="mfoot" id="agmfoot"></div>
   </div>
 </div>
 
@@ -6104,11 +6117,6 @@ function renderCalendario(){
   if(adm&&AGD.cfg&&AGD.cfg.gas_url)h+='<span class="ld" style="margin-left:auto">Sincronizado com Google Agenda</span>';
   h+='</div>';
 
-  /* form / detalhe / categorias */
-  if(adm&&AGD.catEdit)h+=agdFormCats();
-  if(adm&&AGD.edit)h+=agdFormEvento();
-  if(AGD.det&&!(adm&&AGD.edit))h+=agdDetalhe();
-
   /* resumo da semana atual (segunda a domingo) */
   h+=agdResumoSemana(hoje);
 
@@ -6185,9 +6193,6 @@ function agdFormEvento(){
     '<div class="row"><div style="flex:1"><label>Início</label><input id="ag_hi" type="time" value="'+esc(agdH(g('hora_inicio','')))+'"></div>'+
       '<div style="flex:1"><label>Fim</label><input id="ag_hf" type="time" value="'+esc(agdH(g('hora_fim','')))+'"></div></div>'+
     '<div class="full"><label>Descrição (opcional)</label><textarea id="ag_desc">'+esc(g('descricao',''))+'</textarea></div>'+
-    '<div class="full row"><button class="btn primary" id="ag_save">Salvar</button>'+
-      (ev?'<button class="btn danger" id="ag_del">Excluir</button>':'')+
-      '<button class="btn" id="ag_cancel">Cancelar</button></div>'+
   '</div>';
   return h;
 }
@@ -6202,9 +6207,6 @@ function agdDetalhe(){
     '<div class="dl"><b>Data</b>'+brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):'')+'</div>'+
     (ev.responsavel?'<div class="dl"><b>Responsável</b>'+esc(ev.responsavel)+'</div>':'')+
     (ev.descricao?'<div class="dl"><b>Descrição</b>'+esc(ev.descricao)+'</div>':'')+
-    '<div class="row" style="margin-top:8px;display:flex;gap:8px">'+
-      (isAdmin()?'<button class="btn" id="agdEdit">Editar</button>':'')+
-      '<button class="btn" id="agdClose">Fechar</button></div>'+
   '</div>';
 }
 
@@ -6225,11 +6227,62 @@ function agdFormCats(){
      ''+
      '<input id="ag_gasurl" placeholder="URL do web app do Apps Script (https://script.google.com/macros/s/.../exec)" value="'+esc(cfg.gas_url||'')+'" style="margin-bottom:6px">'+
      '<input id="ag_gastoken" placeholder="Token secreto (o mesmo definido no script)" value="'+esc(cfg.gas_token||'')+'">'+
-     '<div style="font-size:11px;color:var(--gray);margin-top:4px">Deixe em branco para usar o calendário só no CRM, sem sincronizar com o Google.</div></div>'+
-     '<div class="full row"><button class="btn primary" id="ag_savecfg">Salvar configuração</button>'+
-     '<button class="btn" id="ag_closecats">Fechar</button></div>';
+     '<div style="font-size:11px;color:var(--gray);margin-top:4px">Deixe em branco para usar o calendário só no CRM, sem sincronizar com o Google.</div></div>';
   h+='</div>';
   return h;
+}
+
+/* ---- modal padrao (mesmo shell da ficha/turmas) ---- */
+function agdCloseModal(){
+  $('agov').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  AGD.edit=null;AGD.det=null;AGD.catEdit=false;
+}
+function agdShowModal(titulo,sub,body,foot){
+  $('agmtitle').textContent=titulo;
+  $('agmsub').textContent=sub||'';
+  $('agmbody').innerHTML=body;
+  $('agmfoot').innerHTML=foot||'';
+  $('agov').classList.add('open');
+  document.body.classList.add('modal-open');
+  $('agmx').onclick=agdCloseModal;
+  $('agov').onclick=function(e){if(e.target===$('agov'))agdCloseModal();};
+}
+function agdOpenEvento(ed){
+  AGD.det=null;AGD.catEdit=false;AGD.edit=ed;
+  var ev=ed.id?AGD.eventos.find(function(x){return x.id===ed.id;}):null;
+  agdShowModal(
+    ev?'Editar evento':'Novo evento',
+    ev?(brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio):'')):('Calendário de ações · '+AGDMESES[+AGD.mes.slice(5,7)-1]),
+    agdFormEvento(),
+    '<button class="btn primary" id="ag_save">Salvar</button>'+
+    '<button class="btn" id="ag_cancel">Cancelar</button>'+
+    (ev?'<div class="spacer"></div><button class="btn" id="ag_del" style="color:var(--red)">Excluir</button>':''));
+  $('ag_save').onclick=agdSalvar;
+  $('ag_cancel').onclick=agdCloseModal;
+  var d=$('ag_del');if(d)d.onclick=agdExcluir;
+}
+function agdOpenDet(id){
+  AGD.edit=null;AGD.catEdit=false;AGD.det=id;
+  var ev=AGD.eventos.find(function(x){return x.id===id;});
+  if(!ev)return;
+  agdShowModal('Detalhes da ação',brDate(ev.data),agdDetalhe(),
+    '<button class="btn" id="agdClose">Fechar</button>');
+  $('agdClose').onclick=agdCloseModal;
+}
+function agdOpenCats(){
+  AGD.edit=null;AGD.det=null;AGD.catEdit=true;
+  agdFillCats();
+}
+function agdFillCats(){
+  if(!AGD.catEdit)return;
+  agdShowModal('Categorias e Google','Cores, categorias e ponte com o Google Agenda',agdFormCats(),
+    '<button class="btn primary" id="ag_savecfg">Salvar configuração</button>'+
+    '<button class="btn" id="ag_closecats">Fechar</button>');
+  $('ag_savecfg').onclick=agdSalvarCfg;
+  $('ag_closecats').onclick=agdCloseModal;
+  var b=$('agnc_add');if(b)b.onclick=agdAddCat;
+  document.querySelectorAll('#agcats [data-savec]').forEach(function(bt){bt.onclick=function(){agdSalvarCat(bt.dataset.savec);};});
 }
 
 function agdWire(){
@@ -6238,29 +6291,18 @@ function agdWire(){
   if(b=$('agPrev'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,-1);renderCalendario();};
   if(b=$('agNext'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,1);renderCalendario();};
   if(b=$('agHoje'))b.onclick=function(){AGD.mes=hojeISO().slice(0,7);renderCalendario();};
-  if(b=$('agNovo'))b.onclick=function(){AGD.det=null;AGD.catEdit=false;AGD.edit={data:hojeISO()};renderCalendario();window.scrollTo(0,0);};
-  if(b=$('agCats'))b.onclick=function(){AGD.det=null;AGD.edit=null;AGD.catEdit=!AGD.catEdit;renderCalendario();window.scrollTo(0,0);};
+  if(b=$('agNovo'))b.onclick=function(){agdOpenEvento({data:hojeISO()});};
+  if(b=$('agCats'))b.onclick=agdOpenCats;
   document.querySelectorAll('.agev').forEach(function(el){
     el.onclick=function(e){
       e.stopPropagation();
-      AGD.catEdit=false;
-      if(adm){AGD.det=null;AGD.edit={id:el.dataset.ev};}
-      else{AGD.edit=null;AGD.det=el.dataset.ev;}
-      renderCalendario();window.scrollTo(0,0);
+      if(adm)agdOpenEvento({id:el.dataset.ev});
+      else agdOpenDet(el.dataset.ev);
     };
   });
   if(adm)document.querySelectorAll('.agcell.clik').forEach(function(el){
-    el.onclick=function(){AGD.det=null;AGD.catEdit=false;AGD.edit={data:el.dataset.d};renderCalendario();window.scrollTo(0,0);};
+    el.onclick=function(){agdOpenEvento({data:el.dataset.d});};
   });
-  if(b=$('agdClose'))b.onclick=function(){AGD.det=null;renderCalendario();};
-  if(b=$('agdEdit'))b.onclick=function(){AGD.edit={id:AGD.det};AGD.det=null;renderCalendario();};
-  if(b=$('ag_cancel'))b.onclick=function(){AGD.edit=null;renderCalendario();};
-  if(b=$('ag_save'))b.onclick=agdSalvar;
-  if(b=$('ag_del'))b.onclick=agdExcluir;
-  if(b=$('ag_closecats'))b.onclick=function(){AGD.catEdit=false;renderCalendario();};
-  if(b=$('ag_savecfg'))b.onclick=agdSalvarCfg;
-  if(b=$('agnc_add'))b.onclick=agdAddCat;
-  document.querySelectorAll('[data-savec]').forEach(function(bt){bt.onclick=function(){agdSalvarCat(bt.dataset.savec);};});
 }
 
 function agdAddMes(ym,n){
@@ -6293,7 +6335,7 @@ async function agdSalvar(){
     }
   }catch(e){toast('Erro ao salvar: '+e.message);$('ag_save').disabled=false;return;}
   toast('Evento salvo.');
-  AGD.edit=null;
+  agdCloseModal();
   await openCalendario();
   if(salvo)agdSyncEvento(salvo,'upsert');
 }
@@ -6306,7 +6348,7 @@ async function agdExcluir(){
     await api('/crm_agenda_eventos?id=eq.'+AGD.edit.id,{method:'DELETE'});
   }catch(e){toast('Erro ao excluir: '+e.message);return;}
   toast('Evento excluído.');
-  AGD.edit=null;
+  agdCloseModal();
   if(ev&&ev.gcal_id)agdSyncEvento(ev,'delete');
   openCalendario();
 }
@@ -6321,7 +6363,7 @@ async function agdSalvarCat(id){
   try{await api('/crm_agenda_categorias?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});}
   catch(e){toast('Erro: '+e.message);return;}
   toast('Categoria atualizada.');
-  openCalendario().then(function(){AGD.catEdit=true;renderCalendario();});
+  openCalendario().then(agdFillCats);
 }
 
 async function agdAddCat(){
@@ -6331,7 +6373,7 @@ async function agdAddCat(){
     await api('/crm_agenda_categorias',{method:'POST',body:JSON.stringify({nome:nome,cor:$('agnc_cor').value,ordem:AGD.cats.length+1})});
   }catch(e){toast('Erro: '+e.message);return;}
   toast('Categoria criada.');
-  openCalendario().then(function(){AGD.catEdit=true;renderCalendario();});
+  openCalendario().then(agdFillCats);
 }
 
 async function agdSalvarCfg(){
