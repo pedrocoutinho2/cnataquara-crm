@@ -935,6 +935,56 @@ input[type=date].dvazio{color:#C9C9CE}
 .mbars .me{background:var(--blue)}
 .mbars .me.hit{background:var(--ok)}
 .mgoal{position:relative}
+
+/* ================= Calendário ================= */
+.agwrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.aghead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.aghead h2{margin:0;font-size:20px;color:var(--blue)}
+.agnav{display:flex;gap:6px;align-items:center}
+.agnav .btn{padding:6px 12px}
+.aglegend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--gray);align-items:center}
+.aglegend .ld{display:inline-flex;align-items:center;gap:5px}
+.aglegend .ldot2{width:10px;height:10px;border-radius:50%;display:inline-block}
+.aggrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.agdh{font-size:11px;font-weight:700;color:var(--gray);text-align:center;padding:4px 0;text-transform:uppercase}
+.agcell{background:#fff;border:1px solid var(--line);border-radius:8px;min-height:92px;padding:4px;font-size:11px;position:relative;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.agcell.fora{background:var(--surface);opacity:.55;min-height:40px}
+.agcell.hoje{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+.agcell.clik{cursor:pointer}
+.agcell.clik:hover{background:#FDECEF}
+.agdn{font-weight:700;color:var(--ink);font-size:12px}
+.agcell.hoje .agdn{color:var(--red)}
+.agev{border-left:3px solid var(--blue);background:var(--surface);border-radius:4px;padding:2px 4px;cursor:pointer;line-height:1.25;word-break:break-word}
+.agev:hover{background:#EAF0FA}
+.agev b{font-weight:600}
+.agev .agr{color:var(--gray)}
+.agsem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.agsem h3{margin:0 0 8px;font-size:15px;color:var(--red)}
+.agsem .sdia{margin:6px 0 2px;font-size:12px;font-weight:700;color:var(--blue)}
+.agsem .sev{display:flex;gap:8px;align-items:baseline;font-size:13px;padding:2px 0}
+.agsem .sev .ldot2{width:9px;height:9px;flex:none;position:relative;top:1px}
+.agsem .sev .sh{font-variant-numeric:tabular-nums;color:var(--gray);flex:none}
+.agsem .sev .sr{color:var(--gray);font-size:12px}
+.agform{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.agform .full{grid-column:1/-1}
+.agform label{display:block;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:3px;text-transform:uppercase}
+.agform input,.agform select,.agform textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+.agform textarea{min-height:64px;resize:vertical}
+.agform .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.agdet{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+.agdet h3{margin:0 0 6px;font-size:16px}
+.agdet .dl{font-size:13px;margin:3px 0;color:var(--ink)}
+.agdet .dl b{color:var(--gray);font-weight:600;font-size:12px;text-transform:uppercase;margin-right:6px}
+.agcatrow{display:grid;grid-template-columns:34px 1fr auto auto;gap:8px;align-items:center;margin-bottom:6px}
+.agcatrow input[type=color]{width:34px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none}
+.agcatrow input[type=text]{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px}
+@media(max-width:700px){
+  .aggrid{gap:2px}
+  .agcell{min-height:64px;padding:2px;font-size:10px;border-radius:5px}
+  .agev{padding:1px 3px}
+  .agev .agr{display:none}
+  .agform{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -982,6 +1032,7 @@ input[type=date].dvazio{color:#C9C9CE}
       <button class="sgh" type="button" data-g="operacao">Opera&ccedil;&atilde;o<span class="chev"></span></button>
       <div class="sgi">
       <a data-t="turmas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="2"/></svg><span>Turmas</span></a>
+      <a data-t="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="5" width="17.2" height="15.6" rx="2.4"/><path d="M3.4 9.8h17.2"/><path d="M8.2 2.8v4M15.8 2.8v4"/></svg><span>Calend&aacute;rio</span></a>
       <a data-t="mural"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2v-6.4"/><path d="M8.4 2.8h7.2l-.9 5.4 2.9 3.2v1.2H6.4v-1.2l2.9-3.2-.9-5.4Z"/></svg><span>Mural</span></a>
       </div>
     </div>
@@ -3145,7 +3196,7 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas');
+  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -3156,6 +3207,7 @@ function setTab(t){
   if(t==='calc'){openCalc();return;}
   if(t==='turmas'){openTurmas();return;}
   if(t==='conversas'){openConversas();return;}
+  if(t==='calendario'){openCalendario();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#snav a[data-t]').forEach(function(a){
@@ -3170,10 +3222,10 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 /* ================= Menu lateral ================= */
 const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',
   conversas:'atendimento',calc:'atendimento',
-  turmas:'operacao',mural:'operacao',
+  turmas:'operacao',calendario:'operacao',mural:'operacao',
   relatorios:'gestao',equipe:'gestao'};
 const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
-  calc:'Calculadora',turmas:'Turmas',mural:'Mural',relatorios:'Relatórios',equipe:'Equipe'};
+  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural',relatorios:'Relatórios',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
 function salvaGrupos(){
@@ -6003,6 +6055,317 @@ async function tExcluir(){
   $('tov').classList.remove('open');
   document.body.classList.remove('modal-open');
   tEdit=null;openTurmas();
+}
+
+
+/* ================= Calendário (ações comerciais e pedagógicas) ================= */
+var AGD={eventos:[],cats:[],cfg:null,mes:'',edit:null,det:null,catEdit:false};
+var AGDMESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var AGDDOWS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function agdH(t){return t?String(t).slice(0,5):'';}
+function agdCat(id){for(var i=0;i<AGD.cats.length;i++)if(AGD.cats[i].id===id)return AGD.cats[i];return null;}
+
+async function openCalendario(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando calendário...</div>';
+  if(!AGD.mes)AGD.mes=hojeISO().slice(0,7);
+  try{
+    var r=await Promise.all([
+      api('/crm_agenda_categorias?select=*&order=ordem.asc,nome.asc'),
+      api('/crm_agenda_eventos?select=*&order=data.asc,hora_inicio.asc.nullsfirst'),
+      api('/crm_agenda_config?id=eq.1&select=*')
+    ]);
+    AGD.cats=r[0]||[];AGD.eventos=r[1]||[];AGD.cfg=(r[2]&&r[2][0])||null;
+  }catch(e){
+    $('board').innerHTML='<div class="loading">Não foi possível carregar o calendário: '+esc(e.message)+'</div>';return;
+  }
+  renderCalendario();
+}
+
+function renderCalendario(){
+  var adm=isAdmin();
+  var p=AGD.mes.split('-'),ano=+p[0],mes=+p[1];
+  var hoje=hojeISO();
+  var h='<div class="rscreen"><div class="agwrap">';
+
+  /* cabeçalho */
+  h+='<div class="aghead"><h2>'+AGDMESES[mes-1]+' '+ano+'</h2>'+
+     '<div class="agnav"><button class="btn" id="agPrev">&larr;</button>'+
+     '<button class="btn" id="agHoje">Hoje</button>'+
+     '<button class="btn" id="agNext">&rarr;</button></div>'+
+     '<div class="spacer" style="flex:1"></div>'+
+     (adm?'<button class="btn" id="agCats">Categorias e Google</button><button class="btn primary" id="agNovo">+ Evento</button>':'')+
+     '</div>';
+
+  /* legenda */
+  h+='<div class="aglegend">';
+  AGD.cats.forEach(function(c){if(!c.ativa)return;
+    h+='<span class="ld"><span class="ldot2" style="background:'+esc(c.cor)+'"></span>'+esc(c.nome)+'</span>';});
+  if(adm&&AGD.cfg&&AGD.cfg.gas_url)h+='<span class="ld" style="margin-left:auto">Sincronizado com Google Agenda</span>';
+  h+='</div>';
+
+  /* form / detalhe / categorias */
+  if(adm&&AGD.catEdit)h+=agdFormCats();
+  if(adm&&AGD.edit)h+=agdFormEvento();
+  if(AGD.det&&!(adm&&AGD.edit))h+=agdDetalhe();
+
+  /* resumo da semana atual (segunda a domingo) */
+  h+=agdResumoSemana(hoje);
+
+  /* grade do mês */
+  var byDate={};
+  AGD.eventos.forEach(function(ev){(byDate[ev.data]=byDate[ev.data]||[]).push(ev);});
+  var primeiro=new Date(ano,mes-1,1),dow=primeiro.getDay();
+  var dias=new Date(ano,mes,0).getDate();
+  h+='<div class="aggrid">';
+  AGDDOWS.forEach(function(d){h+='<div class="agdh">'+d+'</div>';});
+  for(var i=0;i<dow;i++)h+='<div class="agcell fora"></div>';
+  for(var d=1;d<=dias;d++){
+    var iso=AGD.mes+'-'+(d<10?'0':'')+d;
+    h+='<div class="agcell'+(iso===hoje?' hoje':'')+(adm?' clik':'')+'" data-d="'+iso+'"><span class="agdn">'+d+'</span>';
+    (byDate[iso]||[]).forEach(function(ev){
+      var c=agdCat(ev.categoria_id);
+      h+='<div class="agev" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'" title="'+esc(ev.titulo+(ev.responsavel?' · '+ev.responsavel:''))+'">'+
+         (ev.hora_inicio?'<b>'+agdH(ev.hora_inicio)+'</b> ':'')+esc(ev.titulo)+
+         (ev.responsavel?' <span class="agr">· '+esc(ev.responsavel)+'</span>':'')+'</div>';
+    });
+    h+='</div>';
+  }
+  var resto=(dow+dias)%7;
+  if(resto)for(var j=resto;j<7;j++)h+='<div class="agcell fora"></div>';
+  h+='</div>';
+
+  if(!adm)h+='<div style="font-size:12px;color:var(--gray)">Calendário mantido pela administração. Toque em um evento para ver os detalhes.</div>';
+  h+='</div></div>';
+  $('board').innerHTML=h;
+  agdWire();
+}
+
+function agdResumoSemana(hoje){
+  var hp=hoje.split('-'),hd=new Date(+hp[0],+hp[1]-1,+hp[2]);
+  var seg=new Date(hd);seg.setDate(hd.getDate()-((hd.getDay()+6)%7));
+  var dias=[],lbl=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  for(var i=0;i<7;i++){
+    var d=new Date(seg);d.setDate(seg.getDate()+i);
+    var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    dias.push({iso:iso,lbl:lbl[i]+' · '+brDate(iso).slice(0,5)});
+  }
+  var h='<div class="agsem"><h3>Resumo da semana</h3>';
+  var tem=false;
+  dias.forEach(function(dd){
+    var evs=AGD.eventos.filter(function(e){return e.data===dd.iso;});
+    if(!evs.length)return;
+    tem=true;
+    h+='<div class="sdia">'+dd.lbl+(dd.iso===hoje?' (hoje)':'')+'</div>';
+    evs.forEach(function(ev){
+      var c=agdCat(ev.categoria_id);
+      h+='<div class="sev"><span class="ldot2" style="background:'+esc(c?c.cor:'#5A5A5A')+'"></span>'+
+         '<span class="sh">'+(ev.hora_inicio?agdH(ev.hora_inicio)+(ev.hora_fim?'–'+agdH(ev.hora_fim):''):'dia todo')+'</span>'+
+         '<span>'+esc(ev.titulo)+'</span>'+
+         (ev.responsavel?'<span class="sr">· '+esc(ev.responsavel)+'</span>':'')+'</div>';
+    });
+  });
+  if(!tem)h+='<div style="font-size:13px;color:var(--gray)">Nenhuma ação programada para esta semana.</div>';
+  h+='</div>';
+  return h;
+}
+
+function agdFormEvento(){
+  var ev=AGD.edit.id?AGD.eventos.find(function(x){return x.id===AGD.edit.id;}):null;
+  var g=function(k,d){return ev&&ev[k]!=null?ev[k]:(AGD.edit[k]!=null?AGD.edit[k]:d);};
+  var cats=AGD.cats.filter(function(c){return c.ativa||(ev&&ev.categoria_id===c.id);});
+  var h='<div class="agform" id="agf">'+
+    '<div class="full"><label>Título da ação</label><input id="ag_titulo" value="'+esc(g('titulo',''))+'" placeholder="Ex.: Aula aberta de espanhol, Blitz na feira da Taquara..."></div>'+
+    '<div><label>Categoria</label><select id="ag_cat">'+
+      cats.map(function(c){return '<option value="'+c.id+'"'+(g('categoria_id','')===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Responsável</label><select id="ag_resp">'+
+      '<option value="">— sem responsável —</option>'+
+      RESP.map(function(r){return '<option value="'+esc(r)+'"'+(g('responsavel','')===r?' selected':'')+'>'+esc(r)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Data</label><input id="ag_data" type="date" value="'+esc(g('data',hojeISO()))+'"></div>'+
+    '<div class="row"><div style="flex:1"><label>Início</label><input id="ag_hi" type="time" value="'+esc(agdH(g('hora_inicio','')))+'"></div>'+
+      '<div style="flex:1"><label>Fim</label><input id="ag_hf" type="time" value="'+esc(agdH(g('hora_fim','')))+'"></div></div>'+
+    '<div class="full"><label>Descrição (opcional)</label><textarea id="ag_desc">'+esc(g('descricao',''))+'</textarea></div>'+
+    '<div class="full row"><button class="btn primary" id="ag_save">Salvar</button>'+
+      (ev?'<button class="btn danger" id="ag_del">Excluir</button>':'')+
+      '<button class="btn" id="ag_cancel">Cancelar</button></div>'+
+  '</div>';
+  return h;
+}
+
+function agdDetalhe(){
+  var ev=AGD.eventos.find(function(x){return x.id===AGD.det;});
+  if(!ev)return '';
+  var c=agdCat(ev.categoria_id);
+  return '<div class="agdet">'+
+    '<h3><span class="ldot2" style="background:'+esc(c?c.cor:'#5A5A5A')+';display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px"></span>'+esc(ev.titulo)+'</h3>'+
+    '<div class="dl"><b>Categoria</b>'+esc(c?c.nome:'—')+'</div>'+
+    '<div class="dl"><b>Data</b>'+brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):'')+'</div>'+
+    (ev.responsavel?'<div class="dl"><b>Responsável</b>'+esc(ev.responsavel)+'</div>':'')+
+    (ev.descricao?'<div class="dl"><b>Descrição</b>'+esc(ev.descricao)+'</div>':'')+
+    '<div class="row" style="margin-top:8px;display:flex;gap:8px">'+
+      (isAdmin()?'<button class="btn" id="agdEdit">Editar</button>':'')+
+      '<button class="btn" id="agdClose">Fechar</button></div>'+
+  '</div>';
+}
+
+function agdFormCats(){
+  var cfg=AGD.cfg||{};
+  var h='<div class="agform" id="agcats"><div class="full"><label>Categorias</label>';
+  AGD.cats.forEach(function(c){
+    h+='<div class="agcatrow" data-c="'+c.id+'">'+
+      '<input type="color" value="'+esc(c.cor)+'" data-k="cor">'+
+      '<input type="text" value="'+esc(c.nome)+'" data-k="nome">'+
+      '<label style="margin:0;font-size:12px;text-transform:none"><input type="checkbox" data-k="ativa"'+(c.ativa?' checked':'')+'> ativa</label>'+
+      '<button class="btn" data-savec="'+c.id+'">Salvar</button></div>';
+  });
+  h+='<div class="agcatrow"><input type="color" id="agnc_cor" value="#7A3E9D">'+
+     '<input type="text" id="agnc_nome" placeholder="Nova categoria...">'+
+     '<span></span><button class="btn primary" id="agnc_add">+ Adicionar</button></div></div>';
+  h+='<div class="full"><label>Ponte com o Google Agenda (Apps Script)</label>'+
+     ''+
+     '<input id="ag_gasurl" placeholder="URL do web app do Apps Script (https://script.google.com/macros/s/.../exec)" value="'+esc(cfg.gas_url||'')+'" style="margin-bottom:6px">'+
+     '<input id="ag_gastoken" placeholder="Token secreto (o mesmo definido no script)" value="'+esc(cfg.gas_token||'')+'">'+
+     '<div style="font-size:11px;color:var(--gray);margin-top:4px">Deixe em branco para usar o calendário só no CRM, sem sincronizar com o Google.</div></div>'+
+     '<div class="full row"><button class="btn primary" id="ag_savecfg">Salvar configuração</button>'+
+     '<button class="btn" id="ag_closecats">Fechar</button></div>';
+  h+='</div>';
+  return h;
+}
+
+function agdWire(){
+  var adm=isAdmin();
+  var b;
+  if(b=$('agPrev'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,-1);renderCalendario();};
+  if(b=$('agNext'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,1);renderCalendario();};
+  if(b=$('agHoje'))b.onclick=function(){AGD.mes=hojeISO().slice(0,7);renderCalendario();};
+  if(b=$('agNovo'))b.onclick=function(){AGD.det=null;AGD.catEdit=false;AGD.edit={data:hojeISO()};renderCalendario();window.scrollTo(0,0);};
+  if(b=$('agCats'))b.onclick=function(){AGD.det=null;AGD.edit=null;AGD.catEdit=!AGD.catEdit;renderCalendario();window.scrollTo(0,0);};
+  document.querySelectorAll('.agev').forEach(function(el){
+    el.onclick=function(e){
+      e.stopPropagation();
+      AGD.catEdit=false;
+      if(adm){AGD.det=null;AGD.edit={id:el.dataset.ev};}
+      else{AGD.edit=null;AGD.det=el.dataset.ev;}
+      renderCalendario();window.scrollTo(0,0);
+    };
+  });
+  if(adm)document.querySelectorAll('.agcell.clik').forEach(function(el){
+    el.onclick=function(){AGD.det=null;AGD.catEdit=false;AGD.edit={data:el.dataset.d};renderCalendario();window.scrollTo(0,0);};
+  });
+  if(b=$('agdClose'))b.onclick=function(){AGD.det=null;renderCalendario();};
+  if(b=$('agdEdit'))b.onclick=function(){AGD.edit={id:AGD.det};AGD.det=null;renderCalendario();};
+  if(b=$('ag_cancel'))b.onclick=function(){AGD.edit=null;renderCalendario();};
+  if(b=$('ag_save'))b.onclick=agdSalvar;
+  if(b=$('ag_del'))b.onclick=agdExcluir;
+  if(b=$('ag_closecats'))b.onclick=function(){AGD.catEdit=false;renderCalendario();};
+  if(b=$('ag_savecfg'))b.onclick=agdSalvarCfg;
+  if(b=$('agnc_add'))b.onclick=agdAddCat;
+  document.querySelectorAll('[data-savec]').forEach(function(bt){bt.onclick=function(){agdSalvarCat(bt.dataset.savec);};});
+}
+
+function agdAddMes(ym,n){
+  var p=ym.split('-'),y=+p[0],m=+p[1]-1+n;
+  y+=Math.floor(m/12);m=((m%12)+12)%12;
+  return y+'-'+String(m+1).padStart(2,'0');
+}
+
+async function agdSalvar(){
+  if(!isAdmin())return;
+  var titulo=$('ag_titulo').value.trim();
+  var data=$('ag_data').value;
+  if(!titulo){toast('Dê um título para a ação.');return;}
+  if(!data){toast('Escolha a data.');return;}
+  var hi=$('ag_hi').value,hf=$('ag_hf').value;
+  if(hi&&hf&&hf<hi){toast('O horário de fim precisa ser depois do início.');return;}
+  var body={titulo:titulo,descricao:$('ag_desc').value.trim()||null,categoria_id:$('ag_cat').value||null,
+    data:data,hora_inicio:hi||null,hora_fim:hf||null,responsavel:$('ag_resp').value||null,
+    atualizado_em:new Date().toISOString(),gcal_sync:'pendente'};
+  $('ag_save').disabled=true;
+  var salvo;
+  try{
+    if(AGD.edit&&AGD.edit.id){
+      var r=await api('/crm_agenda_eventos?id=eq.'+AGD.edit.id,{method:'PATCH',body:JSON.stringify(body)});
+      salvo=r&&r[0];
+    }else{
+      body.criado_por=currentUser;
+      var r2=await api('/crm_agenda_eventos',{method:'POST',body:JSON.stringify(body)});
+      salvo=r2&&r2[0];
+    }
+  }catch(e){toast('Erro ao salvar: '+e.message);$('ag_save').disabled=false;return;}
+  toast('Evento salvo.');
+  AGD.edit=null;
+  await openCalendario();
+  if(salvo)agdSyncEvento(salvo,'upsert');
+}
+
+async function agdExcluir(){
+  if(!isAdmin()||!AGD.edit||!AGD.edit.id)return;
+  if(!confirm('Excluir este evento do calendário?'))return;
+  var ev=AGD.eventos.find(function(x){return x.id===AGD.edit.id;});
+  try{
+    await api('/crm_agenda_eventos?id=eq.'+AGD.edit.id,{method:'DELETE'});
+  }catch(e){toast('Erro ao excluir: '+e.message);return;}
+  toast('Evento excluído.');
+  AGD.edit=null;
+  if(ev&&ev.gcal_id)agdSyncEvento(ev,'delete');
+  openCalendario();
+}
+
+async function agdSalvarCat(id){
+  var row=document.querySelector('.agcatrow[data-c="'+id+'"]');
+  if(!row)return;
+  var body={nome:row.querySelector('[data-k=nome]').value.trim(),
+    cor:row.querySelector('[data-k=cor]').value,
+    ativa:row.querySelector('[data-k=ativa]').checked};
+  if(!body.nome){toast('A categoria precisa de nome.');return;}
+  try{await api('/crm_agenda_categorias?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});}
+  catch(e){toast('Erro: '+e.message);return;}
+  toast('Categoria atualizada.');
+  openCalendario().then(function(){AGD.catEdit=true;renderCalendario();});
+}
+
+async function agdAddCat(){
+  var nome=$('agnc_nome').value.trim();
+  if(!nome){toast('Digite o nome da categoria.');return;}
+  try{
+    await api('/crm_agenda_categorias',{method:'POST',body:JSON.stringify({nome:nome,cor:$('agnc_cor').value,ordem:AGD.cats.length+1})});
+  }catch(e){toast('Erro: '+e.message);return;}
+  toast('Categoria criada.');
+  openCalendario().then(function(){AGD.catEdit=true;renderCalendario();});
+}
+
+async function agdSalvarCfg(){
+  var body={gas_url:$('ag_gasurl').value.trim()||null,gas_token:$('ag_gastoken').value.trim()||null};
+  try{await api('/crm_agenda_config?id=eq.1',{method:'PATCH',body:JSON.stringify(body)});}
+  catch(e){toast('Erro: '+e.message);return;}
+  if(AGD.cfg){AGD.cfg.gas_url=body.gas_url;AGD.cfg.gas_token=body.gas_token;}
+  toast('Configuração salva.');
+}
+
+async function agdSyncEvento(ev,acao){
+  var cfg=AGD.cfg;
+  if(!cfg||!cfg.gas_url||!cfg.gas_token){
+    if(acao!=='delete'){try{await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify({gcal_sync:'off'})});}catch(e){}}
+    return;
+  }
+  try{
+    var c=agdCat(ev.categoria_id);
+    var r=await fetch(cfg.gas_url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',
+      body:JSON.stringify({token:cfg.gas_token,acao:acao,gcal_id:ev.gcal_id||'',evento:{
+        id:ev.id,titulo:ev.titulo,descricao:ev.descricao||'',data:ev.data,
+        hora_inicio:agdH(ev.hora_inicio),hora_fim:agdH(ev.hora_fim),
+        responsavel:ev.responsavel||'',categoria:c?c.nome:''}})});
+    var j=await r.json();
+    if(acao==='delete')return;
+    if(j&&j.ok){
+      await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify({gcal_id:j.gcal_id||ev.gcal_id,gcal_sync:'ok'})});
+      var local=AGD.eventos.find(function(x){return x.id===ev.id;});
+      if(local){local.gcal_id=j.gcal_id||ev.gcal_id;local.gcal_sync='ok';}
+    }else throw new Error((j&&j.erro)||'resposta inválida do script');
+  }catch(e){
+    if(acao!=='delete'){try{await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify({gcal_sync:'erro'})});}catch(_e){}}
+    toast('Evento salvo no CRM, mas a sincronização com o Google falhou.');
+  }
 }
 
 </script>
