@@ -67,6 +67,13 @@ header{background:var(--white);border-bottom:3px solid var(--red);padding:12px 2
 .shead .logoImg{width:86px}
 .shead .ssub{font-family:var(--display);font-weight:600;font-size:11px;color:var(--blue);white-space:nowrap}
 .snav{flex:1;min-height:0;overflow-y:auto;padding:6px 0 10px}
+.permgrp{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
+.permgrp:first-child{margin-top:0}
+.permrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.permrow:last-child{border-bottom:none}
+.permrow .pn{flex:1 1 auto;font-size:13px}
+.permrow select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--white);color:var(--ink)}
+.papelsel{border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12px;background:var(--white);color:var(--ink)}
 .sgroup{border-bottom:1px solid var(--line)}
 .sgroup:last-child{border-bottom:none}
 .sgh{display:flex;align-items:center;width:100%;gap:8px;background:none;border:none;text-align:left;
@@ -1187,6 +1194,21 @@ input[type=date].dvazio{color:#C9C9CE}
     </div>
     <div class="mbody" id="agmbody"></div>
     <div class="mfoot" id="agmfoot"></div>
+  </div>
+</div>
+
+<div class="ov" id="pov">
+  <div class="modal" style="max-width:640px">
+    <div class="mhead">
+      <h2 id="pmtitle">Permiss&otilde;es</h2>
+      <div class="msub" id="pmsub"></div>
+      <button class="mx" id="pmx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody" id="pmbody"></div>
+    <div class="mfoot">
+      <button class="btn primary" id="pmsave">Salvar</button>
+      <button class="btn" id="pmcancel">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -3206,6 +3228,7 @@ async function waFilaDescartar(id){
 
 /* ================= Tabs e usuário ================= */
 function setTab(t){
+  if(!tabLiberada(t))t=primeiraTabPermitida();
   tab=t;filters=emptyFilters();$('q').value='';$('fpanel').classList.remove('open');
   document.querySelectorAll('#snav a[data-t]').forEach(function(a){a.classList.toggle('on',a.dataset.t===t);});
   abrirGrupo(NAVGRP[t]);
@@ -3363,6 +3386,7 @@ async function loadUsers(){
   RESP=USERS.map(function(u){return u.nome;});
   RESPC={};
   USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
+  await loadPerms();
 }
 
 function showLogin(){
@@ -3501,7 +3525,7 @@ async function loadAlerts(){
   }
   try{
     const qs='status=eq.pendente&data_prevista=lte.'+limitePV
-      +(PVTODOS&&isAdmin()?'':'&responsavel=eq.'+encodeURIComponent(currentUser))
+      +(PVTODOS&&veTodaEquipe()?'':'&responsavel=eq.'+encodeURIComponent(currentUser))
       +'&order=data_prevista.asc';
     var tr=null,emb=true;
     try{ tr=await api('/crm_tarefas?select=*,crm_leads(nome,whatsapp,etapa)&'+qs); }
@@ -3612,7 +3636,7 @@ function openAlerts(){
     html+='<div class="aggrp '+g[2]+'"><h4>'+g[1]+' <span>'+arr.length+'</span></h4>'+arr.map(agItem).join('')+'</div>';
   });
   if(!html)html='<div class="empty">Nenhum contato agendado para os próximos dias.</div>';
-  if(isAdmin()){
+  if(veTodaEquipe()){
     html='<label class="pvtoggle"><input type="checkbox" id="pvall"'+(PVTODOS?' checked':'')+'> '
       +'Mostrar o pós-venda de toda a equipe</label>'+html;
   }
@@ -3658,9 +3682,149 @@ $('aclose').onclick=closeAlerts;
 $('aok').onclick=closeAlerts;
 $('aov').onclick=function(e){if(e.target===$('aov'))closeAlerts();};
 
+/* ================= Papeis e permissoes por modulo ================= */
+var PAPEIS=[['secretaria','Secretaria'],['comercial','Comercial'],['pedagogico','Pedag\u00f3gico'],['coordenacao','Coordena\u00e7\u00e3o'],['admin','Admin']];
+var PERMNIVEIS=[['nenhum','Sem acesso'],['ver','Ver'],['editar','Editar'],['total','Total']];
+var NIVORD={nenhum:0,ver:1,editar:2,total:3};
+var MODULOS=[];
+var PAPELPERM={};
+var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',conversas:'conversas',
+  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',relatorios:'rel_meudia',equipe:'equipe'};
+
+async function loadPerms(){
+  try{
+    var m=await api('/crm_modulos?select=*&order=ordem.asc');
+    var r=await api('/crm_papel_permissoes?select=papel,modulo,nivel');
+    MODULOS=m||[];
+    PAPELPERM={};
+    (r||[]).forEach(function(x){
+      if(!PAPELPERM[x.papel])PAPELPERM[x.papel]={};
+      PAPELPERM[x.papel][x.modulo]=x.nivel;
+    });
+  }catch(e){}
+}
+function meuUser(){return USERS.find(function(x){return x.nome===currentUser;})||null;}
+function papelDe(u){return (u&&u.papel)||(u&&u.admin?'admin':'comercial');}
+function labelPapel(p){var f=PAPEIS.find(function(x){return x[0]===p;});return f?f[1]:p;}
+function nivelDe(mod,user){
+  var u=user||meuUser();
+  if(!u)return 'nenhum';
+  var ex=u.permissoes&&u.permissoes[mod];
+  if(ex)return ex;
+  var pp=PAPELPERM[papelDe(u)];
+  if(pp&&pp[mod])return pp[mod];
+  return u.admin?'total':'nenhum';
+}
+function pode(mod,min){return NIVORD[nivelDe(mod)]>=NIVORD[min||'ver'];}
+function podeVer(mod){return pode(mod,'ver');}
+function podeEditar(mod){return pode(mod,'editar');}
+function podeTotal(mod){return pode(mod,'total');}
+/* quem enxerga o dia e o pos-venda de toda a equipe, nao so o proprio */
+function veTodaEquipe(){return pode('rel_meudia','total');}
+function tabLiberada(t){
+  var m=NAVMOD[t];
+  if(!m)return true;
+  if(t==='relatorios')return podeVer('rel_meudia')||podeVer('rel_funil');
+  return podeVer(m);
+}
+function primeiraTabPermitida(){
+  var ordem=['inicio','leads','turmas','calendario','mural','conversas','calc','relatorios','escolas','empresas','equipe'];
+  for(var i=0;i<ordem.length;i++){if(tabLiberada(ordem[i]))return ordem[i];}
+  return 'inicio';
+}
+function aplicarPermsNav(){
+  document.querySelectorAll('#snav a[data-t]').forEach(function(a){
+    a.style.display=tabLiberada(a.dataset.t)?'':'none';
+  });
+  document.querySelectorAll('#snav .sgroup').forEach(function(g){
+    var vis=Array.prototype.slice.call(g.querySelectorAll('a[data-t]')).some(function(a){return a.style.display!=='none';});
+    g.style.display=vis?'':'none';
+  });
+}
+
+/* ---- modal de permissoes (usuario ou padrao do papel) ---- */
+var PMODO=null;
+function permAbre(){$('pov').classList.add('open');document.body.classList.add('modal-open');}
+function permFecha(){$('pov').classList.remove('open');document.body.classList.remove('modal-open');PMODO=null;}
+function modsPorGrupo(){
+  var out=[],map={};
+  MODULOS.forEach(function(m){
+    if(!map[m.grupo]){map[m.grupo]=[];out.push([m.grupo,map[m.grupo]]);}
+    map[m.grupo].push(m);
+  });
+  return out;
+}
+function permCorpo(valorDe,comPadrao){
+  if(!MODULOS.length)return '<div class="empty">Nenhum m\u00f3dulo cadastrado.</div>';
+  return modsPorGrupo().map(function(g){
+    return '<div class="permgrp">'+esc(g[0])+'</div>'+g[1].map(function(m){
+      var v=valorDe(m.modulo);
+      return '<div class="permrow"><span class="pn">'+esc(m.nome)+'</span>'+
+        '<select data-m="'+esc(m.modulo)+'">'+
+        (comPadrao?'<option value="">Padr\u00e3o do papel</option>':'')+
+        PERMNIVEIS.map(function(n){
+          return '<option value="'+n[0]+'"'+(v===n[0]?' selected':'')+'>'+n[1]+'</option>';
+        }).join('')+
+        '</select></div>';
+    }).join('');
+  }).join('');
+}
+function abrirPermUsuario(u){
+  PMODO={tipo:'usuario',user:u};
+  var ex=u.permissoes||{};
+  $('pmtitle').textContent='Permiss\u00f5es de '+u.nome;
+  $('pmsub').textContent='Papel: '+labelPapel(papelDe(u))+'. Deixe em "Padr\u00e3o do papel" tudo que n\u00e3o for exce\u00e7\u00e3o dessa pessoa.';
+  $('pmbody').innerHTML=permCorpo(function(mod){return ex[mod]||'';},true);
+  permAbre();
+}
+function abrirPermPapel(p){
+  PMODO={tipo:'papel',papel:p};
+  var pp=PAPELPERM[p]||{};
+  $('pmtitle').textContent='Padr\u00e3o do papel: '+labelPapel(p);
+  $('pmsub').textContent='Vale para todo mundo desse papel, menos quem tiver exce\u00e7\u00e3o pr\u00f3pria.';
+  $('pmbody').innerHTML=permCorpo(function(mod){return pp[mod]||'nenhum';},false);
+  permAbre();
+}
+async function permSalvar(){
+  if(!PMODO)return;
+  var bt=$('pmsave');
+  bt.disabled=true;
+  var vals={};
+  $('pmbody').querySelectorAll('select[data-m]').forEach(function(sel){
+    if(sel.value)vals[sel.dataset.m]=sel.value;
+  });
+  try{
+    if(PMODO.tipo==='usuario'){
+      await api('/crm_usuarios?id=eq.'+PMODO.user.id,{method:'PATCH',body:JSON.stringify({permissoes:vals})});
+      toast('Permiss\u00f5es de '+PMODO.user.nome+' salvas.');
+    }else{
+      var linhas=MODULOS.map(function(m){
+        return {papel:PMODO.papel,modulo:m.modulo,nivel:vals[m.modulo]||'nenhum'};
+      });
+      await api('/crm_papel_permissoes?on_conflict=papel,modulo',{
+        method:'POST',
+        headers:{'Prefer':'resolution=merge-duplicates,return=representation'},
+        body:JSON.stringify(linhas)
+      });
+      toast('Padr\u00e3o de '+labelPapel(PMODO.papel)+' salvo.');
+    }
+    await loadUsers();
+    permFecha();
+    aplicarPermsNav();
+    openTeam();
+  }catch(e){
+    toast('N\u00e3o foi poss\u00edvel salvar as permiss\u00f5es.');
+  }
+  bt.disabled=false;
+}
+$('pmsave').onclick=permSalvar;
+$('pmcancel').onclick=permFecha;
+$('pmx').onclick=permFecha;
+$('pov').onclick=function(e){if(e.target===$('pov'))permFecha();};
+
 function isAdmin(){
   const u=USERS.find(function(x){return x.nome===currentUser;});
-  return !!(u&&u.admin);
+  return !!(u&&(u.admin||u.papel==='admin'));
 }
 function entrar(){
   somUnlock();pedeNotif();
@@ -3668,8 +3832,8 @@ function entrar(){
   $('unome').textContent=currentUser;
   $('uav').textContent=currentUser[0];
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
-  $('tabEquipe').style.display=isAdmin()?'':'none';
-  setTab('inicio');
+  aplicarPermsNav();
+  setTab(tabLiberada('inicio')?'inicio':primeiraTabPermitida());
   loadAlerts().then(function(){
     if(tab==='inicio')renderInicio();
   });
@@ -4406,7 +4570,7 @@ function consultoresLista(){
   return t.length?t:USERS;
 }
 function diaConsultor(){
-  if(!isAdmin())return currentUser;
+  if(!veTodaEquipe())return currentUser;
   if(window._dcons&&USERS.some(function(u){return u.nome===window._dcons;}))return window._dcons;
   if(USERS.some(function(u){return u.nome===currentUser;}))return currentUser;
   const c=consultoresLista()[0];
@@ -4525,16 +4689,16 @@ function renderMeuDia(){
   }
   const cons=USERS.filter(function(u){return u.consultor;});
   const outros=USERS.filter(function(u){return !u.consultor;});
-  const selCons=isAdmin()
+  const selCons=veTodaEquipe()
     ? '<select id="dcons" class="dctl">'+
         (cons.length?'<optgroup label="Consultores">'+optsDe(cons)+'</optgroup>':'')+
         (outros.length?'<optgroup label="Outros da equipe">'+optsDe(outros)+'</optgroup>':'')+
       '</select>'+
-      '<button class="dctl" id="dcfg" title="Editar consultores">Consultores</button>'
+      (podeTotal('equipe')?'<button class="dctl" id="dcfg" title="Editar consultores">Consultores</button>':'')
     : '';
 
   let editor='';
-  if(isAdmin()&&window._dedit){
+  if(podeTotal('equipe')&&window._dedit){
     editor='<div class="cedit"><h3>Quem é consultor e qual a jornada</h3>'+
       USERS.map(function(u){
         return '<div class="cerow" data-u="'+esc(u.id)+'">'+
@@ -4967,7 +5131,7 @@ async function openMural(){
 }
 
 function renderMural(){
-  const adm=isAdmin();
+  const adm=podeEditar('mural');
   const avisos=MURAL.avisos.filter(function(a){return adm||vigente(a);});
   const q=faqQ.trim().toLowerCase();
   const faq=MURAL.faq.filter(function(f){
@@ -5339,8 +5503,8 @@ function resultadoHTML(R){
        : '')+
      '</div>';
 
-  /* mensagem que vai para o cliente. so admin edita. */
-  const adm=isAdmin();
+  /* mensagem que vai para o cliente. so quem tem Total na Calculadora edita. */
+  const adm=podeTotal('calc');
   const msgTxt=(adm&&CALCMSG.override!=null)?CALCMSG.override:propostaTexto(R);
   h+='<div class="cmsg'+(adm?'':' trava')+'"><h5>Mensagem que vai ser copiada</h5>'+
      '<textarea id="c_txt" spellcheck="false"'+(adm?'':' readonly')+'>'+esc(msgTxt)+'</textarea>'+
@@ -5408,7 +5572,7 @@ function renderCalc(){
      '<div id="cresult">'+resultadoHTML(R)+'</div></div>';
 
   /* ---------- MODELO DA MENSAGEM (admin) ---------- */
-  if(CALCMSG.editando&&isAdmin()){
+  if(CALCMSG.editando&&podeTotal('calc')){
     const vars=CALC_VARS.map(function(v){return '<code>{'+v+'}</code>';}).join(' ');
     const blocos=CALC_BLOCOS.map(function(b){return '<code>['+b+']</code>';}).join(' ');
     h+='<div class="rcard ctplcard"><div class="paneh"><h3>Modelo da mensagem \u00b7 vale para toda a equipe</h3></div>'+
@@ -5534,19 +5698,19 @@ function wireResultado(){
   if($('c_reset'))$('c_reset').onclick=function(){CALC.d1=0;CALC.d2=0;CALC.dm1=0;CALC.dm2=0;CALCMSG.override=null;renderCalc();};
 
   const ta=$('c_txt');
-  if(ta&&isAdmin())ta.oninput=function(e){CALCMSG.override=e.target.value;};
+  if(ta&&podeTotal('calc'))ta.oninput=function(e){CALCMSG.override=e.target.value;};
 
   if($('c_regen'))$('c_regen').onclick=function(){CALCMSG.override=null;atualizaResultado();};
 
   if($('c_tpl_open'))$('c_tpl_open').onclick=function(){
-    if(!isAdmin())return;
+    if(!podeTotal('calc'))return;
     CALCMSG.editando=true;CALCMSG.draft=tplAtual();renderCalc();
     const t=$('c_tpl');if(t)t.focus();
   };
 
   if($('c_copy'))$('c_copy').onclick=function(){
     const box=$('c_txt');
-    const txt=(isAdmin()&&box)?box.value:propostaTexto(calcular());
+    const txt=(podeTotal('calc')&&box)?box.value:propostaTexto(calcular());
     const done=function(){const m=$('c_msg');if(m){m.textContent='Copiado ✓';setTimeout(function(){if($('c_msg'))$('c_msg').textContent='';},2200);}};
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(done).catch(function(){fallbackCopy(txt);done();});
@@ -5567,7 +5731,7 @@ function wireTpl(){
   };
 
   if($('c_tpl_save'))$('c_tpl_save').onclick=async function(){
-    if(!isAdmin())return;
+    if(!podeTotal('calc'))return;
     const b=$('c_tpl_save');b.disabled=true;b.textContent='Salvando...';
     const novo=String(CALCMSG.draft==null?tplAtual():CALCMSG.draft).trim();
     try{
@@ -5596,56 +5760,94 @@ function fallbackCopy(txt){
 
 /* ================= Equipe (admin) ================= */
 async function openTeam(){
-  if(!isAdmin()){setTab('escolas');return;}
+  if(!podeTotal('equipe')){setTab(primeiraTabPermitida());return;}
   $('stats').innerHTML='';
   const board=$('board');
   board.innerHTML='<div class="loading">Carregando equipe...</div>';
   let users;
   try{
+    await loadPerms();
     users=await api('/crm_usuarios?select=*&order=nome.asc');
   }catch(e){
-    board.innerHTML='<div class="loading">Não foi possível carregar a equipe.</div>';return;
+    board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
   board.innerHTML='<div class="eq">'+
-    '<div class="rcard"><h3>Equipe · quem acessa o CRM</h3><div id="eqlist">'+
+    '<div class="rcard"><h3>Equipe \u00b7 quem acessa o CRM</h3><div id="eqlist">'+
     users.map(function(u){
+      const ex=Object.keys(u.permissoes||{}).length;
       return '<div class="eqrow'+(u.ativo?'':' inativo')+'" data-id="'+u.id+'">'+
         '<span class="avatar" style="background:'+(u.cor||'#5A5A5A')+'">'+esc(u.nome[0])+'</span>'+
         '<span class="en">'+esc(u.nome)+'</span>'+
-        (u.admin?'<span class="badge">Admin</span>':'')+
+        '<select class="papelsel" data-a="papel" title="Papel de '+esc(u.nome)+'">'+
+          PAPEIS.map(function(p){
+            return '<option value="'+p[0]+'"'+(papelDe(u)===p[0]?' selected':'')+'>'+p[1]+'</option>';
+          }).join('')+
+        '</select>'+
+        (ex?'<span class="badge">'+ex+' exce\u00e7'+(ex>1?'\u00f5es':'\u00e3o')+'</span>':'')+
         (u.ativo?'':'<span class="badge off">Inativo</span>')+
         '<span class="ebtns">'+
+          '<button class="btn" data-a="perm">Permiss\u00f5es</button>'+
           '<button class="btn" data-a="pin">Trocar PIN</button>'+
           '<button class="btn" data-a="cor">Cor</button>'+
-          (u.nome!==currentUser?'<button class="btn" data-a="admin">'+(u.admin?'Tirar admin':'Tornar admin')+'</button>':'')+
           (u.nome!==currentUser?'<button class="btn" data-a="ativo">'+(u.ativo?'Desativar':'Reativar')+'</button>':'')+
         '</span>'+
         '<input type="color" data-a="corpick" value="'+(u.cor||'#5A5A5A')+'" style="position:absolute;opacity:0;width:1px;height:1px;border:0;padding:0">'+
       '</div>';
     }).join('')+
     '</div></div>'+
+    '<div class="rcard"><h3>Permiss\u00f5es padr\u00e3o por papel</h3>'+
+      '<div class="eqform">'+
+        PAPEIS.map(function(p){return '<button class="btn" data-papel="'+p[0]+'">'+p[1]+'</button>';}).join('')+
+      '</div>'+
+      '<p class="eqnote">O papel define o pacote padr\u00e3o de cada pessoa, m\u00f3dulo por m\u00f3dulo: <b>Sem acesso</b> some do menu, <b>Ver</b> s\u00f3 consulta, <b>Editar</b> cria e altera, <b>Total</b> inclui excluir e configurar. Mudar o padr\u00e3o aqui vale para todo mundo do papel; para abrir uma exce\u00e7\u00e3o s\u00f3 para uma pessoa, use o bot\u00e3o <b>Permiss\u00f5es</b> na linha dela.</p>'+
+    '</div>'+
     '<div class="rcard"><h3>Adicionar pessoa</h3>'+
       '<div class="eqform">'+
         '<input type="text" id="nun" placeholder="Nome">'+
         '<input type="password" id="nup" inputmode="numeric" maxlength="8" placeholder="PIN">'+
+        '<select id="nupap" class="papelsel">'+
+          PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+        '</select>'+
         '<input type="color" id="nuc" value="#1E7A46">'+
-        '<button class="btn primary" id="nuok">Adicionar à equipe</button>'+
+        '<button class="btn primary" id="nuok">Adicionar \u00e0 equipe</button>'+
       '</div>'+
-      '<p class="eqnote">O nome é a assinatura da pessoa nos registros e não pode ser alterado depois (pra não descasar do histórico). Quem sai da equipe deve ser <b>desativado</b>, não excluído: o histórico continua no nome dela, mas o acesso é bloqueado na hora. Todas as ações aqui gravam direto no banco.</p>'+
+      '<p class="eqnote">O nome \u00e9 a assinatura da pessoa nos registros e n\u00e3o pode ser alterado depois (pra n\u00e3o descasar do hist\u00f3rico). Quem sai da equipe deve ser <b>desativado</b>, n\u00e3o exclu\u00eddo: o hist\u00f3rico continua no nome dela, mas o acesso \u00e9 bloqueado na hora. Todas as a\u00e7\u00f5es aqui gravam direto no banco.</p>'+
     '</div>'+
   '</div>';
 
   const list=board.querySelector('#eqlist');
   users.forEach(function(u){
     const row=list.querySelector('[data-id="'+u.id+'"]');
+    const sel=row.querySelector('select[data-a="papel"]');
+    sel.onchange=async function(){
+      const novo=sel.value, antigo=papelDe(u);
+      if(u.nome===currentUser&&novo!=='admin'&&
+         !window.confirm('Voc\u00ea est\u00e1 mudando o seu pr\u00f3prio papel para '+labelPapel(novo)+'. Voc\u00ea perde o acesso a esta tela na hora. Confirmar?')){
+        sel.value=antigo;return;
+      }
+      sel.disabled=true;
+      try{
+        await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({papel:novo,admin:novo==='admin'})});
+        await loadUsers();
+        toast(u.nome+' agora \u00e9 '+labelPapel(novo)+'.');
+        aplicarPermsNav();
+        if(!podeTotal('equipe')){setTab(primeiraTabPermitida());return;}
+        openTeam();
+      }catch(e){
+        sel.disabled=false;sel.value=antigo;
+        toast('N\u00e3o foi poss\u00edvel salvar o papel.');
+      }
+    };
     row.querySelectorAll('button').forEach(function(b){
       b.onclick=async function(){
         const a=b.dataset.a;
         try{
-          if(a==='pin'){
-            const pin=window.prompt('Novo PIN de '+u.nome+' (números, 4 a 8 dígitos):');
+          if(a==='perm'){
+            abrirPermUsuario(u);
+          }else if(a==='pin'){
+            const pin=window.prompt('Novo PIN de '+u.nome+' (n\u00fameros, 4 a 8 d\u00edgitos):');
             if(pin==null)return;
-            if(!/^[0-9]{4,8}$/.test(pin.trim())){toast('PIN inválido: use de 4 a 8 números.');return;}
+            if(!/^[0-9]{4,8}$/.test(pin.trim())){toast('PIN inv\u00e1lido: use de 4 a 8 n\u00fameros.');return;}
             const hash=await sha256(pin.trim());
             await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({pin_hash:hash})});
             toast('PIN de '+u.nome+' atualizado.');
@@ -5656,32 +5858,36 @@ async function openTeam(){
               await loadUsers();openTeam();
             };
             pick.click();
-          }else if(a==='admin'){
-            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({admin:!u.admin})});
-            await loadUsers();openTeam();
           }else if(a==='ativo'){
-            if(u.ativo&&!window.confirm('Desativar '+u.nome+'? A pessoa perde o acesso na hora; o histórico dela continua registrado.'))return;
+            if(u.ativo&&!window.confirm('Desativar '+u.nome+'? A pessoa perde o acesso na hora; o hist\u00f3rico dela continua registrado.'))return;
             await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({ativo:!u.ativo})});
             await loadUsers();openTeam();
           }
-        }catch(e){toast('Não foi possível salvar. Tente de novo.');}
+        }catch(e){toast('N\u00e3o foi poss\u00edvel salvar. Tente de novo.');}
       };
     });
   });
 
+  board.querySelectorAll('[data-papel]').forEach(function(bt){
+    bt.onclick=function(){abrirPermPapel(bt.dataset.papel);};
+  });
+
   board.querySelector('#nuok').onclick=async function(){
+    const btn=board.querySelector('#nuok');
     const nome=board.querySelector('#nun').value.trim();
     const pin=board.querySelector('#nup').value.trim();
     const cor=board.querySelector('#nuc').value;
+    const papel=board.querySelector('#nupap').value;
     if(!nome){toast('Digite o nome.');return;}
-    if(!/^[0-9]{4,8}$/.test(pin)){toast('PIN inválido: use de 4 a 8 números.');return;}
-    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('Já existe alguém com esse nome.');return;}
+    if(!/^[0-9]{4,8}$/.test(pin)){toast('PIN inv\u00e1lido: use de 4 a 8 n\u00fameros.');return;}
+    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('J\u00e1 existe algu\u00e9m com esse nome.');return;}
+    btn.disabled=true;
     try{
       const hash=await sha256(pin);
-      await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,pin_hash:hash,cor:cor})});
-      toast(nome+' agora faz parte da equipe.');
+      await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,pin_hash:hash,cor:cor,papel:papel,admin:papel==='admin'})});
+      toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
       await loadUsers();openTeam();
-    }catch(e){toast('Não foi possível adicionar. Tente de novo.');}
+    }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
   };
 }
 
@@ -5778,7 +5984,7 @@ function tFaixas(turmas){
 }
 
 function renderTurmas(){
-  var adm=isAdmin();
+  var adm=podeEditar('turmas');
   var lista=tFiltradas();
   var profs=[];
   TURMAS.forEach(function(t){if(t.professor&&profs.indexOf(t.professor)<0)profs.push(t.professor);});
@@ -6105,7 +6311,7 @@ async function openCalendario(){
 }
 
 function renderCalendario(){
-  var adm=isAdmin();
+  var adm=podeEditar('calendario');
   var p=AGD.mes.split('-'),ano=+p[0],mes=+p[1];
   var hoje=hojeISO();
   var h='<div class="rscreen"><div class="agwrap">';
@@ -6297,7 +6503,7 @@ function agdFillCats(){
 }
 
 function agdWire(){
-  var adm=isAdmin();
+  var adm=podeEditar('calendario');
   var b;
   if(b=$('agPrev'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,-1);renderCalendario();};
   if(b=$('agNext'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,1);renderCalendario();};
@@ -6323,7 +6529,7 @@ function agdAddMes(ym,n){
 }
 
 async function agdSalvar(){
-  if(!isAdmin())return;
+  if(!podeEditar('calendario'))return;
   var titulo=$('ag_titulo').value.trim();
   var data=$('ag_data').value;
   if(!titulo){toast('Dê um título para a ação.');return;}
@@ -6352,7 +6558,7 @@ async function agdSalvar(){
 }
 
 async function agdExcluir(){
-  if(!isAdmin()||!AGD.edit||!AGD.edit.id)return;
+  if(!podeEditar('calendario')||!AGD.edit||!AGD.edit.id)return;
   if(!confirm('Excluir este evento do calendário?'))return;
   var ev=AGD.eventos.find(function(x){return x.id===AGD.edit.id;});
   try{
