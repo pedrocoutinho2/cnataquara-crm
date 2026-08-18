@@ -1058,6 +1058,7 @@ input[type=date].dvazio{color:#C9C9CE}
   <div class="sfoot">
     <span class="avatar" id="sav" style="background:#5A5A5A">?</span>
     <b id="snome"></b>
+    <button class="btn" id="ssenha" type="button" title="Trocar minha senha">Senha</button>
     <button class="btn" id="slogout" type="button">Sair</button>
   </div>
 </aside>
@@ -1166,7 +1167,7 @@ input[type=date].dvazio{color:#C9C9CE}
     <p class="lmsg">Quem está entrando?</p>
     <div class="lusers" id="lusers"><div class="loading">Carregando equipe...</div></div>
     <div class="lpin" id="lpin" style="display:none">
-      <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN">
+      <input id="pin" type="password" autocomplete="current-password" placeholder="Senha">
       <button class="btn primary" id="entrar">Entrar</button>
     </div>
     <p class="lerr" id="lerr"></p>
@@ -3317,6 +3318,7 @@ $('sideOv').onclick=closeDrawer;
 $('sclose').onclick=closeDrawer;
 window.addEventListener('resize',sideMinLabel);
 $('slogout').onclick=function(){closeDrawer();$('logout').onclick();};
+$('ssenha').onclick=function(){closeDrawer();trocarMinhaSenha();};
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer();});
 if(safeGet('crmSideMin')==='1')document.body.classList.add('sideMin');
 restauraGrupos();
@@ -3382,7 +3384,7 @@ async function sha256(txt){
 }
 
 async function loadUsers(){
-  USERS=await api('/crm_usuarios?ativo=eq.true&select=*&order=nome.asc');
+  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   RESP=USERS.map(function(u){return u.nome;});
   RESPC={};
   USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
@@ -3405,20 +3407,47 @@ function showLogin(){
 }
 
 async function tryLogin(){
+  const bt=$('entrar');
   try{
     if(!loginSel){$('lerr').textContent='Escolha seu nome.';return;}
-    const pin=$('pin').value.trim();
-    if(!pin){$('lerr').textContent='Digite seu PIN.';return;}
-    const u=USERS.find(function(x){return x.nome===loginSel;});
-    const hash=await sha256(pin);
-    if(!hash){$('lerr').textContent='Não foi possível validar o PIN neste navegador.';return;}
-    if(!u||hash!==u.pin_hash){$('lerr').textContent='PIN incorreto.';$('pin').value='';return;}
-    currentUser=u.nome;
-    safeSet('crmAuth',u.nome);
+    const senha=$('pin').value;
+    if(!senha){$('lerr').textContent='Digite sua senha.';return;}
+    bt.disabled=true;$('lerr').textContent='';
+    const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_nome:loginSel,p_senha:senha})});
+    bt.disabled=false;
+    if(!r||!r.nome){$('lerr').textContent='Senha incorreta.';$('pin').value='';$('pin').focus();return;}
+    currentUser=r.nome;
+    safeSet('crmAuth',r.nome);
+    $('pin').value='';
     entrar();
   }catch(e){
+    bt.disabled=false;
     $('lerr').textContent='Erro ao entrar: '+(e&&e.message?e.message:e);
   }
+}
+
+/* ---- senha: regra unica usada no login, na troca e no reset ---- */
+function senhaValida(v){
+  return typeof v==='string' && v.length>=8 && /[A-Za-zÀ-ÿ]/.test(v) && /[0-9]/.test(v);
+}
+const SENHAREGRA='A senha precisa ter no mínimo 8 caracteres, com pelo menos uma letra e um número.';
+
+async function trocarMinhaSenha(){
+  if(!currentUser)return;
+  const atual=window.prompt('Sua senha atual:');
+  if(atual==null)return;
+  const nova=window.prompt('Nova senha (mínimo 8 caracteres, com letra e número):');
+  if(nova==null)return;
+  if(!senhaValida(nova)){toast(SENHAREGRA);return;}
+  const conf=window.prompt('Digite a nova senha de novo para confirmar:');
+  if(conf==null)return;
+  if(conf!==nova){toast('As duas senhas não bateram. Nada foi alterado.');return;}
+  try{
+    const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
+      body:JSON.stringify({p_nome:currentUser,p_atual:atual,p_nova:nova})});
+    if(ok===true)toast('Senha alterada.');
+    else toast('A senha atual não confere. Nada foi alterado.');
+  }catch(e){toast('Não foi possível alterar a senha.');}
 }
 
 /* ================= Alerta sonoro e notificacao ================= */
@@ -5767,7 +5796,7 @@ async function openTeam(){
   let users;
   try{
     await loadPerms();
-    users=await api('/crm_usuarios?select=*&order=nome.asc');
+    users=await api('/crm_usuarios?select=id,nome,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   }catch(e){
     board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
@@ -5787,7 +5816,7 @@ async function openTeam(){
         (u.ativo?'':'<span class="badge off">Inativo</span>')+
         '<span class="ebtns">'+
           '<button class="btn" data-a="perm">Permiss\u00f5es</button>'+
-          '<button class="btn" data-a="pin">Trocar PIN</button>'+
+          '<button class="btn" data-a="senha">Redefinir senha</button>'+
           '<button class="btn" data-a="cor">Cor</button>'+
           (u.nome!==currentUser?'<button class="btn" data-a="ativo">'+(u.ativo?'Desativar':'Reativar')+'</button>':'')+
         '</span>'+
@@ -5804,7 +5833,7 @@ async function openTeam(){
     '<div class="rcard"><h3>Adicionar pessoa</h3>'+
       '<div class="eqform">'+
         '<input type="text" id="nun" placeholder="Nome">'+
-        '<input type="password" id="nup" inputmode="numeric" maxlength="8" placeholder="PIN">'+
+        '<input type="password" id="nup" autocomplete="new-password" placeholder="Senha inicial">'+
         '<select id="nupap" class="papelsel">'+
           PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
         '</select>'+
@@ -5844,13 +5873,12 @@ async function openTeam(){
         try{
           if(a==='perm'){
             abrirPermUsuario(u);
-          }else if(a==='pin'){
-            const pin=window.prompt('Novo PIN de '+u.nome+' (n\u00fameros, 4 a 8 d\u00edgitos):');
-            if(pin==null)return;
-            if(!/^[0-9]{4,8}$/.test(pin.trim())){toast('PIN inv\u00e1lido: use de 4 a 8 n\u00fameros.');return;}
-            const hash=await sha256(pin.trim());
-            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({pin_hash:hash})});
-            toast('PIN de '+u.nome+' atualizado.');
+          }else if(a==='senha'){
+            const nova=window.prompt('Nova senha de '+u.nome+' (mínimo 8 caracteres, com letra e número):');
+            if(nova==null)return;
+            if(!senhaValida(nova)){toast(SENHAREGRA);return;}
+            await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova})});
+            toast('Senha de '+u.nome+' redefinida. Peça para ela trocar no primeiro acesso.');
           }else if(a==='cor'){
             const pick=row.querySelector('[data-a=corpick]');
             pick.onchange=async function(){
@@ -5875,16 +5903,17 @@ async function openTeam(){
   board.querySelector('#nuok').onclick=async function(){
     const btn=board.querySelector('#nuok');
     const nome=board.querySelector('#nun').value.trim();
-    const pin=board.querySelector('#nup').value.trim();
+    const pin=board.querySelector('#nup').value;
     const cor=board.querySelector('#nuc').value;
     const papel=board.querySelector('#nupap').value;
     if(!nome){toast('Digite o nome.');return;}
-    if(!/^[0-9]{4,8}$/.test(pin)){toast('PIN inv\u00e1lido: use de 4 a 8 n\u00fameros.');return;}
-    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('J\u00e1 existe algu\u00e9m com esse nome.');return;}
+    if(!senhaValida(pin)){toast(SENHAREGRA);return;}
+    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('Já existe alguém com esse nome.');return;}
     btn.disabled=true;
     try{
-      const hash=await sha256(pin);
-      await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,pin_hash:hash,cor:cor,papel:papel,admin:papel==='admin'})});
+      const criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,cor:cor,papel:papel,admin:papel==='admin'})});
+      const novoId=(criado&&criado[0]&&criado[0].id)||null;
+      if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin})});
       toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
       await loadUsers();openTeam();
     }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
