@@ -7302,9 +7302,10 @@ async function ataAnalisar(){
     toast('Análise pronta. Confira antes de criar as demandas.');
     ataAbrirRevisao(j.analise);
   }catch(e){
-    toast(e.message&&e.message.indexOf('ANTHROPIC')>=0
-      ? 'A chave da IA ainda não foi configurada no Supabase.'
-      : ('Não foi possível analisar: '+e.message));
+    /* a Edge Function ja devolve mensagem pronta para chave ausente, sem credito e limite */
+    var m=e.message||'';
+    if(m.indexOf('ANTHROPIC_API_KEY')>=0)m='A chave da IA ainda não foi configurada no Supabase.';
+    toast(m||'Não foi possível analisar a ata.');
   }finally{
     ATA.busy=false;
     if($('ata_ia')){$('ata_ia').disabled=false;$('ata_ia').textContent='Analisar com IA';}
