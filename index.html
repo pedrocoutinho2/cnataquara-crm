@@ -1032,6 +1032,73 @@ input[type=date].dvazio{color:#C9C9CE}
   .agcols{grid-template-columns:1fr !important}
   .agbarra select{max-width:none;flex:1;min-width:130px}
 }
+
+/* ---- atas de reuniao e demandas ---- */
+.atawrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.atalerta{background:var(--warnBg);color:var(--warn);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600}
+.atachips{display:flex;gap:6px;flex-wrap:wrap}
+.atachip{border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:5px 13px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer;font-family:inherit}
+.atachip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.atalist{display:flex;flex-direction:column;gap:8px}
+.atacard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.atacard:hover{border-color:var(--blue);background:var(--surface)}
+.atatop{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.atatop b{flex:1;font-size:14.5px}
+.atast{border-radius:var(--r-pill);padding:2px 9px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.atast.st-r{background:var(--surface);color:var(--gray)}
+.atast.st-a{background:var(--pastelBlue);color:var(--blue)}
+.atast.st-e{background:var(--warnBg);color:var(--warn)}
+.atast.st-k{background:#E9F5EE;color:var(--ok)}
+.atast.st-x{background:var(--surface);color:var(--gray)}
+.atameta{font-size:12px;color:var(--gray)}
+.ataresumo{font-size:12.5px;color:var(--ink);margin-top:6px;line-height:1.4}
+.ataarea{width:100%;min-height:260px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;font-family:inherit;line-height:1.5;resize:vertical}
+.ataarea.sm{min-height:80px}
+.atahint{font-size:11px;color:var(--gray);margin-top:4px}
+.agpchip.aus{background:var(--surface);color:var(--gray)}
+.revtar{display:flex;flex-direction:column;gap:8px}
+.revrow{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.revrow input,.revrow select{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px;font-family:inherit}
+.revrow .revt{flex:1;min-width:190px}
+.revchk{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin:0}
+.revchk input{width:auto}
+.revtag{background:var(--warnBg);color:var(--warn);border-radius:var(--r-pill);padding:1px 8px;font-size:10.5px;font-weight:700}
+.revtag.av{background:var(--pastelRed);color:var(--redDark)}
+.revtag.ok{background:#E9F5EE;color:var(--ok)}
+.revsrc{flex-basis:100%;font-size:11.5px;color:var(--gray);font-style:italic;border-left:2px solid var(--line);padding-left:8px}
+.revdesc{flex-basis:100%;font-size:12px;color:var(--ink)}
+.revul{margin:0;padding-left:18px;font-size:13px;line-height:1.5}
+.atadoc .dl{font-size:13px;margin:3px 0}
+.atadoc .dl b{color:var(--gray);font-weight:600;font-size:12px;text-transform:uppercase;margin-right:6px}
+.atadoc h4{margin:14px 0 5px;font-size:13px;color:var(--red);text-transform:uppercase;letter-spacing:.4px}
+.atadoc p{margin:0;font-size:13.5px;line-height:1.5}
+.atapre{white-space:pre-wrap;word-break:break-word;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-family:inherit;font-size:13px;line-height:1.5;margin:0;max-height:340px;overflow:auto}
+.atasig{display:flex;flex-direction:column;gap:5px}
+.sigrow{display:flex;gap:8px;align-items:baseline;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px}
+.sigrow b{flex:1}
+.sigrow span{font-size:12px;color:var(--gray)}
+.sigrow.ok{border-color:var(--ok);background:#F3FAF6}
+.sigrow.ok span{color:var(--ok)}
+.atahash{font-size:10.5px;color:var(--gray);word-break:break-all;margin-top:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.atasignbox{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.atasignbox label{display:block;font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:4px}
+.atasignbox input{width:100%;max-width:280px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit}
+.demrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 12px;margin-bottom:7px;cursor:pointer;background:#fff}
+.demrow:hover{border-color:var(--blue);background:var(--surface)}
+.demrow.done{opacity:.55}
+.demrow.done .demn b{text-decoration:line-through}
+.demchk{width:22px;height:22px;flex:none;border:1.6px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;font-size:13px;line-height:1;color:#fff;font-family:inherit}
+.demchk.on{background:var(--ok);border-color:var(--ok)}
+.demn{flex:1;min-width:0}
+.demn b{display:block;font-size:14px}
+.demp{font-size:10.5px;font-weight:700;border-radius:var(--r-pill);padding:1px 8px;white-space:nowrap}
+.demp.pri-alta{background:var(--pastelRed);color:var(--redDark)}
+.demp.pri-media{background:var(--pastelBlue);color:var(--blue)}
+.demp.pri-baixa{background:var(--surface);color:var(--gray)}
+@media(max-width:700px){
+  .revrow .revt{min-width:100%}
+  .ataarea{min-height:220px}
+}
 </style>
 </head>
 <body>
@@ -1081,6 +1148,8 @@ input[type=date].dvazio{color:#C9C9CE}
       <a data-t="turmas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="2"/></svg><span>Turmas</span></a>
       <a data-t="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="5" width="17.2" height="15.6" rx="2.4"/><path d="M3.4 9.8h17.2"/><path d="M8.2 2.8v4M15.8 2.8v4"/></svg><span>Calend&aacute;rio</span></a>
       <a data-t="mural"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2v-6.4"/><path d="M8.4 2.8h7.2l-.9 5.4 2.9 3.2v1.2H6.4v-1.2l2.9-3.2-.9-5.4Z"/></svg><span>Mural</span></a>
+      <a data-t="atas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 2.8h8.4l5.2 5.2v13.2H6.2z"/><path d="M14.2 2.8v5.6h5.4"/><path d="M9.4 12.6h5.6M9.4 16.4h4"/></svg><span>Atas de reuni&atilde;o</span></a>
+      <a data-t="demandas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.4h10.4M9 12h10.4M9 18.6h10.4"/><path d="m3.6 5.2 1.4 1.4 2.2-2.4M3.6 11.8l1.4 1.4 2.2-2.4M3.6 18.4l1.4 1.4 2.2-2.4"/></svg><span>Demandas</span><b class="nb" id="nbDemandas">0</b></a>
       </div>
     </div>
     <div class="sgroup" id="sg_gestao">
@@ -1252,6 +1321,18 @@ input[type=date].dvazio{color:#C9C9CE}
       <button class="btn primary" id="ssalvar">Salvar e entrar</button>
       <button class="btn" id="scancelar">Sair</button>
     </div>
+  </div>
+</div>
+
+<div class="ov" id="rov">
+  <div class="modal" style="max-width:760px">
+    <div class="mhead">
+      <h2 id="rmtitle">Ata</h2>
+      <div class="msub" id="rmsub"></div>
+      <button class="mx" id="rmx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody" id="rmbody"></div>
+    <div class="mfoot" id="rmfoot"></div>
   </div>
 </div>
 
@@ -3308,7 +3389,7 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario');
+  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -3320,6 +3401,8 @@ function setTab(t){
   if(t==='turmas'){openTurmas();return;}
   if(t==='conversas'){openConversas();return;}
   if(t==='calendario'){openCalendario();return;}
+  if(t==='atas'){openAtas();return;}
+  if(t==='demandas'){openDemandas();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#snav a[data-t]').forEach(function(a){
@@ -3334,10 +3417,11 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 /* ================= Menu lateral ================= */
 const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',
   conversas:'atendimento',calc:'atendimento',
-  turmas:'operacao',calendario:'operacao',mural:'operacao',
+  turmas:'operacao',calendario:'operacao',mural:'operacao',atas:'operacao',demandas:'operacao',
   relatorios:'gestao',equipe:'gestao'};
 const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
-  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural',relatorios:'Relatórios',equipe:'Equipe'};
+  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural',
+  atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
 function salvaGrupos(){
@@ -3711,6 +3795,7 @@ async function loadAlerts(){
 
   AGITENS=itens;
   bucketAlerts();
+  loadDemBadge();
 }
 
 /* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
@@ -3765,6 +3850,19 @@ function disparaAlerta(ag,at){
       :(lista.length+' contatos esperando retorno agora'));
 }
 
+function renderDemBadge(n){
+  var b=$('nbDemandas');
+  if(!b)return;
+  b.textContent=n||0;
+  b.style.display=n?'':'none';
+}
+async function loadDemBadge(){
+  if(!currentUser||!podeVer('tarefas'))return;
+  try{
+    var r=await api('/crm_demandas?select=id&status=eq.pendente&responsavel=eq.'+encodeURIComponent(currentUser));
+    renderDemBadge((r||[]).length);
+  }catch(e){}
+}
 function renderAlertBadge(){
   const b=$('abtn'),c=$('acount');
   if(!b)return;
@@ -3850,7 +3948,8 @@ var NIVORD={nenhum:0,ver:1,editar:2,total:3};
 var MODULOS=[];
 var PAPELPERM={};
 var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',conversas:'conversas',
-  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',relatorios:'rel_meudia',equipe:'equipe'};
+  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',atas:'atas',demandas:'tarefas',
+  relatorios:'rel_meudia',equipe:'equipe'};
 
 async function loadPerms(){
   try{
@@ -3889,7 +3988,7 @@ function tabLiberada(t){
   return podeVer(m);
 }
 function primeiraTabPermitida(){
-  var ordem=['inicio','leads','turmas','calendario','mural','conversas','calc','relatorios','escolas','empresas','equipe'];
+  var ordem=['inicio','leads','turmas','calendario','atas','demandas','mural','conversas','calc','relatorios','escolas','empresas','equipe'];
   for(var i=0;i<ordem.length;i++){if(tabLiberada(ordem[i]))return ordem[i];}
   return 'inicio';
 }
@@ -6920,6 +7019,625 @@ async function agdSyncEvento(ev,acao){
 
 /* vista preferida por navegador */
 (function(){var v=safeGet('crmAgdVista');if(v&&AGDVISTAS.some(function(x){return x[0]===v;}))AGD.vista=v;})();
+
+
+/* ================= Atas de reunião ================= */
+var ATA={lista:[],dem:[],parts:[],cur:null,rev:null,filtro:'todas',autosave:null,busy:false};
+var ATATIPOS=[['equipe','Equipe'],['comercial','Comercial'],['pedagogica','Pedagógica'],['individual','1:1'],['extraordinaria','Extraordinária']];
+var ATASTS={rascunho:['Rascunho','st-r'],analisada:['Analisada','st-a'],em_assinatura:['Em assinatura','st-e'],assinada:['Assinada','st-k'],arquivada:['Arquivada','st-x']};
+var ATAPRIO=[['alta','Alta'],['media','Média'],['baixa','Baixa']];
+
+function ataTipo(t){var f=ATATIPOS.find(function(x){return x[0]===t;});return f?f[1]:t;}
+function ataVeTudo(){return podeTotal('atas');}
+function ataSouParticipante(r){return (r.participantes||[]).some(function(p){return p.nome===currentUser;});}
+function ataVisivel(r){return ataVeTudo()||ataSouParticipante(r)||r.redator===currentUser;}
+function ataAssinou(r,nome){return (r.assinaturas||[]).some(function(a){return a.nome===(nome||currentUser);});}
+function ataDevoAssinar(r){
+  return (r.participantes||[]).some(function(p){return p.nome===currentUser&&p.deve_assinar;});
+}
+function ataPlacar(r){
+  var devem=(r.participantes||[]).filter(function(p){return p.deve_assinar;}).length;
+  return {feitas:(r.assinaturas||[]).length,total:devem};
+}
+function ataDemandas(id){return ATA.dem.filter(function(d){return d.reuniao_id===id;});}
+
+async function openAtas(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando atas...</div>';
+  try{
+    var r=await Promise.all([
+      api('/crm_reunioes?select=*,participantes:crm_reuniao_participantes(nome,presente,deve_assinar),assinaturas:crm_reuniao_assinaturas(nome,assinado_em)&order=data.desc,criado_em.desc'),
+      api('/crm_demandas?select=*&order=prazo.asc.nullslast')
+    ]);
+    ATA.lista=r[0]||[];ATA.dem=r[1]||[];
+  }catch(e){
+    /* fallback: sem embed do PostgREST, resolve as tabelas filhas a parte */
+    try{
+      var q=await Promise.all([
+        api('/crm_reunioes?select=*&order=data.desc,criado_em.desc'),
+        api('/crm_reuniao_participantes?select=*'),
+        api('/crm_reuniao_assinaturas?select=reuniao_id,nome,assinado_em'),
+        api('/crm_demandas?select=*&order=prazo.asc.nullslast')
+      ]);
+      ATA.lista=q[0]||[];ATA.dem=q[3]||[];
+      var mp={},ms={};
+      (q[1]||[]).forEach(function(p){(mp[p.reuniao_id]=mp[p.reuniao_id]||[]).push(p);});
+      (q[2]||[]).forEach(function(a){(ms[a.reuniao_id]=ms[a.reuniao_id]||[]).push(a);});
+      ATA.lista.forEach(function(x){x.participantes=mp[x.id]||[];x.assinaturas=ms[x.id]||[];});
+    }catch(e2){
+      $('board').innerHTML='<div class="loading">Não foi possível carregar as atas: '+esc(e2.message)+'</div>';return;
+    }
+  }
+  renderAtas();
+}
+
+function renderAtas(){
+  var pode=podeEditar('atas');
+  var vis=ATA.lista.filter(ataVisivel);
+  var lista=vis.filter(function(r){
+    if(ATA.filtro==='todas')return true;
+    if(ATA.filtro==='pendentes')return r.status==='rascunho'||r.status==='analisada';
+    if(ATA.filtro==='assinar')return r.status==='em_assinatura'&&ataDevoAssinar(r)&&!ataAssinou(r);
+    return r.status===ATA.filtro;
+  });
+  var aAssinar=vis.filter(function(r){return r.status==='em_assinatura'&&ataDevoAssinar(r)&&!ataAssinou(r);}).length;
+
+  var h='<div class="rscreen"><div class="atawrap">';
+  h+='<div class="aghead"><h2>Atas de reunião</h2><div class="spacer" style="flex:1"></div>'+
+     (pode?'<button class="btn primary" id="ataNova">+ Nova ata</button>':'')+'</div>';
+
+  if(aAssinar)h+='<div class="atalerta">Você tem '+aAssinar+' ata'+(aAssinar>1?'s':'')+' esperando a sua assinatura.</div>';
+
+  var fs=[['todas','Todas'],['pendentes','Em elaboração'],['assinar','Aguardando você'],['em_assinatura','Em assinatura'],['assinada','Assinadas']];
+  h+='<div class="atachips">'+fs.map(function(f){
+    return '<button class="atachip'+(ATA.filtro===f[0]?' on':'')+'" data-f="'+f[0]+'">'+f[1]+'</button>';}).join('')+'</div>';
+
+  if(!lista.length){
+    h+='<div class="empty">'+(vis.length?'Nenhuma ata neste filtro.':'Nenhuma ata registrada ainda.'+(pode?' Toque em "Nova ata" para começar.':''))+'</div>';
+  }else{
+    h+='<div class="atalist">';
+    lista.forEach(function(r){
+      var st=ATASTS[r.status]||['?','st-r'],pl=ataPlacar(r),ds=ataDemandas(r.id);
+      var pend=ds.filter(function(d){return d.status==='pendente';}).length;
+      h+='<div class="atacard" data-r="'+r.id+'">'+
+        '<div class="atatop"><b>'+esc(r.titulo)+'</b><span class="atast '+st[1]+'">'+st[0]+'</span></div>'+
+        '<div class="atameta">'+brDate(r.data)+(r.hora_inicio?' · '+String(r.hora_inicio).slice(0,5):'')+
+          ' · '+esc(ataTipo(r.tipo))+(r.redator?' · redigida por '+esc(r.redator):'')+'</div>'+
+        '<div class="atameta">'+((r.participantes||[]).length)+' participante'+((r.participantes||[]).length===1?'':'s')+
+          (r.status==='em_assinatura'||r.status==='assinada'?' · '+pl.feitas+'/'+pl.total+' assinaram':'')+
+          (ds.length?' · '+ds.length+' demanda'+(ds.length===1?'':'s')+(pend?' ('+pend+' pendente'+(pend===1?'':'s')+')':''):'')+'</div>'+
+        (r.resumo?'<div class="ataresumo">'+esc(r.resumo.slice(0,180))+(r.resumo.length>180?'...':'')+'</div>':'')+
+      '</div>';
+    });
+    h+='</div>';
+  }
+  h+='</div></div>';
+  $('board').innerHTML=h;
+
+  var b=$('ataNova');if(b)b.onclick=function(){ataAbrirEditor(null);};
+  document.querySelectorAll('.atachip').forEach(function(el){
+    el.onclick=function(){ATA.filtro=el.dataset.f;renderAtas();};
+  });
+  document.querySelectorAll('.atacard').forEach(function(el){
+    el.onclick=function(){ataAbrir(el.dataset.r);};
+  });
+}
+
+/* ---- modal ---- */
+function ataClose(){
+  if(ATA.autosave){clearTimeout(ATA.autosave);ATA.autosave=null;}
+  $('rov').classList.remove('open');
+  unlockScroll();
+  ATA.cur=null;ATA.rev=null;
+}
+function ataShow(titulo,sub,body,foot){
+  $('rmtitle').textContent=titulo;
+  $('rmsub').textContent=sub||'';
+  $('rmbody').innerHTML=body;
+  $('rmfoot').innerHTML=foot||'';
+  $('rov').classList.add('open');
+  lockScroll();
+  $('rmx').onclick=ataClose;
+  $('rov').onclick=function(e){if(e.target===$('rov'))ataClose();};
+}
+
+function ataAbrir(id){
+  var r=ATA.lista.find(function(x){return x.id===id;});
+  if(!r)return;
+  if(r.status==='rascunho'||r.status==='analisada')ataAbrirEditor(r);
+  else ataAbrirLeitura(r);
+}
+
+/* ---- participantes (chips) ---- */
+function ataPartsRender(){
+  var el=$('ata_pchips');
+  if(!el)return;
+  el.innerHTML=ATA.parts.length
+    ? ATA.parts.map(function(p){
+        return '<span class="agpchip'+(p.presente?'':' aus')+'">'+esc(p.nome)+
+          '<button type="button" data-pres="'+esc(p.nome)+'" title="'+(p.presente?'Marcar como ausente':'Marcar como presente')+'">'+(p.presente?'✓':'○')+'</button>'+
+          '<button type="button" data-del="'+esc(p.nome)+'" title="Remover">&times;</button></span>';}).join('')
+    : '<span class="agnenhum">Ninguém adicionado ainda.</span>';
+  el.querySelectorAll('[data-del]').forEach(function(b){
+    b.onclick=function(){ATA.parts=ATA.parts.filter(function(x){return x.nome!==b.dataset.del;});ataPartsRender();};
+  });
+  el.querySelectorAll('[data-pres]').forEach(function(b){
+    b.onclick=function(){
+      var p=ATA.parts.find(function(x){return x.nome===b.dataset.pres;});
+      if(p)p.presente=!p.presente;
+      ataPartsRender();
+    };
+  });
+}
+function ataPartAdd(){
+  var sel=$('ata_padd'),v=sel?sel.value:'';
+  if(!v)return;
+  if(!ATA.parts.some(function(x){return x.nome===v;}))ATA.parts.push({nome:v,presente:true,deve_assinar:true});
+  sel.value='';
+  ataPartsRender();
+}
+
+/* ---- editor ---- */
+function ataAbrirEditor(r){
+  ATA.cur=r?JSON.parse(JSON.stringify(r)):{titulo:'',tipo:'equipe',data:hojeISO(),hora_inicio:'',hora_fim:'',
+    local:'CNA Taquara',redator:currentUser,ata_bruta:'',status:'rascunho'};
+  ATA.parts=r?(r.participantes||[]).map(function(p){return {nome:p.nome,presente:p.presente!==false,deve_assinar:p.deve_assinar!==false};})
+              :[{nome:currentUser,presente:true,deve_assinar:true}];
+  var c=ATA.cur,novo=!c.id;
+  var body='<div class="agform">'+
+    '<div class="full"><label>Título da reunião</label><input id="ata_tit" value="'+esc(c.titulo||'')+'" placeholder="Ex.: Alinhamento semanal da equipe"></div>'+
+    '<div><label>Tipo</label><select id="ata_tipo">'+ATATIPOS.map(function(t){
+      return '<option value="'+t[0]+'"'+(c.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Quem está redigindo</label><select id="ata_red">'+RESP.map(function(n){
+      return '<option value="'+esc(n)+'"'+((c.redator||currentUser)===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Data</label><input id="ata_data" type="date" value="'+esc(c.data||hojeISO())+'"></div>'+
+    '<div class="row"><div style="flex:1"><label>Início</label><input id="ata_hi" type="time" value="'+esc(String(c.hora_inicio||'').slice(0,5))+'"></div>'+
+      '<div style="flex:1"><label>Fim</label><input id="ata_hf" type="time" value="'+esc(String(c.hora_fim||'').slice(0,5))+'"></div></div>'+
+    '<div class="full"><label>Local</label><input id="ata_local" value="'+esc(c.local||'')+'" placeholder="CNA Taquara, sala 3 · ou link da chamada"></div>'+
+    '<div class="full"><label>Participantes (todos assinam)</label><div class="agpchips" id="ata_pchips"></div>'+
+      '<div class="agpadd"><select id="ata_padd"><option value="">Adicionar quem participou...</option>'+
+        RESP.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'</select>'+
+      '<button class="btn" type="button" id="ata_padd_b">+ Adicionar</button></div>'+
+      '<div class="atahint">O ✓ marca presença. Quem estiver como ausente não precisa assinar.</div></div>'+
+    '<div class="full"><label>Ata da reunião</label>'+
+      '<textarea id="ata_txt" class="ataarea" placeholder="Escreva a ata como ela aconteceu: o que foi falado, quem ficou com o quê, prazos combinados, o que ficou pendente. Pode ser texto corrido, a IA organiza depois.">'+esc(c.ata_bruta||'')+'</textarea>'+
+      '<div class="atahint" id="ata_save_hint">'+(novo?'Salve o rascunho para ligar o salvamento automático.':'Salvamento automático a cada 10 segundos.')+'</div></div>'+
+  '</div>';
+  var foot='<button class="btn primary" id="ata_salvar">Salvar rascunho</button>'+
+    '<button class="btn" id="ata_ia">Analisar com IA</button>'+
+    (c.status==='analisada'?'<button class="btn" id="ata_rev">Ver análise</button>':'')+
+    '<button class="btn" id="ata_cancel">Fechar</button>'+
+    (novo?'':'<div class="spacer"></div><button class="btn" id="ata_del" style="color:var(--red)">Excluir</button>');
+
+  ataShow(novo?'Nova ata':'Editar ata',novo?'Rascunho':(brDate(c.data)+' · '+ataTipo(c.tipo)),body,foot);
+  ataPartsRender();
+  $('ata_padd_b').onclick=ataPartAdd;
+  $('ata_padd').onchange=ataPartAdd;
+  $('ata_salvar').onclick=function(){ataSalvar(true);};
+  $('ata_ia').onclick=ataAnalisar;
+  $('ata_cancel').onclick=ataClose;
+  var rv=$('ata_rev');if(rv)rv.onclick=function(){ataAbrirRevisao(ATA.cur.analise_payload||{});};
+  var dl=$('ata_del');if(dl)dl.onclick=ataExcluir;
+  $('ata_txt').oninput=function(){
+    if(!ATA.cur.id)return;
+    if(ATA.autosave)clearTimeout(ATA.autosave);
+    $('ata_save_hint').textContent='Alterações não salvas...';
+    ATA.autosave=setTimeout(function(){ataAutosave();},10000);
+  };
+}
+
+async function ataAutosave(){
+  if(!ATA.cur||!ATA.cur.id||!$('ata_txt'))return;
+  try{
+    await api('/crm_reunioes?id=eq.'+ATA.cur.id,{method:'PATCH',
+      body:JSON.stringify({ata_bruta:$('ata_txt').value,atualizado_em:new Date().toISOString()})});
+    ATA.cur.ata_bruta=$('ata_txt').value;
+    var hn=$('ata_save_hint');
+    if(hn)hn.textContent='Salvo automaticamente às '+new Date().toTimeString().slice(0,5)+'.';
+  }catch(e){
+    var h2=$('ata_save_hint');
+    if(h2)h2.textContent='Falha ao salvar automaticamente. Use o botão Salvar rascunho.';
+  }
+}
+
+function ataColeta(){
+  return {titulo:$('ata_tit').value.trim(),tipo:$('ata_tipo').value,redator:$('ata_red').value,
+    data:$('ata_data').value,hora_inicio:$('ata_hi').value||null,hora_fim:$('ata_hf').value||null,
+    local:$('ata_local').value.trim()||null,ata_bruta:$('ata_txt').value};
+}
+
+async function ataSalvar(avisa){
+  if(!podeEditar('atas'))return null;
+  var b=ataColeta();
+  if(!b.titulo){toast('Dê um título para a reunião.');return null;}
+  if(!b.data){toast('Escolha a data da reunião.');return null;}
+  if(!ATA.parts.length){toast('Adicione pelo menos um participante.');return null;}
+  if(b.hora_inicio&&b.hora_fim&&b.hora_fim<b.hora_inicio){toast('O horário de fim precisa ser depois do início.');return null;}
+  b.atualizado_em=new Date().toISOString();
+  var bt=$('ata_salvar');if(bt)bt.disabled=true;
+  try{
+    var r;
+    if(ATA.cur.id){
+      r=(await api('/crm_reunioes?id=eq.'+ATA.cur.id,{method:'PATCH',body:JSON.stringify(b)}))[0];
+    }else{
+      b.criado_por=currentUser;b.status='rascunho';
+      r=(await api('/crm_reunioes',{method:'POST',body:JSON.stringify(b)}))[0];
+    }
+    /* participantes: regrava tudo, e' lista curta */
+    await api('/crm_reuniao_participantes?reuniao_id=eq.'+r.id,{method:'DELETE'});
+    await api('/crm_reuniao_participantes',{method:'POST',body:JSON.stringify(
+      ATA.parts.map(function(p){return {reuniao_id:r.id,nome:p.nome,presente:p.presente,
+        deve_assinar:p.presente,papel:p.nome===b.redator?'redator':'participante'};}))});
+    ATA.cur=Object.assign(ATA.cur,r);
+    if(avisa)toast('Ata salva.');
+    var hn=$('ata_save_hint');if(hn)hn.textContent='Salvamento automático a cada 10 segundos.';
+    return r;
+  }catch(e){
+    toast('Erro ao salvar: '+e.message);return null;
+  }finally{
+    if($('ata_salvar'))$('ata_salvar').disabled=false;
+  }
+}
+
+async function ataExcluir(){
+  if(!ATA.cur||!ATA.cur.id)return;
+  if(!confirm('Excluir esta ata e tudo que está ligado a ela?'))return;
+  try{await api('/crm_reunioes?id=eq.'+ATA.cur.id,{method:'DELETE'});}
+  catch(e){toast('Erro ao excluir: '+e.message);return;}
+  toast('Ata excluída.');
+  ataClose();openAtas();
+}
+
+async function ataAnalisar(){
+  if(ATA.busy)return;
+  var salvo=await ataSalvar(false);
+  if(!salvo)return;
+  if((salvo.ata_bruta||'').trim().length<40){toast('Escreva um pouco mais da ata antes de analisar.');return;}
+  ATA.busy=true;
+  var bt=$('ata_ia');
+  if(bt){bt.disabled=true;bt.textContent='Analisando...';}
+  try{
+    var j=await waFn('ata-analisar',{reuniao_id:salvo.id});
+    ATA.cur.status='analisada';ATA.cur.analise_payload=j.analise;
+    toast('Análise pronta. Confira antes de criar as demandas.');
+    ataAbrirRevisao(j.analise);
+  }catch(e){
+    toast(e.message&&e.message.indexOf('ANTHROPIC')>=0
+      ? 'A chave da IA ainda não foi configurada no Supabase.'
+      : ('Não foi possível analisar: '+e.message));
+  }finally{
+    ATA.busy=false;
+    if($('ata_ia')){$('ata_ia').disabled=false;$('ata_ia').textContent='Analisar com IA';}
+  }
+}
+
+/* ---- revisão da análise ---- */
+function ataAbrirRevisao(a){
+  ATA.rev=a||{};
+  var tarefas=ATA.rev.tarefas||[],dec=ATA.rev.decisoes||[],pend=ATA.rev.pendencias||[];
+  var body='<div class="agform">'+
+    '<div class="full"><label>Resumo da reunião</label><textarea id="rev_resumo" class="ataarea sm">'+esc(ATA.rev.resumo||'')+'</textarea></div>'+
+    '<div class="full"><label>Decisões (uma por linha)</label><textarea id="rev_dec" class="ataarea sm">'+
+      esc(dec.map(function(d){return d.texto+(d.responsavel?' ['+d.responsavel+']':'');}).join('\n'))+'</textarea></div>'+
+    '<div class="full"><label>Pendências (uma por linha)</label><textarea id="rev_pend" class="ataarea sm">'+
+      esc(pend.map(function(p){return p.texto+(p.bloqueador?' [trava: '+p.bloqueador+']':'');}).join('\n'))+'</textarea></div>'+
+    '<div class="full"><label>Demandas propostas pela IA</label>'+
+      (tarefas.length?'<div class="revtar" id="rev_tar">'+tarefas.map(function(t,i){
+        return '<div class="revrow" data-i="'+i+'">'+
+          '<label class="revchk"><input type="checkbox" data-ok="'+i+'" checked> criar</label>'+
+          '<input class="revt" data-k="titulo" value="'+esc(t.titulo)+'" placeholder="Título da demanda">'+
+          '<select data-k="responsavel">'+'<option value="">Sem responsável</option>'+
+            RESP.map(function(n){return '<option value="'+esc(n)+'"'+(t.responsavel===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select>'+
+          '<input type="date" data-k="prazo" value="'+esc(t.prazo||'')+'">'+
+          '<select data-k="prioridade">'+ATAPRIO.map(function(p){
+            return '<option value="'+p[0]+'"'+(t.prioridade===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select>'+
+          (t.prazo_inferido?'<span class="revtag">prazo sugerido</span>':'')+
+          (t.responsavel?'':'<span class="revtag av">defina o responsável</span>')+
+          (t.trecho_origem?'<div class="revsrc">na ata: "'+esc(t.trecho_origem)+'"</div>':'')+
+          (t.descricao?'<div class="revdesc">'+esc(t.descricao)+'</div>':'')+
+        '</div>';}).join('')+'</div>'
+      :'<div class="atahint">A IA não identificou demandas nesta ata.</div>')+'</div>'+
+    ((ATA.rev.riscos||[]).length?'<div class="full"><label>Riscos apontados</label><ul class="revul">'+
+      ATA.rev.riscos.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>':'')+
+  '</div>';
+  var foot='<button class="btn primary" id="rev_ok">Confirmar e criar demandas</button>'+
+    '<button class="btn" id="rev_volta">Voltar para a ata</button>'+
+    '<div class="spacer"></div><button class="btn" id="rev_assin">Enviar para assinatura</button>';
+  ataShow('Revisão da análise','A IA propõe, você confirma. Nada é criado sem o seu aceite.',body,foot);
+  $('rev_ok').onclick=ataCriarDemandas;
+  $('rev_volta').onclick=function(){ataAbrirEditor(ATA.cur);};
+  $('rev_assin').onclick=ataEnviarAssinatura;
+}
+
+async function ataCriarDemandas(){
+  if(!ATA.cur||!ATA.cur.id)return;
+  var bt=$('rev_ok');bt.disabled=true;
+  var dec=$('rev_dec').value.split('\n').map(function(x){return x.trim();}).filter(Boolean).map(function(t){return {texto:t};});
+  var pend=$('rev_pend').value.split('\n').map(function(x){return x.trim();}).filter(Boolean).map(function(t){return {texto:t};});
+  var novas=[];
+  document.querySelectorAll('#rev_tar .revrow').forEach(function(row){
+    var i=row.dataset.i;
+    if(!row.querySelector('[data-ok="'+i+'"]').checked)return;
+    var g=function(k){var el=row.querySelector('[data-k="'+k+'"]');return el?el.value:'';};
+    var orig=(ATA.rev.tarefas||[])[+i]||{};
+    if(!g('titulo').trim())return;
+    novas.push({titulo:g('titulo').trim(),descricao:orig.descricao||null,
+      responsavel:g('responsavel')||null,prazo:g('prazo')||null,prioridade:g('prioridade')||'media',
+      origem:'ata_ia',reuniao_id:ATA.cur.id,trecho_origem:orig.trecho_origem||null,
+      prazo_inferido:!!orig.prazo_inferido,criado_por:currentUser});
+  });
+  try{
+    await api('/crm_reunioes?id=eq.'+ATA.cur.id,{method:'PATCH',body:JSON.stringify({
+      resumo:$('rev_resumo').value.trim()||null,decisoes:dec,pendencias:pend,
+      atualizado_em:new Date().toISOString()})});
+    if(novas.length)await api('/crm_demandas',{method:'POST',body:JSON.stringify(novas)});
+  }catch(e){toast('Erro ao criar demandas: '+e.message);bt.disabled=false;return;}
+  toast(novas.length?(novas.length+' demanda'+(novas.length>1?'s criadas':' criada')+'.'):'Ata atualizada.');
+  bt.disabled=false;
+  if(confirm('Demandas criadas. Enviar a ata para assinatura agora?'))ataEnviarAssinatura();
+  else{ataClose();openAtas();}
+}
+
+async function ataEnviarAssinatura(){
+  if(!ATA.cur||!ATA.cur.id)return;
+  if(!confirm('Depois de enviar para assinatura a ata não pode mais ser editada. Confirma?'))return;
+  try{
+    if($('rev_resumo')){
+      await api('/crm_reunioes?id=eq.'+ATA.cur.id,{method:'PATCH',body:JSON.stringify({
+        resumo:$('rev_resumo').value.trim()||null,atualizado_em:new Date().toISOString()})});
+    }
+    await api('/rpc/crm_ata_congelar',{method:'POST',body:JSON.stringify({p_reuniao:ATA.cur.id})});
+  }catch(e){toast('Erro ao congelar a ata: '+e.message);return;}
+  toast('Ata enviada para assinatura.');
+  ataClose();
+  await openAtas();
+  var r=ATA.lista.find(function(x){return x.id===(ATA.cur&&ATA.cur.id);});
+  if(r)ataAbrirLeitura(r);
+}
+
+/* ---- leitura e assinatura ---- */
+function ataLinhas(arr,campo){
+  if(!arr||!arr.length)return '';
+  return '<ul class="revul">'+arr.map(function(x){return '<li>'+esc(x[campo]||x)+'</li>';}).join('')+'</ul>';
+}
+function ataAbrirLeitura(r){
+  ATA.cur=r;
+  var pl=ataPlacar(r),ds=ataDemandas(r.id);
+  var euAssino=ataDevoAssinar(r)&&!ataAssinou(r)&&r.status==='em_assinatura';
+  var body='<div class="atadoc">'+
+    '<div class="dl"><b>Data</b>'+brDate(r.data)+(r.hora_inicio?' · '+String(r.hora_inicio).slice(0,5)+(r.hora_fim?' às '+String(r.hora_fim).slice(0,5):''):'')+'</div>'+
+    '<div class="dl"><b>Tipo</b>'+esc(ataTipo(r.tipo))+'</div>'+
+    (r.local?'<div class="dl"><b>Local</b>'+esc(r.local)+'</div>':'')+
+    '<div class="dl"><b>Redigida por</b>'+esc(r.redator||'—')+'</div>'+
+    '<div class="dl"><b>Participantes</b>'+esc((r.participantes||[]).map(function(p){
+      return p.nome+(p.presente?'':' (ausente)');}).join(', '))+'</div>'+
+    (r.resumo?'<h4>Resumo</h4><p>'+esc(r.resumo)+'</p>':'')+
+    ((r.decisoes||[]).length?'<h4>Decisões</h4>'+ataLinhas(r.decisoes,'texto'):'')+
+    ((r.pendencias||[]).length?'<h4>Pendências</h4>'+ataLinhas(r.pendencias,'texto'):'')+
+    (ds.length?'<h4>Demandas geradas</h4><ul class="revul">'+ds.map(function(d){
+      return '<li>'+esc(d.titulo)+(d.responsavel?' · '+esc(d.responsavel):'')+(d.prazo?' · até '+brDate(d.prazo):'')+
+        (d.status==='concluida'?' <span class="revtag ok">concluída</span>':'')+'</li>';}).join('')+'</ul>':'')+
+    '<h4>Ata completa</h4><pre class="atapre">'+esc(r.ata_bruta||'')+'</pre>'+
+    '<h4>Assinaturas ('+pl.feitas+' de '+pl.total+')</h4><div class="atasig">'+
+      (r.participantes||[]).filter(function(p){return p.deve_assinar;}).map(function(p){
+        var a=(r.assinaturas||[]).find(function(x){return x.nome===p.nome;});
+        return '<div class="sigrow'+(a?' ok':'')+'"><b>'+esc(p.nome)+'</b><span>'+
+          (a?'assinou em '+brDate(String(a.assinado_em).slice(0,10))+' às '+String(a.assinado_em).slice(11,16):'aguardando')+'</span></div>';
+      }).join('')+'</div>'+
+    (r.hash_documento?'<div class="atahash">Documento congelado. Hash SHA-256: '+esc(r.hash_documento)+'</div>':'')+
+    (euAssino?'<div class="atasignbox"><label>Confirme com a sua senha do CRM para assinar</label>'+
+      '<input id="ata_senha" type="password" autocomplete="current-password" placeholder="Sua senha">'+
+      '<div class="atahint">Ao assinar você declara que leu a ata e concorda com o registro acima.</div></div>':'')+
+  '</div>';
+  var foot=(euAssino?'<button class="btn primary" id="ata_assinar">Assinar ata</button>':'')+
+    '<button class="btn" id="ata_baixar">Baixar</button>'+
+    '<button class="btn" id="ata_fechar">Fechar</button>';
+  ataShow(r.titulo,(ATASTS[r.status]||['',''])[0]+' · '+brDate(r.data),body,foot);
+  $('ata_fechar').onclick=ataClose;
+  $('ata_baixar').onclick=function(){ataBaixar(r);};
+  var bs=$('ata_assinar');
+  if(bs)bs.onclick=function(){ataAssinar(r);};
+}
+
+async function ataAssinar(r){
+  var s=$('ata_senha').value;
+  if(!s){toast('Digite a sua senha para assinar.');$('ata_senha').focus();return;}
+  var bt=$('ata_assinar');bt.disabled=true;bt.textContent='Assinando...';
+  try{
+    var j=await api('/rpc/crm_ata_assinar',{method:'POST',body:JSON.stringify({
+      p_reuniao:r.id,p_email:MEUEMAIL||safeGet('crmAuthEmail')||'',p_senha:s,
+      p_ua:navigator.userAgent.slice(0,300)})});
+    if(!j||!j.ok){
+      var msgs={credenciais:'Senha incorreta.',nao_participante:'Você não está na lista de quem assina esta ata.',
+        nao_congelada:'Esta ata ainda não foi enviada para assinatura.',reuniao:'Ata não encontrada.'};
+      toast(msgs[j&&j.erro]||'Não foi possível assinar.');
+      bt.disabled=false;bt.textContent='Assinar ata';return;
+    }
+    toast(j.completa?'Assinado. A ata está completa.':('Assinado. Faltam '+j.faltam+'.'));
+    ataClose();
+    await openAtas();
+  }catch(e){
+    toast('Erro ao assinar: '+e.message);
+    bt.disabled=false;bt.textContent='Assinar ata';
+  }
+}
+
+function ataBaixar(r){
+  var L=[];
+  L.push('ATA DE REUNIÃO · CNA TAQUARA');
+  L.push(r.titulo);
+  L.push('');
+  L.push('Data: '+brDate(r.data)+(r.hora_inicio?' '+String(r.hora_inicio).slice(0,5):''));
+  L.push('Tipo: '+ataTipo(r.tipo));
+  if(r.local)L.push('Local: '+r.local);
+  L.push('Redigida por: '+(r.redator||'-'));
+  L.push('Participantes: '+(r.participantes||[]).map(function(p){return p.nome+(p.presente?'':' (ausente)');}).join(', '));
+  L.push('');
+  if(r.resumo){L.push('RESUMO');L.push(r.resumo);L.push('');}
+  if((r.decisoes||[]).length){L.push('DECISÕES');(r.decisoes||[]).forEach(function(d){L.push('- '+(d.texto||d));});L.push('');}
+  if((r.pendencias||[]).length){L.push('PENDÊNCIAS');(r.pendencias||[]).forEach(function(p){L.push('- '+(p.texto||p));});L.push('');}
+  var ds=ataDemandas(r.id);
+  if(ds.length){L.push('DEMANDAS');ds.forEach(function(d){
+    L.push('- '+d.titulo+(d.responsavel?' ('+d.responsavel+')':'')+(d.prazo?' ate '+brDate(d.prazo):''));});L.push('');}
+  L.push('ATA COMPLETA');L.push(r.ata_bruta||'');L.push('');
+  L.push('ASSINATURAS');
+  (r.participantes||[]).filter(function(p){return p.deve_assinar;}).forEach(function(p){
+    var a=(r.assinaturas||[]).find(function(x){return x.nome===p.nome;});
+    L.push('- '+p.nome+': '+(a?'assinado em '+String(a.assinado_em).slice(0,16).replace('T',' '):'pendente'));
+  });
+  if(r.hash_documento)L.push('','Hash SHA-256 do documento: '+r.hash_documento);
+  var blob=new Blob([L.join('\n')],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ata-'+r.data+'-'+(r.titulo||'reuniao').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,40)+'.txt';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ================= Demandas ================= */
+var DEM={lista:[],filtro:'abertas',soMinhas:false,cur:null};
+
+async function openDemandas(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando demandas...</div>';
+  try{
+    DEM.lista=await api('/crm_demandas?select=*&order=prazo.asc.nullslast,criado_em.desc');
+  }catch(e){
+    $('board').innerHTML='<div class="loading">Não foi possível carregar: '+esc(e.message)+'</div>';return;
+  }
+  renderDemandas();
+}
+
+function demGrupo(d,hoje){
+  if(d.status==='concluida')return 'concluidas';
+  if(!d.prazo)return 'semprazo';
+  if(d.prazo<hoje)return 'atrasadas';
+  if(d.prazo===hoje)return 'hoje';
+  return 'proximas';
+}
+
+function renderDemandas(){
+  var pode=podeEditar('tarefas'),hoje=hojeISO();
+  var lista=DEM.lista.filter(function(d){
+    if(DEM.soMinhas&&d.responsavel!==currentUser)return false;
+    if(DEM.filtro==='abertas')return d.status!=='concluida';
+    if(DEM.filtro==='concluidas')return d.status==='concluida';
+    return true;
+  });
+  var g={atrasadas:[],hoje:[],proximas:[],semprazo:[],concluidas:[]};
+  lista.forEach(function(d){g[demGrupo(d,hoje)].push(d);});
+
+  var h='<div class="rscreen"><div class="atawrap">';
+  h+='<div class="aghead"><h2>Demandas</h2><div class="spacer" style="flex:1"></div>'+
+     (pode?'<button class="btn primary" id="demNova">+ Nova demanda</button>':'')+'</div>';
+  h+='<div class="agbarra"><span class="fl">Filtros</span>'+
+     '<div class="agvsel">'+[['abertas','Abertas'],['concluidas','Concluídas'],['todas','Todas']].map(function(f){
+       return '<button data-df="'+f[0]+'"'+(DEM.filtro===f[0]?' class="on"':'')+'>'+f[1]+'</button>';}).join('')+'</div>'+
+     '<label class="agmeus"><input type="checkbox" id="demMinhas"'+(DEM.soMinhas?' checked':'')+'> Só as minhas</label></div>';
+
+  var titulos={atrasadas:['Atrasadas','late'],hoje:['Para hoje','today'],proximas:['Próximas',''],
+    semprazo:['Sem prazo',''],concluidas:['Concluídas','pv']};
+  var tem=false;
+  ['atrasadas','hoje','proximas','semprazo','concluidas'].forEach(function(k){
+    if(!g[k].length)return;
+    tem=true;
+    h+='<div class="aggrp '+titulos[k][1]+'"><h4>'+titulos[k][0]+' <span>'+g[k].length+'</span></h4>';
+    g[k].forEach(function(d){
+      h+='<div class="demrow'+(d.status==='concluida'?' done':'')+'" data-d="'+d.id+'">'+
+        (pode?'<button class="demchk'+(d.status==='concluida'?' on':'')+'" data-tog="'+d.id+'" title="'+(d.status==='concluida'?'Reabrir':'Concluir')+'">'+(d.status==='concluida'?'✓':'')+'</button>':'')+
+        '<div class="demn"><b>'+esc(d.titulo)+'</b><span class="agr">'+
+          (d.responsavel?esc(d.responsavel):'sem responsável')+
+          (d.origem==='ata_ia'?' · <span class="revtag">da ata</span>':'')+
+          (d.prazo_inferido&&d.status!=='concluida'?' · <span class="revtag">prazo sugerido</span>':'')+
+          '</span></div>'+
+        '<div class="demp pri-'+esc(d.prioridade||'media')+'">'+esc((ATAPRIO.find(function(p){return p[0]===d.prioridade;})||['','Média'])[1])+'</div>'+
+        '<div class="agd">'+(d.prazo?brDate(d.prazo):'—')+'</div>'+
+      '</div>';
+    });
+    h+='</div>';
+  });
+  if(!tem)h+='<div class="empty">Nenhuma demanda neste filtro.</div>';
+  h+='</div></div>';
+  $('board').innerHTML=h;
+
+  var b=$('demNova');if(b)b.onclick=function(){demAbrir(null);};
+  document.querySelectorAll('[data-df]').forEach(function(el){
+    el.onclick=function(){DEM.filtro=el.dataset.df;renderDemandas();};
+  });
+  var m=$('demMinhas');if(m)m.onchange=function(){DEM.soMinhas=m.checked;renderDemandas();};
+  document.querySelectorAll('[data-tog]').forEach(function(el){
+    el.onclick=function(e){e.stopPropagation();demToggle(el.dataset.tog);};
+  });
+  document.querySelectorAll('.demrow').forEach(function(el){
+    el.onclick=function(){demAbrir(el.dataset.d);};
+  });
+}
+
+async function demToggle(id){
+  var d=DEM.lista.find(function(x){return x.id===id;});
+  if(!d||!podeEditar('tarefas'))return;
+  var novo=d.status==='concluida'?'pendente':'concluida';
+  try{
+    var r=await api('/crm_demandas?id=eq.'+id,{method:'PATCH',body:JSON.stringify({
+      status:novo,
+      concluida_em:novo==='concluida'?new Date().toISOString():null,
+      concluida_por:novo==='concluida'?currentUser:null})});
+    Object.assign(d,r[0]);
+  }catch(e){toast('Erro: '+e.message);return;}
+  renderDemandas();
+}
+
+function demAbrir(id){
+  var d=id?DEM.lista.find(function(x){return x.id===id;}):null;
+  DEM.cur=d||{titulo:'',descricao:'',responsavel:currentUser,prazo:addDias(hojeISO(),7),prioridade:'media',status:'pendente'};
+  var c=DEM.cur,novo=!c.id,pode=podeEditar('tarefas');
+  var body='<div class="agform">'+
+    '<div class="full"><label>Demanda</label><input id="dem_tit" value="'+esc(c.titulo||'')+'" placeholder="O que precisa ser feito"'+(pode?'':' readonly')+'></div>'+
+    '<div><label>Responsável</label><select id="dem_resp"'+(pode?'':' disabled')+'><option value="">Sem responsável</option>'+
+      RESP.map(function(n){return '<option value="'+esc(n)+'"'+(c.responsavel===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Prazo</label><input id="dem_prazo" type="date" value="'+esc(c.prazo||'')+'"'+(pode?'':' disabled')+'></div>'+
+    '<div><label>Prioridade</label><select id="dem_prio"'+(pode?'':' disabled')+'>'+ATAPRIO.map(function(p){
+      return '<option value="'+p[0]+'"'+(c.prioridade===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Status</label><select id="dem_st"'+(pode?'':' disabled')+'>'+
+      [['pendente','Pendente'],['andamento','Em andamento'],['concluida','Concluída'],['cancelada','Cancelada']].map(function(x){
+        return '<option value="'+x[0]+'"'+(c.status===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Detalhes</label><textarea id="dem_desc" class="ataarea sm"'+(pode?'':' readonly')+'>'+esc(c.descricao||'')+'</textarea></div>'+
+    (c.trecho_origem?'<div class="full"><label>Veio da ata</label><div class="revsrc">"'+esc(c.trecho_origem)+'"</div></div>':'')+
+  '</div>';
+  var foot=(pode?'<button class="btn primary" id="dem_save">Salvar</button>':'')+
+    '<button class="btn" id="dem_cancel">Fechar</button>'+
+    (novo||!pode?'':'<div class="spacer"></div><button class="btn" id="dem_del" style="color:var(--red)">Excluir</button>');
+  ataShow(novo?'Nova demanda':'Demanda',c.origem==='ata_ia'?'Criada a partir de uma ata':'',body,foot);
+  $('dem_cancel').onclick=ataClose;
+  var sv=$('dem_save');if(sv)sv.onclick=demSalvar;
+  var dl=$('dem_del');if(dl)dl.onclick=demExcluir;
+}
+
+async function demSalvar(){
+  var b={titulo:$('dem_tit').value.trim(),descricao:$('dem_desc').value.trim()||null,
+    responsavel:$('dem_resp').value||null,prazo:$('dem_prazo').value||null,
+    prioridade:$('dem_prio').value,status:$('dem_st').value};
+  if(!b.titulo){toast('Escreva a demanda.');return;}
+  if(b.status==='concluida'&&DEM.cur.status!=='concluida'){
+    b.concluida_em=new Date().toISOString();b.concluida_por=currentUser;
+  }else if(b.status!=='concluida'){b.concluida_em=null;b.concluida_por=null;}
+  $('dem_save').disabled=true;
+  try{
+    if(DEM.cur.id)await api('/crm_demandas?id=eq.'+DEM.cur.id,{method:'PATCH',body:JSON.stringify(b)});
+    else{b.criado_por=currentUser;b.origem='manual';await api('/crm_demandas',{method:'POST',body:JSON.stringify(b)});}
+  }catch(e){toast('Erro ao salvar: '+e.message);$('dem_save').disabled=false;return;}
+  toast('Demanda salva.');
+  ataClose();openDemandas();
+}
+
+async function demExcluir(){
+  if(!DEM.cur||!DEM.cur.id)return;
+  if(!confirm('Excluir esta demanda?'))return;
+  try{await api('/crm_demandas?id=eq.'+DEM.cur.id,{method:'DELETE'});}
+  catch(e){toast('Erro ao excluir: '+e.message);return;}
+  toast('Demanda excluída.');
+  ataClose();openDemandas();
+}
 
 </script>
 </body>
