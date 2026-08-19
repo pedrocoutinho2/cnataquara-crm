@@ -34,7 +34,7 @@ html,body{height:100%}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--surface);color:var(--ink);font-size:14px;display:flex;flex-direction:column;max-width:100vw}
 html,body{overflow-x:hidden}
 @supports(overflow:clip){html,body{overflow-x:clip}}
-body.modal-open{overflow:hidden}
+body.modal-open{overflow:hidden;position:fixed;top:0;left:0;right:0;width:100%}
 button{font-family:inherit;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:14px}
 
@@ -997,6 +997,41 @@ input[type=date].dvazio{color:#C9C9CE}
   .agev .agr{display:none}
   .agform{grid-template-columns:1fr}
 }
+
+/* ---- calendario: visoes, filtros, participantes ---- */
+.agbarra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.agbarra select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit;background:#fff;color:var(--ink);max-width:190px}
+.agbarra .fl{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase}
+.agvsel{display:inline-flex;border:1px solid var(--line);border-radius:var(--r-pill);overflow:hidden}
+.agvsel button{border:0;background:#fff;color:var(--gray);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit}
+.agvsel button.on{background:var(--blue);color:#fff}
+.agmeus{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer}
+.agmeus input{width:auto;margin:0}
+.agcols{display:grid;gap:8px}
+.agcol{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:110px;display:flex;flex-direction:column;gap:5px}
+.agcol.hoje{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+.agcolh{display:flex;align-items:baseline;gap:6px;border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:2px}
+.agcolh b{font-size:12px;color:var(--blue);text-transform:uppercase;letter-spacing:.3px}
+.agcolh span{font-size:12px;color:var(--gray)}
+.agcol.hoje .agcolh b{color:var(--red)}
+.agevb{border-left:3px solid var(--blue);background:var(--surface);border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12.5px;line-height:1.3}
+.agevb:hover{background:#EAF0FA}
+.agevb .eh{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);font-size:11.5px}
+.agevb .et{display:block;font-weight:600;word-break:break-word}
+.agevb .ep{display:block;color:var(--gray);font-size:11.5px;margin-top:1px}
+.agev.op,.agevb.op{opacity:.42}
+.agev.op:hover,.agevb.op:hover{opacity:.75}
+.agvazio{font-size:12px;color:var(--gray);padding:4px 2px}
+.agpchips{display:flex;flex-wrap:wrap;gap:5px;border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:38px}
+.agpchip{display:inline-flex;align-items:center;gap:5px;background:var(--pastelBlue);color:var(--blue);border-radius:var(--r-pill);padding:3px 6px 3px 10px;font-size:12px;font-weight:600}
+.agpchip button{border:0;background:none;color:var(--blue);cursor:pointer;font-size:14px;line-height:1;padding:0 3px;font-family:inherit}
+.agpadd{display:flex;gap:6px;margin-top:6px}
+.agpadd select{flex:1}
+.agnenhum{font-size:12px;color:var(--gray);align-self:center}
+@media(max-width:700px){
+  .agcols{grid-template-columns:1fr !important}
+  .agbarra select{max-width:none;flex:1;min-width:130px}
+}
 </style>
 </head>
 <body>
@@ -1430,6 +1465,21 @@ function safeGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function safeSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var SCROLLY=0;
+/* iOS ignora overflow:hidden no body. Trava com position:fixed e devolve a posicao ao fechar. */
+function lockScroll(){
+  if(document.body.classList.contains('modal-open'))return;
+  SCROLLY=window.pageYOffset||document.documentElement.scrollTop||0;
+  document.body.style.top=(-SCROLLY)+'px';
+  document.body.classList.add('modal-open');
+}
+function unlockScroll(){
+  if(document.querySelector('.ov.open'))return;   /* ainda tem modal aberto atras */
+  if(!document.body.classList.contains('modal-open'))return;
+  document.body.classList.remove('modal-open');
+  document.body.style.top='';
+  window.scrollTo(0,SCROLLY);
+}
 function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none';},2600);}
 
 let currentUser=null;
@@ -2029,7 +2079,7 @@ function openModal(id){
   if(s)loadInts(s.id);
   renderPV(tab==='leads'?s:null);
   $('ov').classList.add('open');
-  document.body.classList.add('modal-open');
+  lockScroll();
   const mb=document.querySelector('.mbody');
   if(mb)mb.scrollTop=0;
 }
@@ -2340,7 +2390,7 @@ async function fillTurmas(sel,atual){
 
 function closeModal(){
   $('ov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   editing=null;
 }
 
@@ -3452,14 +3502,14 @@ function abrirTrocaObrigatoria(nome,email,atual){
   $('smsub').textContent=nome+', a senha que voc\u00ea usou \u00e9 tempor\u00e1ria. Defina uma s\u00f3 sua para continuar.';
   $('snova').value='';$('sconf').value='';$('serr').textContent='';
   $('sov').classList.add('open');
-  document.body.classList.add('modal-open');
+  lockScroll();
   setTimeout(function(){$('snova').focus();},80);
 }
 function fecharTroca(){
   TROCA=null;
   $('snova').value='';$('sconf').value='';$('serr').textContent='';
   $('sov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
 }
 async function salvarTrocaObrigatoria(){
   if(!TROCA)return;
@@ -3645,6 +3695,20 @@ async function loadAlerts(){
         etapa:pvNome(t.tipo)+(t.responsavel&&t.responsavel!==currentUser?' · '+t.responsavel:''),pv:true});
     });
   }catch(e){}
+  /* eventos do calendario em que EU sou responsavel ou participante */
+  try{
+    const evs=await api('/crm_agenda_eventos?select=id,titulo,data,hora_inicio,hora_fim,responsavel,participantes,categoria_id,lembrete_min'
+      +'&data=gte.'+hoje+'&data=lte.'+limite+'&order=data.asc');
+    (evs||[]).forEach(function(ev){
+      if(!agdConvidado(ev,currentUser))return;
+      if(!ev.lembrete_min)return;                       /* sem lembrete nao entra na fila */
+      const hi=agdH(ev.hora_inicio)||'09:00';
+      itens.push({tab:'calendario',id:ev.id,nome:ev.titulo,data:ev.data,
+        hora:agdMenos(hi,ev.lembrete_min),horaEv:hi,agenda:true,rot:'Agenda',
+        etapa:(ev.responsavel===currentUser?'Você é o responsável':'Convidado')+' · '+hi});
+    });
+  }catch(e){}
+
   AGITENS=itens;
   bucketAlerts();
 }
@@ -3715,7 +3779,7 @@ function renderAlertBadge(){
 }
 
 function agItem(it){
-  const wa=waLink(it.whatsapp);
+  const wa=it.agenda?null:waLink(it.whatsapp);
   return '<div class="agi" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'
     +'<div class="agn"><b>'+esc(it.nome)+'</b><span class="agr">'+esc(it.rot)+(it.etapa?' · '+esc(it.etapa):'')+'</span></div>'
     +'<div class="agd">'+brDate(it.data)+(it.hora?' · '+it.hora:'')+(it.canal?' · '+esc(canalNome(it.canal)):'')+'</div>'
@@ -3758,13 +3822,14 @@ function openAlerts(){
     };
   });
   $('aov').classList.add('open');
-  document.body.classList.add('modal-open');
+  lockScroll();
 }
 function closeAlerts(){
   $('aov').classList.remove('open');
-  if(!$('ov').classList.contains('open'))document.body.classList.remove('modal-open');
+  if(!$('ov').classList.contains('open'))unlockScroll();
 }
 async function goToAlert(t,id){
+  if(t==='calendario'){AGD.abrirId=id;AGD.vista='dia';setTab('calendario');return;}
   if(tab!==t)setTab(t);
   if(!DATA[t])await loadTab();
   const s=(DATA[t]||[]).find(function(x){return x.id===id;});
@@ -3840,8 +3905,8 @@ function aplicarPermsNav(){
 
 /* ---- modal de permissoes (usuario ou padrao do papel) ---- */
 var PMODO=null;
-function permAbre(){$('pov').classList.add('open');document.body.classList.add('modal-open');}
-function permFecha(){$('pov').classList.remove('open');document.body.classList.remove('modal-open');PMODO=null;}
+function permAbre(){$('pov').classList.add('open');lockScroll();}
+function permFecha(){$('pov').classList.remove('open');unlockScroll();PMODO=null;}
 function modsPorGrupo(){
   var out=[],map={};
   MODULOS.forEach(function(m){
@@ -6022,7 +6087,7 @@ async function openTurmas(){
   }
   tEdit=null;
   var ov=$('tov');if(ov)ov.classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   renderTurmas();
 }
 
@@ -6298,12 +6363,12 @@ function tOpenEdit(id){
   $('tdel').style.display=t.__nova?'none':'';
   var sv=$('tsave');sv.disabled=false;sv.textContent='Salvar';
   $('tov').classList.add('open');
-  document.body.classList.add('modal-open');
+  lockScroll();
 }
 
 function tCloseEdit(){
   $('tov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   TURMAS=TURMAS.filter(function(t){return !t.__nova;});
   tEdit=null;
   renderTurmas();
@@ -6372,7 +6437,7 @@ async function tSalvar(){
     toast('Erro ao salvar: '+e.message);return;
   }
   $('tov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   TURMAS=TURMAS.filter(function(t){return !t.__nova;});
   tEdit=null;openTurmas();
 }
@@ -6385,28 +6450,71 @@ async function tExcluir(){
     toast('Turma excluída.');
   }catch(e){toast('Erro ao excluir: '+e.message);return;}
   $('tov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   tEdit=null;openTurmas();
 }
 
 
-/* ================= Calendário (ações comerciais e pedagógicas) ================= */
-var AGD={eventos:[],cats:[],cfg:null,mes:'',edit:null,det:null,catEdit:false};
+/* ================= Calendário (ações da unidade e reuniões internas) ================= */
+var AGD={eventos:[],cats:[],cfg:null,vista:'semana',ref:'',edit:null,det:null,catEdit:false,
+         fcat:'',fpessoa:'',soMeus:false,parts:[],abrirId:null};
 var AGDMESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var AGDDOWS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+var AGDDOWL=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+var AGDVISTAS=[['dia','Dia'],['tres','3 dias'],['semana','Semana'],['mes','Mês']];
+var AGDLEMB=[[0,'Sem lembrete'],[10,'10 min antes'],[15,'15 min antes'],[30,'30 min antes'],
+             [60,'1 hora antes'],[120,'2 horas antes'],[1440,'1 dia antes']];
+
 function agdH(t){return t?String(t).slice(0,5):'';}
 function agdCat(id){for(var i=0;i<AGD.cats.length;i++)if(AGD.cats[i].id===id)return AGD.cats[i];return null;}
-function agdRespLista(v){return String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean);}
-function agdRespColeta(){
-  var out=[];
-  document.querySelectorAll('#ag_resp input:checked').forEach(function(c){out.push(c.value);});
-  return out.join(', ');
+
+/* responsavel + participantes, sem repetir */
+function agdParts(ev){
+  var a=[];
+  if(ev&&ev.responsavel)a.push(ev.responsavel);
+  ((ev&&ev.participantes)||[]).forEach(function(p){if(p&&a.indexOf(p)<0)a.push(p);});
+  return a;
+}
+function agdConvidado(ev,nome){return agdParts(ev).indexOf(nome||currentUser)>=0;}
+
+/* ---- datas ---- */
+function agdISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function agdDate(iso){var p=String(iso).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function agdDias(iso,n){var d=agdDate(iso);d.setDate(d.getDate()+n);return agdISO(d);}
+function agdMenos(hm,min){
+  var p=String(hm||'09:00').split(':'),t=(+p[0])*60+(+p[1])-(min||0);
+  if(t<0)t=0;
+  return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function agdRange(){
+  var r=AGD.ref||hojeISO();
+  if(AGD.vista==='dia')return {ini:r,fim:r,n:1};
+  if(AGD.vista==='tres')return {ini:r,fim:agdDias(r,2),n:3};
+  if(AGD.vista==='semana'){
+    var d=agdDate(r),seg=new Date(d);
+    seg.setDate(d.getDate()-((d.getDay()+6)%7));
+    var i=agdISO(seg);
+    return {ini:i,fim:agdDias(i,6),n:7};
+  }
+  var p=r.split('-'),ult=new Date(+p[0],+p[1],0);
+  return {ini:p[0]+'-'+p[1]+'-01',fim:agdISO(ult),n:ult.getDate()};
+}
+function agdNav(n){
+  if(AGD.vista==='mes'){var p=AGD.ref.split('-');AGD.ref=agdISO(new Date(+p[0],+p[1]-1+n,1));}
+  else AGD.ref=agdDias(AGD.ref,(AGD.vista==='dia'?1:(AGD.vista==='tres'?3:7))*n);
+  renderCalendario();
+}
+function agdTitulo(){
+  var r=agdRange();
+  if(AGD.vista==='mes'){var p=AGD.ref.split('-');return AGDMESES[+p[1]-1]+' '+p[0];}
+  if(AGD.vista==='dia')return AGDDOWL[agdDate(r.ini).getDay()]+', '+brDate(r.ini);
+  return brDate(r.ini).slice(0,5)+' a '+brDate(r.fim).slice(0,5)+' · '+AGDMESES[+r.fim.slice(5,7)-1];
 }
 
 async function openCalendario(){
   $('stats').innerHTML='';
   $('board').innerHTML='<div class="loading">Carregando calendário...</div>';
-  if(!AGD.mes)AGD.mes=hojeISO().slice(0,7);
+  if(!AGD.ref)AGD.ref=hojeISO();
   try{
     var r=await Promise.all([
       api('/crm_agenda_categorias?select=*&order=ordem.asc,nome.asc'),
@@ -6418,47 +6526,85 @@ async function openCalendario(){
     $('board').innerHTML='<div class="loading">Não foi possível carregar o calendário: '+esc(e.message)+'</div>';return;
   }
   renderCalendario();
+  if(AGD.abrirId){
+    var id=AGD.abrirId;AGD.abrirId=null;
+    var alvo=AGD.eventos.find(function(x){return x.id===id;});
+    if(alvo){AGD.ref=alvo.data;renderCalendario();agdOpenDet(id);}
+  }
+}
+
+function agdFiltrados(){
+  return AGD.eventos.filter(function(ev){
+    if(AGD.fcat&&ev.categoria_id!==AGD.fcat)return false;
+    if(AGD.fpessoa&&agdParts(ev).indexOf(AGD.fpessoa)<0)return false;
+    if(AGD.soMeus&&!agdConvidado(ev,currentUser))return false;
+    return true;
+  });
 }
 
 function renderCalendario(){
   var adm=podeEditar('calendario');
-  var p=AGD.mes.split('-'),ano=+p[0],mes=+p[1];
-  var hoje=hojeISO();
+  if(!AGD.ref)AGD.ref=hojeISO();
   var h='<div class="rscreen"><div class="agwrap">';
 
-  /* cabeçalho */
-  h+='<div class="aghead"><h2>'+AGDMESES[mes-1]+' '+ano+'</h2>'+
-     '<div class="agnav"><button class="btn" id="agPrev">&larr;</button>'+
+  /* cabecalho */
+  h+='<div class="aghead"><h2>'+esc(agdTitulo())+'</h2>'+
+     '<div class="agnav"><button class="btn" id="agPrev" title="Anterior">&larr;</button>'+
      '<button class="btn" id="agHoje">Hoje</button>'+
-     '<button class="btn" id="agNext">&rarr;</button></div>'+
+     '<button class="btn" id="agNext" title="Próximo">&rarr;</button></div>'+
+     '<div class="agvsel">'+AGDVISTAS.map(function(v){
+       return '<button data-v="'+v[0]+'"'+(AGD.vista===v[0]?' class="on"':'')+'>'+v[1]+'</button>';}).join('')+'</div>'+
      '<div class="spacer" style="flex:1"></div>'+
      (adm?'<button class="btn" id="agCats">Categorias e Google</button><button class="btn primary" id="agNovo">+ Evento</button>':'')+
+     '</div>';
+
+  /* filtros */
+  h+='<div class="agbarra"><span class="fl">Filtros</span>'+
+     '<select id="agFcat"><option value="">Todas as categorias</option>'+
+       AGD.cats.map(function(c){return '<option value="'+c.id+'"'+(AGD.fcat===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select>'+
+     '<select id="agFpes"><option value="">Toda a equipe</option>'+
+       RESP.map(function(r){return '<option value="'+esc(r)+'"'+(AGD.fpessoa===r?' selected':'')+'>'+esc(r)+'</option>';}).join('')+'</select>'+
+     '<label class="agmeus"><input type="checkbox" id="agFmeus"'+(AGD.soMeus?' checked':'')+'> Só os meus</label>'+
+     ((AGD.fcat||AGD.fpessoa||AGD.soMeus)?'<button class="btn" id="agFlimpa">Limpar</button>':'')+
      '</div>';
 
   /* legenda */
   h+='<div class="aglegend">';
   AGD.cats.forEach(function(c){if(!c.ativa)return;
     h+='<span class="ld"><span class="ldot2" style="background:'+esc(c.cor)+'"></span>'+esc(c.nome)+'</span>';});
+  h+='<span class="ld" style="opacity:.42">&#9679; evento em que você não foi convidado</span>';
   if(adm&&AGD.cfg&&AGD.cfg.gas_url)h+='<span class="ld" style="margin-left:auto">Sincronizado com Google Agenda</span>';
   h+='</div>';
 
-  /* resumo da semana atual (segunda a domingo) */
-  h+=agdResumoSemana(hoje);
+  h+=(AGD.vista==='mes'?agdGridMes():agdColunas());
+  if(!adm)h+='<div style="font-size:12px;color:var(--gray)">Calendário mantido pela administração. Toque em um evento para ver os detalhes.</div>';
+  h+='</div></div>';
+  $('board').innerHTML=h;
+  agdWire();
+}
 
-  /* grade do mês */
-  var byDate={};
-  AGD.eventos.forEach(function(ev){(byDate[ev.data]=byDate[ev.data]||[]).push(ev);});
-  var primeiro=new Date(ano,mes-1,1),dow=primeiro.getDay();
-  var dias=new Date(ano,mes,0).getDate();
-  h+='<div class="aggrid">';
+function agdPorDia(){
+  var m={};
+  agdFiltrados().forEach(function(ev){(m[ev.data]=m[ev.data]||[]).push(ev);});
+  Object.keys(m).forEach(function(k){
+    m[k].sort(function(a,b){return (agdH(a.hora_inicio)||'99:99')<(agdH(b.hora_inicio)||'99:99')?-1:1;});
+  });
+  return m;
+}
+
+function agdGridMes(){
+  var adm=podeEditar('calendario'),hoje=hojeISO(),by=agdPorDia();
+  var p=AGD.ref.split('-'),ano=+p[0],mes=+p[1];
+  var dow=new Date(ano,mes-1,1).getDay(),dias=new Date(ano,mes,0).getDate();
+  var h='<div class="aggrid">';
   AGDDOWS.forEach(function(d){h+='<div class="agdh">'+d+'</div>';});
   for(var i=0;i<dow;i++)h+='<div class="agcell fora"></div>';
   for(var d=1;d<=dias;d++){
-    var iso=AGD.mes+'-'+(d<10?'0':'')+d;
+    var iso=ano+'-'+String(mes).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     h+='<div class="agcell'+(iso===hoje?' hoje':'')+(adm?' clik':'')+'" data-d="'+iso+'"><span class="agdn">'+d+'</span>';
-    (byDate[iso]||[]).forEach(function(ev){
-      var c=agdCat(ev.categoria_id);
-      h+='<div class="agev" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'" title="'+esc(ev.titulo+(ev.responsavel?' · '+ev.responsavel:''))+'">'+
+    (by[iso]||[]).forEach(function(ev){
+      var c=agdCat(ev.categoria_id),meu=agdConvidado(ev,currentUser);
+      h+='<div class="agev'+(meu?'':' op')+'" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'" title="'+esc(ev.titulo+(ev.responsavel?' · '+ev.responsavel:''))+'">'+
          (ev.hora_inicio?'<b>'+agdH(ev.hora_inicio)+'</b> ':'')+esc(ev.titulo)+
          (ev.responsavel?' <span class="agr">· '+esc(ev.responsavel)+'</span>':'')+'</div>';
     });
@@ -6466,74 +6612,94 @@ function renderCalendario(){
   }
   var resto=(dow+dias)%7;
   if(resto)for(var j=resto;j<7;j++)h+='<div class="agcell fora"></div>';
-  h+='</div>';
-
-  if(!adm)h+='<div style="font-size:12px;color:var(--gray)">Calendário mantido pela administração. Toque em um evento para ver os detalhes.</div>';
-  h+='</div></div>';
-  $('board').innerHTML=h;
-  agdWire();
+  return h+'</div>';
 }
 
-function agdResumoSemana(hoje){
-  var hp=hoje.split('-'),hd=new Date(+hp[0],+hp[1]-1,+hp[2]);
-  var seg=new Date(hd);seg.setDate(hd.getDate()-((hd.getDay()+6)%7));
-  var dias=[],lbl=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  for(var i=0;i<7;i++){
-    var d=new Date(seg);d.setDate(seg.getDate()+i);
-    var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    dias.push({iso:iso,lbl:lbl[i]+' · '+brDate(iso).slice(0,5)});
-  }
-  var h='<div class="agsem"><h3>Resumo da semana</h3>';
-  var tem=false;
-  dias.forEach(function(dd){
-    var evs=AGD.eventos.filter(function(e){return e.data===dd.iso;});
-    if(!evs.length)return;
-    tem=true;
-    h+='<div class="sdia">'+dd.lbl+(dd.iso===hoje?' (hoje)':'')+'</div>';
+function agdColunas(){
+  var adm=podeEditar('calendario'),hoje=hojeISO(),by=agdPorDia(),r=agdRange();
+  var cols=Math.min(r.n,7);
+  var h='<div class="agcols" style="grid-template-columns:repeat('+cols+',1fr)">';
+  for(var i=0;i<r.n;i++){
+    var iso=agdDias(r.ini,i),d=agdDate(iso);
+    h+='<div class="agcol'+(iso===hoje?' hoje':'')+(adm?' clik':'')+'" data-d="'+iso+'">'+
+       '<div class="agcolh"><b>'+AGDDOWS[d.getDay()]+'</b><span>'+brDate(iso).slice(0,5)+(iso===hoje?' · hoje':'')+'</span></div>';
+    var evs=by[iso]||[];
+    if(!evs.length)h+='<div class="agvazio">Nada marcado</div>';
     evs.forEach(function(ev){
-      var c=agdCat(ev.categoria_id);
-      h+='<div class="sev"><span class="ldot2" style="background:'+esc(c?c.cor:'#5A5A5A')+'"></span>'+
-         '<span class="sh">'+(ev.hora_inicio?agdH(ev.hora_inicio)+(ev.hora_fim?'–'+agdH(ev.hora_fim):''):'dia todo')+'</span>'+
-         '<span>'+esc(ev.titulo)+'</span>'+
-         (ev.responsavel?'<span class="sr">· '+esc(ev.responsavel)+'</span>':'')+'</div>';
+      var c=agdCat(ev.categoria_id),meu=agdConvidado(ev,currentUser),ps=agdParts(ev);
+      h+='<div class="agevb'+(meu?'':' op')+'" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'">'+
+         '<span class="eh">'+(ev.hora_inicio?agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):'Dia todo')+'</span>'+
+         '<span class="et">'+esc(ev.titulo)+'</span>'+
+         (ps.length?'<span class="ep">'+esc(ps.slice(0,3).join(', '))+(ps.length>3?' +'+(ps.length-3):'')+'</span>':'')+
+         '</div>';
     });
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+
+/* ---- formulario de evento ---- */
+function agdPartsRender(){
+  var el=$('ag_pchips');
+  if(!el)return;
+  el.innerHTML=AGD.parts.length
+    ? AGD.parts.map(function(p){return '<span class="agpchip">'+esc(p)+'<button type="button" data-del="'+esc(p)+'" title="Remover">&times;</button></span>';}).join('')
+    : '<span class="agnenhum">Ninguém além do responsável.</span>';
+  el.querySelectorAll('[data-del]').forEach(function(b){
+    b.onclick=function(){AGD.parts=AGD.parts.filter(function(x){return x!==b.dataset.del;});agdPartsRender();};
   });
-  if(!tem)h+='<div style="font-size:13px;color:var(--gray)">Nenhuma ação programada para esta semana.</div>';
-  h+='</div>';
-  return h;
+}
+function agdPartAdd(){
+  var sel=$('ag_padd'),v=sel?sel.value:'';
+  if(!v)return;
+  var resp=$('ag_resp')?$('ag_resp').value:'';
+  if(v===resp){toast('Essa pessoa já é a responsável pelo evento.');return;}
+  if(AGD.parts.indexOf(v)<0)AGD.parts.push(v);
+  agdPartsRender();
 }
 
 function agdFormEvento(){
   var ev=AGD.edit.id?AGD.eventos.find(function(x){return x.id===AGD.edit.id;}):null;
   var g=function(k,d){return ev&&ev[k]!=null?ev[k]:(AGD.edit[k]!=null?AGD.edit[k]:d);};
   var cats=AGD.cats.filter(function(c){return c.ativa||(ev&&ev.categoria_id===c.id);});
-  var h='<div class="agform" id="agf">'+
-    '<div class="full"><label>Título da ação</label><input id="ag_titulo" value="'+esc(g('titulo',''))+'" placeholder="Ex.: Aula aberta de espanhol, Blitz na feira da Taquara..."></div>'+
+  var resp=g('responsavel','')||currentUser;
+  AGD.parts=((ev&&ev.participantes)||[]).filter(function(x){return x&&x!==resp;});
+  var lemb=ev&&ev.lembrete_min!=null?ev.lembrete_min:30;
+  return '<div class="agform" id="agf">'+
+    '<div class="full"><label>Título do evento</label><input id="ag_titulo" value="'+esc(g('titulo',''))+'" placeholder="Ex.: Reunião de equipe, aula aberta de espanhol, blitz na feira..."></div>'+
     '<div><label>Categoria</label><select id="ag_cat">'+
       cats.map(function(c){return '<option value="'+c.id+'"'+(g('categoria_id','')===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select></div>'+
-    '<div><label>Responsáveis</label><div class="agresps" id="ag_resp">'+
-      RESP.map(function(r){
-        var sel=agdRespLista(g('responsavel','')).indexOf(r)>=0;
-        return '<label class="agrchk"><input type="checkbox" value="'+esc(r)+'"'+(sel?' checked':'')+'> '+esc(r)+'</label>';
-      }).join('')+'</div></div>'+
+    '<div><label>Responsável</label><select id="ag_resp">'+
+      RESP.map(function(r){return '<option value="'+esc(r)+'"'+(resp===r?' selected':'')+'>'+esc(r)+'</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Participantes</label><div class="agpchips" id="ag_pchips"></div>'+
+      '<div class="agpadd"><select id="ag_padd"><option value="">Escolha quem participa...</option>'+
+        RESP.map(function(r){return '<option value="'+esc(r)+'">'+esc(r)+'</option>';}).join('')+'</select>'+
+      '<button class="btn" type="button" id="ag_padd_b">+ Adicionar</button></div></div>'+
     '<div><label>Data</label><input id="ag_data" type="date" value="'+esc(g('data',hojeISO()))+'"></div>'+
     '<div class="row"><div style="flex:1"><label>Início</label><input id="ag_hi" type="time" value="'+esc(agdH(g('hora_inicio','')))+'"></div>'+
       '<div style="flex:1"><label>Fim</label><input id="ag_hf" type="time" value="'+esc(agdH(g('hora_fim','')))+'"></div></div>'+
+    '<div class="full"><label>Alerta para os convidados</label><select id="ag_lemb">'+
+      AGDLEMB.map(function(l){return '<option value="'+l[0]+'"'+(lemb===l[0]?' selected':'')+'>'+l[1]+'</option>';}).join('')+
+      '</select><div style="font-size:11px;color:var(--gray);margin-top:4px">Só o responsável e os participantes recebem o alerta no sino.</div></div>'+
     '<div class="full"><label>Descrição (opcional)</label><textarea id="ag_desc">'+esc(g('descricao',''))+'</textarea></div>'+
   '</div>';
-  return h;
 }
 
 function agdDetalhe(){
   var ev=AGD.eventos.find(function(x){return x.id===AGD.det;});
   if(!ev)return '';
   var c=agdCat(ev.categoria_id);
+  var outros=((ev.participantes)||[]).filter(function(p){return p&&p!==ev.responsavel;});
+  var lb=AGDLEMB.find(function(l){return l[0]===ev.lembrete_min;});
   return '<div class="agdet">'+
     '<h3><span class="ldot2" style="background:'+esc(c?c.cor:'#5A5A5A')+';display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px"></span>'+esc(ev.titulo)+'</h3>'+
     '<div class="dl"><b>Categoria</b>'+esc(c?c.nome:'—')+'</div>'+
-    '<div class="dl"><b>Data</b>'+brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):'')+'</div>'+
+    '<div class="dl"><b>Data</b>'+brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):' · dia todo')+'</div>'+
     (ev.responsavel?'<div class="dl"><b>Responsável</b>'+esc(ev.responsavel)+'</div>':'')+
+    '<div class="dl"><b>Participantes</b>'+(outros.length?esc(outros.join(', ')):'só o responsável')+'</div>'+
+    '<div class="dl"><b>Alerta</b>'+esc(lb?lb[1]:'sem lembrete')+'</div>'+
     (ev.descricao?'<div class="dl"><b>Descrição</b>'+esc(ev.descricao)+'</div>':'')+
+    (agdConvidado(ev,currentUser)?'':'<div class="dl" style="color:var(--gray)">Você não está na lista deste evento, então não recebe alerta dele.</div>')+
   '</div>';
 }
 
@@ -6551,18 +6717,16 @@ function agdFormCats(){
      '<input type="text" id="agnc_nome" placeholder="Nova categoria...">'+
      '<span></span><button class="btn primary" id="agnc_add">+ Adicionar</button></div></div>';
   h+='<div class="full"><label>Ponte com o Google Agenda (Apps Script)</label>'+
-     ''+
      '<input id="ag_gasurl" placeholder="URL do web app do Apps Script (https://script.google.com/macros/s/.../exec)" value="'+esc(cfg.gas_url||'')+'" style="margin-bottom:6px">'+
      '<input id="ag_gastoken" placeholder="Token secreto (o mesmo definido no script)" value="'+esc(cfg.gas_token||'')+'">'+
      '<div style="font-size:11px;color:var(--gray);margin-top:4px">Deixe em branco para usar o calendário só no CRM, sem sincronizar com o Google.</div></div>';
-  h+='</div>';
-  return h;
+  return h+'</div>';
 }
 
 /* ---- modal padrao (mesmo shell da ficha/turmas) ---- */
 function agdCloseModal(){
   $('agov').classList.remove('open');
-  document.body.classList.remove('modal-open');
+  unlockScroll();
   AGD.edit=null;AGD.det=null;AGD.catEdit=false;
 }
 function agdShowModal(titulo,sub,body,foot){
@@ -6571,7 +6735,7 @@ function agdShowModal(titulo,sub,body,foot){
   $('agmbody').innerHTML=body;
   $('agmfoot').innerHTML=foot||'';
   $('agov').classList.add('open');
-  document.body.classList.add('modal-open');
+  lockScroll();
   $('agmx').onclick=agdCloseModal;
   $('agov').onclick=function(e){if(e.target===$('agov'))agdCloseModal();};
 }
@@ -6580,11 +6744,19 @@ function agdOpenEvento(ed){
   var ev=ed.id?AGD.eventos.find(function(x){return x.id===ed.id;}):null;
   agdShowModal(
     ev?'Editar evento':'Novo evento',
-    ev?(brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio):'')):('Calendário de ações · '+AGDMESES[+AGD.mes.slice(5,7)-1]),
+    ev?(brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio):'')):('Calendário da unidade · '+(ed.data?brDate(ed.data):'')),
     agdFormEvento(),
     '<button class="btn primary" id="ag_save">Salvar</button>'+
     '<button class="btn" id="ag_cancel">Cancelar</button>'+
     (ev?'<div class="spacer"></div><button class="btn" id="ag_del" style="color:var(--red)">Excluir</button>':''));
+  agdPartsRender();
+  $('ag_padd_b').onclick=agdPartAdd;
+  $('ag_padd').onchange=agdPartAdd;
+  $('ag_resp').onchange=function(){
+    var r=$('ag_resp').value;
+    AGD.parts=AGD.parts.filter(function(x){return x!==r;});
+    agdPartsRender();
+  };
   $('ag_save').onclick=agdSalvar;
   $('ag_cancel').onclick=agdCloseModal;
   var d=$('ag_del');if(d)d.onclick=agdExcluir;
@@ -6593,14 +6765,13 @@ function agdOpenDet(id){
   AGD.edit=null;AGD.catEdit=false;AGD.det=id;
   var ev=AGD.eventos.find(function(x){return x.id===id;});
   if(!ev)return;
-  agdShowModal('Detalhes da ação',brDate(ev.data),agdDetalhe(),
+  agdShowModal('Detalhes do evento',brDate(ev.data),agdDetalhe(),
+    (podeEditar('calendario')?'<button class="btn primary" id="agdEdit">Editar</button>':'')+
     '<button class="btn" id="agdClose">Fechar</button>');
+  var e2=$('agdEdit');if(e2)e2.onclick=function(){agdOpenEvento({id:id});};
   $('agdClose').onclick=agdCloseModal;
 }
-function agdOpenCats(){
-  AGD.edit=null;AGD.det=null;AGD.catEdit=true;
-  agdFillCats();
-}
+function agdOpenCats(){AGD.edit=null;AGD.det=null;AGD.catEdit=true;agdFillCats();}
 function agdFillCats(){
   if(!AGD.catEdit)return;
   agdShowModal('Categorias e Google','Cores, categorias e ponte com o Google Agenda',agdFormCats(),
@@ -6613,41 +6784,48 @@ function agdFillCats(){
 }
 
 function agdWire(){
-  var adm=podeEditar('calendario');
-  var b;
-  if(b=$('agPrev'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,-1);renderCalendario();};
-  if(b=$('agNext'))b.onclick=function(){AGD.mes=agdAddMes(AGD.mes,1);renderCalendario();};
-  if(b=$('agHoje'))b.onclick=function(){AGD.mes=hojeISO().slice(0,7);renderCalendario();};
-  if(b=$('agNovo'))b.onclick=function(){agdOpenEvento({data:hojeISO()});};
+  var adm=podeEditar('calendario'),b;
+  if(b=$('agPrev'))b.onclick=function(){agdNav(-1);};
+  if(b=$('agNext'))b.onclick=function(){agdNav(1);};
+  if(b=$('agHoje'))b.onclick=function(){AGD.ref=hojeISO();renderCalendario();};
+  if(b=$('agNovo'))b.onclick=function(){agdOpenEvento({data:AGD.vista==='mes'?hojeISO():agdRange().ini});};
   if(b=$('agCats'))b.onclick=agdOpenCats;
-  document.querySelectorAll('.agev').forEach(function(el){
-    el.onclick=function(e){
-      e.stopPropagation();
-      if(adm)agdOpenEvento({id:el.dataset.ev});
-      else agdOpenDet(el.dataset.ev);
+  document.querySelectorAll('.agvsel button').forEach(function(el){
+    el.onclick=function(){
+      AGD.vista=el.dataset.v;
+      safeSet('crmAgdVista',AGD.vista);
+      renderCalendario();
     };
   });
-  if(adm)document.querySelectorAll('.agcell.clik').forEach(function(el){
+  if(b=$('agFcat'))b.onchange=function(){AGD.fcat=b.value;renderCalendario();};
+  if(b=$('agFpes'))b.onchange=function(){AGD.fpessoa=b.value;renderCalendario();};
+  if(b=$('agFmeus'))b.onchange=function(){AGD.soMeus=b.checked;renderCalendario();};
+  if(b=$('agFlimpa'))b.onclick=function(){AGD.fcat='';AGD.fpessoa='';AGD.soMeus=false;renderCalendario();};
+  document.querySelectorAll('.agev,.agevb').forEach(function(el){
+    el.onclick=function(e){
+      e.stopPropagation();
+      agdOpenDet(el.dataset.ev);
+    };
+  });
+  if(adm)document.querySelectorAll('.agcell.clik,.agcol.clik').forEach(function(el){
     el.onclick=function(){agdOpenEvento({data:el.dataset.d});};
   });
-}
-
-function agdAddMes(ym,n){
-  var p=ym.split('-'),y=+p[0],m=+p[1]-1+n;
-  y+=Math.floor(m/12);m=((m%12)+12)%12;
-  return y+'-'+String(m+1).padStart(2,'0');
 }
 
 async function agdSalvar(){
   if(!podeEditar('calendario'))return;
   var titulo=$('ag_titulo').value.trim();
   var data=$('ag_data').value;
-  if(!titulo){toast('Dê um título para a ação.');return;}
+  if(!titulo){toast('Dê um título para o evento.');return;}
   if(!data){toast('Escolha a data.');return;}
   var hi=$('ag_hi').value,hf=$('ag_hf').value;
   if(hi&&hf&&hf<hi){toast('O horário de fim precisa ser depois do início.');return;}
+  var resp=$('ag_resp').value||null;
+  var parts=AGD.parts.slice();
+  if(resp&&parts.indexOf(resp)<0)parts.unshift(resp);
   var body={titulo:titulo,descricao:$('ag_desc').value.trim()||null,categoria_id:$('ag_cat').value||null,
-    data:data,hora_inicio:hi||null,hora_fim:hf||null,responsavel:agdRespColeta()||null,
+    data:data,hora_inicio:hi||null,hora_fim:hf||null,responsavel:resp,participantes:parts,
+    lembrete_min:+$('ag_lemb').value||0,
     atualizado_em:new Date().toISOString(),gcal_sync:'pendente'};
   $('ag_save').disabled=true;
   var salvo;
@@ -6664,6 +6842,7 @@ async function agdSalvar(){
   toast('Evento salvo.');
   agdCloseModal();
   await openCalendario();
+  loadAlerts();
   if(salvo)agdSyncEvento(salvo,'upsert');
 }
 
@@ -6678,6 +6857,7 @@ async function agdExcluir(){
   agdCloseModal();
   if(ev&&ev.gcal_id)agdSyncEvento(ev,'delete');
   openCalendario();
+  loadAlerts();
 }
 
 async function agdSalvarCat(id){
@@ -6723,7 +6903,8 @@ async function agdSyncEvento(ev,acao){
       body:JSON.stringify({token:cfg.gas_token,acao:acao,gcal_id:ev.gcal_id||'',evento:{
         id:ev.id,titulo:ev.titulo,descricao:ev.descricao||'',data:ev.data,
         hora_inicio:agdH(ev.hora_inicio),hora_fim:agdH(ev.hora_fim),
-        responsavel:ev.responsavel||'',categoria:c?c.nome:''}})});
+        responsavel:ev.responsavel||'',participantes:(ev.participantes||[]).join(', '),
+        categoria:c?c.nome:''}})});
     var j=await r.json();
     if(acao==='delete')return;
     if(j&&j.ok){
@@ -6736,6 +6917,9 @@ async function agdSyncEvento(ev,acao){
     toast('Evento salvo no CRM, mas a sincronização com o Google falhou.');
   }
 }
+
+/* vista preferida por navegador */
+(function(){var v=safeGet('crmAgdVista');if(v&&AGDVISTAS.some(function(x){return x[0]===v;}))AGD.vista=v;})();
 
 </script>
 </body>
