@@ -989,6 +989,23 @@ input[type=date].dvazio{color:#C9C9CE}
 .agdet h3{margin:0 0 6px;font-size:16px}
 .agdet .dl{font-size:13px;margin:3px 0;color:var(--ink)}
 .agdet .dl b{color:var(--gray);font-weight:600;font-size:12px;text-transform:uppercase;margin-right:6px}
+.agdet h3{display:flex;align-items:flex-start;gap:8px;line-height:1.3;margin:0 0 12px;font-size:17px}
+.agdgrid{display:grid;grid-template-columns:92px minmax(0,1fr);gap:9px 12px;align-items:baseline}
+.agdk{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.3px}
+.agdv{font-size:13.5px;color:var(--ink);min-width:0}
+.agdv.quando{font-size:15px;font-weight:700}
+.agdv.quando span{font-weight:600;color:var(--gray);font-size:13px}
+.agdpess{display:flex;flex-wrap:wrap;gap:5px}
+.agdp{display:inline-flex;align-items:center;gap:5px;background:var(--pastelBlue);color:var(--blue);border-radius:var(--r-pill);padding:3px 11px;font-size:12px;font-weight:600}
+.agdp.resp{background:var(--pastelRed);color:var(--redDark)}
+.agdp i{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.4px;opacity:.7}
+.agdv.desc{white-space:pre-wrap;line-height:1.5}
+.agdnota{grid-column:1/-1;font-size:12px;color:var(--gray);background:var(--surface);border-radius:8px;padding:9px 11px;margin-top:3px;line-height:1.45}
+@media(max-width:560px){
+  .agdgrid{grid-template-columns:minmax(0,1fr);gap:1px 0}
+  .agdk{margin-top:9px}
+  .agdgrid>.agdk:first-child{margin-top:0}
+}
 .agcatrow{display:grid;grid-template-columns:34px 1fr auto auto;gap:8px;align-items:center;margin-bottom:6px}
 .agcatrow input[type=color]{width:34px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none}
 .agcatrow input[type=text]{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px}
@@ -6808,17 +6825,27 @@ function agdDetalhe(){
   var ev=AGD.eventos.find(function(x){return x.id===AGD.det;});
   if(!ev)return '';
   var c=agdCat(ev.categoria_id);
+  var cor=c?c.cor:'#5A5A5A';
   var outros=((ev.participantes)||[]).filter(function(p){return p&&p!==ev.responsavel;});
   var lb=AGDLEMB.find(function(l){return l[0]===ev.lembrete_min;});
+  var quando=brDate(ev.data)+(ev.hora_inicio
+    ? '<span> · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):'')+'</span>'
+    : '<span> · dia todo</span>');
+  var pess='';
+  if(ev.responsavel)pess+='<span class="agdp resp">'+esc(ev.responsavel)+'<i>RESP</i></span>';
+  pess+=outros.map(function(p){return '<span class="agdp">'+esc(p)+'</span>';}).join('');
+  if(!pess)pess='<span style="font-size:13px;color:var(--gray)">ninguém definido</span>';
   return '<div class="agdet">'+
-    '<h3><span class="ldot2" style="background:'+esc(c?c.cor:'#5A5A5A')+';display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px"></span>'+esc(ev.titulo)+'</h3>'+
-    '<div class="dl"><b>Categoria</b>'+esc(c?c.nome:'—')+'</div>'+
-    '<div class="dl"><b>Data</b>'+brDate(ev.data)+(ev.hora_inicio?' · '+agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):' · dia todo')+'</div>'+
-    (ev.responsavel?'<div class="dl"><b>Responsável</b>'+esc(ev.responsavel)+'</div>':'')+
-    '<div class="dl"><b>Participantes</b>'+(outros.length?esc(outros.join(', ')):'só o responsável')+'</div>'+
-    '<div class="dl"><b>Alerta</b>'+esc(lb?lb[1]:'sem lembrete')+'</div>'+
-    (ev.descricao?'<div class="dl"><b>Descrição</b>'+esc(ev.descricao)+'</div>':'')+
-    (agdConvidado(ev,currentUser)?'':'<div class="dl" style="color:var(--gray)">Você não está na lista deste evento, então não recebe alerta dele.</div>')+
+    '<h3><span style="background:'+esc(cor)+';display:inline-block;width:11px;height:11px;border-radius:50%;flex:none;margin-top:5px"></span>'+
+      '<span>'+esc(ev.titulo)+'</span></h3>'+
+    '<div class="agdgrid">'+
+      '<div class="agdk">Quando</div><div class="agdv quando">'+quando+'</div>'+
+      '<div class="agdk">Pessoas</div><div class="agdv"><div class="agdpess">'+pess+'</div></div>'+
+      '<div class="agdk">Categoria</div><div class="agdv">'+esc(c?c.nome:'—')+'</div>'+
+      '<div class="agdk">Alerta</div><div class="agdv">'+esc(lb?lb[1]:'sem lembrete')+'</div>'+
+      (ev.descricao?'<div class="agdk">Descrição</div><div class="agdv desc">'+esc(ev.descricao)+'</div>':'')+
+      (agdConvidado(ev,currentUser)?'':'<div class="agdnota">Você não está na lista deste evento, então não recebe o alerta dele.</div>')+
+    '</div>'+
   '</div>';
 }
 
