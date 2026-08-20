@@ -1030,6 +1030,7 @@ input[type=date].dvazio{color:#C9C9CE}
 .agpadd{display:flex;gap:6px;margin-top:6px}
 .agpadd select{flex:1}
 .agnenhum{font-size:12px;color:var(--gray);align-self:center}
+#ag_pchips{margin-top:6px}
 @media(max-width:700px){
   .agcols{grid-template-columns:1fr !important}
   .agbarra select{max-width:none;flex:1;min-width:130px}
@@ -6750,12 +6751,28 @@ function agdPartsRender(){
     b.onclick=function(){AGD.parts=AGD.parts.filter(function(x){return x!==b.dataset.del;});agdPartsRender();};
   });
 }
-function agdPartAdd(){
-  var sel=$('ag_padd'),v=sel?sel.value:'';
+function agdPartAdd(silencioso){
+  var inp=$('ag_padd');
+  if(!inp)return;
+  var v=(inp.value||'').trim();
   if(!v)return;
+  var alvo=v.toLowerCase();
+  var m=RESP.filter(function(r){return r.toLowerCase()===alvo;})[0];
+  if(!m){
+    var cand=RESP.filter(function(r){return r.toLowerCase().indexOf(alvo)===0;});
+    if(cand.length===1)m=cand[0];
+  }
+  if(!m){
+    if(!silencioso)toast('Não encontrei "'+v+'" na equipe. Escolha um nome da lista.');
+    return;
+  }
   var resp=$('ag_resp')?$('ag_resp').value:'';
-  if(v===resp){toast('Essa pessoa já é a responsável pelo evento.');return;}
-  if(AGD.parts.indexOf(v)<0)AGD.parts.push(v);
+  if(m===resp){
+    if(!silencioso)toast('Essa pessoa já é a responsável pelo evento.');
+    inp.value='';return;
+  }
+  if(AGD.parts.indexOf(m)<0)AGD.parts.push(m);
+  inp.value='';
   agdPartsRender();
 }
 
@@ -6772,10 +6789,11 @@ function agdFormEvento(){
       cats.map(function(c){return '<option value="'+c.id+'"'+(g('categoria_id','')===c.id?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('')+'</select></div>'+
     '<div><label>Responsável</label><select id="ag_resp">'+
       RESP.map(function(r){return '<option value="'+esc(r)+'"'+(resp===r?' selected':'')+'>'+esc(r)+'</option>';}).join('')+'</select></div>'+
-    '<div class="full"><label>Participantes</label><div class="agpchips" id="ag_pchips"></div>'+
-      '<div class="agpadd"><select id="ag_padd"><option value="">Escolha quem participa...</option>'+
-        RESP.map(function(r){return '<option value="'+esc(r)+'">'+esc(r)+'</option>';}).join('')+'</select>'+
-      '<button class="btn" type="button" id="ag_padd_b">+ Adicionar</button></div></div>'+
+    '<div class="full"><label>Participantes</label>'+
+      '<input id="ag_padd" list="ag_padd_list" autocomplete="off" placeholder="Digite o nome e tecle Enter">'+
+      '<datalist id="ag_padd_list">'+
+        RESP.map(function(r){return '<option value="'+esc(r)+'"></option>';}).join('')+'</datalist>'+
+      '<div class="agpchips" id="ag_pchips"></div></div>'+
     '<div><label>Data</label><input id="ag_data" type="date" value="'+esc(g('data',hojeISO()))+'"></div>'+
     '<div class="row"><div style="flex:1"><label>Início</label><input id="ag_hi" type="time" value="'+esc(agdH(g('hora_inicio','')))+'"></div>'+
       '<div style="flex:1"><label>Fim</label><input id="ag_hf" type="time" value="'+esc(agdH(g('hora_fim','')))+'"></div></div>'+
@@ -6851,8 +6869,10 @@ function agdOpenEvento(ed){
     '<button class="btn" id="ag_cancel">Cancelar</button>'+
     (ev?'<div class="spacer"></div><button class="btn" id="ag_del" style="color:var(--red)">Excluir</button>':''));
   agdPartsRender();
-  $('ag_padd_b').onclick=agdPartAdd;
-  $('ag_padd').onchange=agdPartAdd;
+  var agPin=$('ag_padd');
+  agPin.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();agdPartAdd(false);}};
+  agPin.onchange=function(){agdPartAdd(false);};
+  agPin.onblur=function(){agdPartAdd(true);};
   $('ag_resp').onchange=function(){
     var r=$('ag_resp').value;
     AGD.parts=AGD.parts.filter(function(x){return x!==r;});
