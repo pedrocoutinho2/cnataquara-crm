@@ -275,6 +275,8 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .iadd{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .iadd select{border:1px solid var(--line);border-radius:var(--r-md);padding:8px 10px;background:var(--white)}
 .iadd input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:var(--r-md);padding:8px 10px}
+.iadd textarea{flex:1 1 100%;min-width:180px;border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;min-height:104px;resize:vertical;line-height:1.55;font-family:inherit;font-size:14px;color:var(--ink);background:var(--white)}
+.iadd textarea:focus{outline:none;border-color:var(--blue)}
 .ilist{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto}
 .int{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 11px}
 .int .ih{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--gray);margin-bottom:3px}
@@ -591,6 +593,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .faqcat{font-family:'Poppins';font-weight:600;font-size:11px;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 2px}
 .faqcat:first-child{margin-top:0}
 .mform{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;padding-top:14px;border-top:1px dashed var(--line)}
+.mform.inmodal{margin-top:0;padding-top:0;border-top:none}
 .mform .full{grid-column:1/-1}
 .mform label{display:block;font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
 .mform input,.mform select,.mform textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;font-size:13px;background:var(--white)}
@@ -629,6 +632,7 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .cmsg.trava textarea{background:var(--surface);color:var(--gray);cursor:default}
 .cmsg.trava textarea:focus{border-color:var(--line)}
 .ctpl{margin-top:0;border-top:none;padding:0 14px 14px}
+.ctpl.inmodal{padding:0}
 .ctpl textarea{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
 .ctpl .vars{font-size:11.5px;color:var(--gray);line-height:1.9;margin-bottom:9px}
 .ctpl .vars code{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:11px;color:var(--ink);white-space:nowrap}
@@ -721,11 +725,11 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
   .mfoot #save{flex:1 1 auto}
   .grid{grid-template-columns:1fr}
   .f input,.f select,.f textarea{font-size:16px;padding:11px 12px}
-  .iadd select,.iadd input{font-size:16px}
+  .iadd select,.iadd input,.iadd textarea{font-size:16px}
   .mform input,.mform select,.mform textarea,
   .cf input,.cf select,.cmoney input,
   .eqform input[type=text],.eqform input[type=password]{font-size:16px}
-  .iadd input{flex:1 1 100%}
+  .iadd input,.iadd textarea{flex:1 1 100%}
   .iadd .btn{flex:1 1 auto}
   .ilist{max-height:none;overflow:visible}
 
@@ -1167,7 +1171,8 @@ input[type=date].dvazio{color:#C9C9CE}
       <div class="sgi">
       <a data-t="turmas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="2"/></svg><span>Turmas</span></a>
       <a data-t="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="5" width="17.2" height="15.6" rx="2.4"/><path d="M3.4 9.8h17.2"/><path d="M8.2 2.8v4M15.8 2.8v4"/></svg><span>Calend&aacute;rio</span></a>
-      <a data-t="mural"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2v-6.4"/><path d="M8.4 2.8h7.2l-.9 5.4 2.9 3.2v1.2H6.4v-1.2l2.9-3.2-.9-5.4Z"/></svg><span>Mural</span></a>
+      <a data-t="mural"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2v-6.4"/><path d="M8.4 2.8h7.2l-.9 5.4 2.9 3.2v1.2H6.4v-1.2l2.9-3.2-.9-5.4Z"/></svg><span>Mural de avisos</span></a>
+      <a data-t="faq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M9.5 9.4a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.8"/><path d="M12 17.4h.01" stroke-width="2.3"/></svg><span>Dúvidas frequentes</span></a>
       <a data-t="atas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 2.8h8.4l5.2 5.2v13.2H6.2z"/><path d="M14.2 2.8v5.6h5.4"/><path d="M9.4 12.6h5.6M9.4 16.4h4"/></svg><span>Atas de reuni&atilde;o</span></a>
       <a data-t="demandas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.4h10.4M9 12h10.4M9 18.6h10.4"/><path d="m3.6 5.2 1.4 1.4 2.2-2.4M3.6 11.8l1.4 1.4 2.2-2.4M3.6 18.4l1.4 1.4 2.2-2.4"/></svg><span>Demandas</span><b class="nb" id="nbDemandas">0</b></a>
       </div>
@@ -1245,7 +1250,7 @@ input[type=date].dvazio{color:#C9C9CE}
             <option value="visita">Visita</option>
             <option value="reuniao">Reunião</option>
           </select>
-          <input id="iresumo" placeholder="O que aconteceu nesse contato?">
+          <textarea id="iresumo" rows="4" placeholder="O que aconteceu nesse contato? Escreva com detalhe: o que o cliente falou, o que ficou combinado, o que você prometeu retornar."></textarea>
           <div class="nesched"><label>Próximo contato (data e hora)</label><div class="dtwrap"><input type="date" id="iprox" class="ok"><input type="time" step="900" id="iproxh" class="ok"></div></div>
           <div class="nesched"><label>Canal do próximo contato</label><select id="iproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option><option value="teste_nivel">Teste de nível</option><option value="experimental">Aula experimental</option></select></div>
           <button class="btn primary" id="iadd">Registrar</button>
@@ -1385,6 +1390,18 @@ input[type=date].dvazio{color:#C9C9CE}
       <div class="spacer"></div>
       <button class="btn" id="tdel" style="color:var(--red)">Excluir</button>
     </div>
+  </div>
+</div>
+
+<div class="ov" id="gov">
+  <div class="modal" style="max-width:680px">
+    <div class="mhead">
+      <h2 id="gmtitle">Cadastro</h2>
+      <div class="msub" id="gmsub"></div>
+      <button class="mx" id="gmx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody" id="gmbody"></div>
+    <div class="mfoot" id="gmfoot"></div>
   </div>
 </div>
 
@@ -1582,6 +1599,37 @@ function unlockScroll(){
   window.scrollTo(0,SCROLLY);
 }
 function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none';},2600);}
+
+/* ---- modal generico: todo cadastro e toda edicao do CRM passam por aqui ---- */
+var GMODAL={onclose:null,aberto:false};
+function uiModalClose(){
+  if(!GMODAL.aberto)return;
+  GMODAL.aberto=false;
+  var f=GMODAL.onclose;GMODAL.onclose=null;
+  $('gov').classList.remove('open');
+  unlockScroll();
+  $('gmbody').innerHTML='';$('gmfoot').innerHTML='';
+  if(f)try{f();}catch(e){}
+}
+function uiModal(titulo,sub,body,foot,onclose){
+  GMODAL.onclose=onclose||null;
+  GMODAL.aberto=true;
+  $('gmtitle').textContent=titulo;
+  $('gmsub').textContent=sub||'';
+  $('gmsub').style.display=sub?'':'none';
+  $('gmbody').innerHTML=body;
+  $('gmfoot').innerHTML=foot||'';
+  $('gmfoot').style.display=foot?'':'none';
+  $('gov').classList.add('open');
+  lockScroll();
+  $('gmx').onclick=uiModalClose;
+  $('gov').onclick=function(e){if(e.target===$('gov'))uiModalClose();};
+  var mb=$('gmbody');if(mb)mb.scrollTop=0;
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&GMODAL.aberto)uiModalClose();
+});
+function uiFoco(id){setTimeout(function(){var el=$(id);if(el)el.focus();},70);}
 
 let currentUser=null;
 function SF(cfg){return cfg.statusField||'status';}
@@ -2896,7 +2944,7 @@ $('persel').onchange=function(){
 };
 
 $('board').addEventListener('wheel',function(e){
-  if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc'||tab==='turmas')return;
+  if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='faq'||tab==='calc'||tab==='turmas')return;
   if(e.target.closest('.cards'))return;
   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
     $('board').scrollLeft+=e.deltaY;
@@ -2918,7 +2966,7 @@ window.addEventListener('resize',function(){
     if(m===wasMobile)return;
     wasMobile=m;
     if(!m)closeDrawer();
-    if(!(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='calc'||tab==='turmas')){buildChips();render();}
+    if(!(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='faq'||tab==='calc'||tab==='turmas')){buildChips();render();}
   },200);
 });
 
@@ -3301,8 +3349,10 @@ async function waCriarLead(){
     if(novo){
       await api('/crm_wa_conversas?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify({lead_id:novo.id})});
       DATA.leads=null;
-      toast('Lead criado e ligado à conversa.');
-      await waCarregar();
+      await waCarregar(false);
+      toast('Lead criado. Complete a ficha.');
+      /* abre a ficha em modal para o consultor completar nome e origem na hora */
+      await goToAlert('leads',novo.id);
     }
   }catch(e){toast('Não foi possível criar o lead: '+(e.message||e));}
 }
@@ -3409,7 +3459,7 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas');
+  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='faq'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -3417,6 +3467,7 @@ function setTab(t){
   if(t==='relatorios'){openReports();return;}
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
+  if(t==='faq'){openFaq();return;}
   if(t==='calc'){openCalc();return;}
   if(t==='turmas'){openTurmas();return;}
   if(t==='conversas'){openConversas();return;}
@@ -3437,10 +3488,10 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 /* ================= Menu lateral ================= */
 const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',
   conversas:'atendimento',calc:'atendimento',
-  turmas:'operacao',calendario:'operacao',mural:'operacao',atas:'operacao',demandas:'operacao',
+  turmas:'operacao',calendario:'operacao',mural:'operacao',faq:'operacao',atas:'operacao',demandas:'operacao',
   relatorios:'gestao',equipe:'gestao'};
 const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
-  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural',
+  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural de avisos',faq:'Dúvidas frequentes',
   atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
@@ -3651,24 +3702,36 @@ function senhaValida(v){
 }
 const SENHAREGRA='A senha precisa ter no mínimo 8 caracteres, com pelo menos uma letra e um número.';
 
-async function trocarMinhaSenha(){
+function trocarMinhaSenha(){
   if(!currentUser)return;
-  const atual=window.prompt('Sua senha atual:');
-  if(atual==null)return;
-  const nova=window.prompt('Nova senha (mínimo 8 caracteres, com letra e número):');
-  if(nova==null)return;
+  var body='<div class="mform inmodal">'+
+    '<div class="full"><label>Senha atual</label><input id="ms_atual" type="password" autocomplete="current-password"></div>'+
+    '<div class="full"><label>Nova senha</label><input id="ms_nova" type="password" autocomplete="new-password"></div>'+
+    '<div class="full"><label>Confirmar a nova senha</label><input id="ms_conf" type="password" autocomplete="new-password"></div>'+
+    '<div class="full"><span style="font-size:11.5px;color:var(--gray);line-height:1.55;display:block">'+esc(SENHAREGRA)+'</span></div>'+
+  '</div>';
+  uiModal('Trocar minha senha',currentUser,body,
+    '<button class="btn primary" id="ms_ok">Salvar</button><button class="btn" id="ms_cancel">Cancelar</button>');
+  $('ms_cancel').onclick=uiModalClose;
+  $('ms_ok').onclick=salvarMinhaSenha;
+  $('ms_conf').addEventListener('keydown',function(e){if(e.key==='Enter')salvarMinhaSenha();});
+  uiFoco('ms_atual');
+}
+
+async function salvarMinhaSenha(){
+  var atual=$('ms_atual').value, nova=$('ms_nova').value, conf=$('ms_conf').value;
+  if(!atual){toast('Digite a sua senha atual.');return;}
   if(!senhaValida(nova)){toast(SENHAREGRA);return;}
-  const conf=window.prompt('Digite a nova senha de novo para confirmar:');
-  if(conf==null)return;
-  if(conf!==nova){toast('As duas senhas não bateram. Nada foi alterado.');return;}
+  if(nova!==conf){toast('As duas senhas n\u00e3o bateram. Nada foi alterado.');return;}
+  var bt=$('ms_ok');bt.disabled=true;
   try{
     const mail=MEUEMAIL||safeGet('crmAuthEmail')||'';
-    if(!mail){toast('Entre de novo para trocar a senha.');return;}
+    if(!mail){bt.disabled=false;toast('Entre de novo para trocar a senha.');return;}
     const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
       body:JSON.stringify({p_email:mail,p_atual:atual,p_nova:nova})});
-    if(ok===true)toast('Senha alterada.');
-    else toast('A senha atual não confere. Nada foi alterado.');
-  }catch(e){toast('Não foi possível alterar a senha.');}
+    if(ok===true){uiModalClose();toast('Senha alterada.');}
+    else{bt.disabled=false;toast('A senha atual n\u00e3o confere. Nada foi alterado.');}
+  }catch(e){bt.disabled=false;toast('N\u00e3o foi poss\u00edvel alterar a senha.');}
 }
 
 /* ================= Alerta sonoro e notificacao ================= */
@@ -3968,7 +4031,7 @@ var NIVORD={nenhum:0,ver:1,editar:2,total:3};
 var MODULOS=[];
 var PAPELPERM={};
 var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',conversas:'conversas',
-  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',atas:'atas',demandas:'tarefas',
+  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
   relatorios:'rel_meudia',equipe:'equipe'};
 
 async function loadPerms(){
@@ -4008,7 +4071,7 @@ function tabLiberada(t){
   return podeVer(m);
 }
 function primeiraTabPermitida(){
-  var ordem=['inicio','leads','turmas','calendario','atas','demandas','mural','conversas','calc','relatorios','escolas','empresas','equipe'];
+  var ordem=['inicio','leads','turmas','calendario','atas','demandas','mural','faq','conversas','calc','relatorios','escolas','empresas','equipe'];
   for(var i=0;i<ordem.length;i++){if(tabLiberada(ordem[i]))return ordem[i];}
   return 'inicio';
 }
@@ -5396,61 +5459,148 @@ function vigente(a){
   return true;
 }
 
+/* ---------- Mural de avisos ---------- */
 async function openMural(){
   $('stats').innerHTML='';
   $('board').innerHTML='<div class="loading">Carregando mural...</div>';
   try{
-    const r=await Promise.all([
-      api('/crm_avisos?select=*&order=destaque.desc,ordem.asc,criado_em.desc'),
-      api('/crm_faq?select=*&order=categoria.asc,ordem.asc')
-    ]);
-    MURAL.avisos=r[0]||[];MURAL.faq=r[1]||[];
+    MURAL.avisos=(await api('/crm_avisos?select=*&order=destaque.desc,ordem.asc,criado_em.desc'))||[];
   }catch(e){
-    $('board').innerHTML='<div class="loading">Não foi possível carregar o mural.</div>';return;
+    $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar o mural.</div>';return;
   }
-  mEdit=null;renderMural();
+  renderMural();
 }
 
 function renderMural(){
   const adm=podeEditar('mural');
-  const avisos=MURAL.avisos.filter(function(a){return adm||vigente(a);});
-  const q=faqQ.trim().toLowerCase();
-  const faq=MURAL.faq.filter(function(f){
-    if(!adm&&!f.ativo)return false;
-    if(!q)return true;
-    return (f.pergunta+' '+f.resposta+' '+f.categoria+' '+(f.tags||[]).join(' ')).toLowerCase().indexOf(q)>-1;
-  });
+  const avisos=(MURAL.avisos||[]).filter(function(a){return adm||vigente(a);});
 
-  let h='<div class="pane">';
-
-  /* --- Promoções e avisos --- */
-  h+='<div class="rcard"><div class="paneh"><h3>Promoções e avisos do período</h3>'+
-     (adm?'<button class="btn primary" id="addAviso">+ Nova</button>':'')+'</div>';
+  let h='<div class="pane"><div class="rcard"><div class="paneh"><h3>Promo\u00e7\u00f5es e avisos do per\u00edodo</h3>'+
+    (adm?'<button class="btn primary" id="addAviso">+ Novo aviso</button>':'')+'</div>';
   if(!avisos.length){
-    h+='<div style="color:var(--gray);font-size:13px;padding:6px 0">Nenhuma promoção ou aviso no ar agora.</div>';
+    h+='<div style="color:var(--gray);font-size:13px;padding:6px 0">Nenhuma promo\u00e7\u00e3o ou aviso no ar agora.</div>';
   }else{
     avisos.forEach(function(a){
       const fora=!vigente(a);
       h+='<div class="promo'+(a.destaque?' hot':'')+'" style="'+(fora?'opacity:.55':'')+'">'+
         '<div class="pt">'+esc(a.titulo)+
-          (a.tipo==='promocao'?'<span class="tag red">Promoção</span>':'<span class="tag">Aviso</span>')+
-          (fora?'<span class="tag gray">'+(a.ativo?'Fora de vigência':'Inativo')+'</span>':'')+
+          (a.tipo==='promocao'?'<span class="tag red">Promo\u00e7\u00e3o</span>':'<span class="tag">Aviso</span>')+
+          (fora?'<span class="tag gray">'+(a.ativo?'Fora de vig\u00eancia':'Inativo')+'</span>':'')+
         '</div>'+
         (a.corpo?'<div class="pb">'+esc(a.corpo)+'</div>':'')+
-        '<div class="pv">Vigência: '+brDate(a.vigencia_inicio)+(a.vigencia_fim?' até '+brDate(a.vigencia_fim):' · sem prazo')+'</div>'+
+        '<div class="pv">Vig\u00eancia: '+brDate(a.vigencia_inicio)+(a.vigencia_fim?' at\u00e9 '+brDate(a.vigencia_fim):' \u00b7 sem prazo')+'</div>'+
         (adm?'<div class="pbtns"><button class="btn" data-ea="'+a.id+'">Editar</button>'+
              '<button class="btn danger" data-da="'+a.id+'">Excluir</button></div>':'')+
       '</div>';
     });
   }
-  if(adm&&mEdit&&mEdit.tipo==='aviso')h+=formAviso();
-  h+='</div>';
+  h+='</div></div>';
 
-  /* --- FAQ --- */
-  h+='<div class="rcard"><div class="paneh"><h3>Dúvidas frequentes</h3>'+
-     (adm?'<button class="btn primary" id="addFaq">+ Nova</button>':'')+'</div>'+
-     '<input id="faqq" type="search" placeholder="Buscar por palavra-chave: material, trancamento, reposição..." '+
-     'value="'+esc(faqQ)+'" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:6px">';
+  $('board').innerHTML=h;
+  if($('addAviso'))$('addAviso').onclick=function(){avisoAbrir(null);};
+  document.querySelectorAll('[data-ea]').forEach(function(b){
+    b.onclick=function(){avisoAbrir(b.dataset.ea);};
+  });
+  document.querySelectorAll('[data-da]').forEach(function(b){
+    b.onclick=function(){avisoExcluir(b.dataset.da);};
+  });
+}
+
+/* --- aviso: cadastro e edicao sempre em modal --- */
+function avisoAbrir(id){
+  if(!podeEditar('mural'))return;
+  mEdit={tipo:'aviso',id:id||null};
+  const a=id?(MURAL.avisos||[]).find(function(x){return x.id===id;}):null;
+  const g=function(k,d){return a&&a[k]!=null?a[k]:d;};
+  const body='<div class="mform inmodal">'+
+    '<div class="full"><label>T\u00edtulo</label><input id="av_titulo" value="'+esc(g('titulo',''))+'" placeholder="Ex.: Matr\u00edcula com taxa zero at\u00e9 sexta"></div>'+
+    '<div><label>Tipo</label><select id="av_tipo">'+
+      '<option value="promocao"'+(g('tipo','promocao')==='promocao'?' selected':'')+'>Promo\u00e7\u00e3o</option>'+
+      '<option value="aviso"'+(g('tipo','promocao')==='aviso'?' selected':'')+'>Aviso</option></select></div>'+
+    '<div><label>Ordem</label><input id="av_ordem" type="number" value="'+g('ordem',0)+'"></div>'+
+    '<div class="full"><label>Texto</label><textarea id="av_corpo" placeholder="O que a equipe precisa saber para usar isso no atendimento.">'+esc(g('corpo',''))+'</textarea></div>'+
+    '<div><label>In\u00edcio da vig\u00eancia</label><input id="av_ini" type="date" value="'+g('vigencia_inicio',hojeISO())+'"></div>'+
+    '<div><label>Fim da vig\u00eancia (vazio = sem prazo)</label><input id="av_fim" type="date" value="'+g('vigencia_fim','')+'"></div>'+
+    '<div class="full row"><label style="margin:0"><input type="checkbox" id="av_destaque"'+(g('destaque',false)?' checked':'')+'> Destacar no topo</label>'+
+      '<label style="margin:0 0 0 16px"><input type="checkbox" id="av_ativo"'+(g('ativo',true)?' checked':'')+'> Ativo</label></div>'+
+  '</div>';
+  const foot='<button class="btn primary" id="av_save">Salvar</button>'+
+    '<button class="btn" id="av_cancel">Cancelar</button>'+
+    (id?'<div class="spacer"></div><button class="btn danger" id="av_del">Excluir</button>':'');
+  uiModal(id?'Editar aviso':'Novo aviso','Mural \u00b7 promo\u00e7\u00f5es e avisos do per\u00edodo',body,foot,function(){mEdit=null;});
+  $('av_cancel').onclick=uiModalClose;
+  if($('av_del'))$('av_del').onclick=function(){avisoExcluir(id);};
+  $('av_save').onclick=avisoSalvar;
+  uiFoco('av_titulo');
+}
+
+async function avisoSalvar(){
+  const btn=$('av_save');if(btn.disabled)return;btn.disabled=true;
+  try{
+    const body={
+      titulo:$('av_titulo').value.trim(),
+      tipo:$('av_tipo').value,
+      corpo:$('av_corpo').value,
+      destaque:$('av_destaque').checked,
+      ativo:$('av_ativo').checked,
+      ordem:parseInt($('av_ordem').value||'0',10),
+      vigencia_inicio:$('av_ini').value||hojeISO(),
+      vigencia_fim:$('av_fim').value||null,
+      atualizado_em:new Date().toISOString()
+    };
+    if(!body.titulo){toast('Coloque um t\u00edtulo.');btn.disabled=false;return;}
+    if(body.vigencia_fim&&body.vigencia_fim<body.vigencia_inicio){toast('A data final \u00e9 anterior \u00e0 inicial.');btn.disabled=false;return;}
+    if(mEdit&&mEdit.id){
+      const r=await api('/crm_avisos?id=eq.'+mEdit.id,{method:'PATCH',body:JSON.stringify(body)});
+      const i=MURAL.avisos.findIndex(function(x){return x.id===mEdit.id;});
+      if(i>-1&&r&&r[0])MURAL.avisos[i]=r[0];
+    }else{
+      body.criado_por=currentUser;
+      const r=await api('/crm_avisos',{method:'POST',body:JSON.stringify(body)});
+      if(r&&r[0])MURAL.avisos.unshift(r[0]);
+    }
+    uiModalClose();
+    toast('Aviso salvo.');
+    renderMural();
+  }catch(e){toast('Erro ao salvar: '+(e&&e.message?e.message:e));btn.disabled=false;}
+}
+
+async function avisoExcluir(id){
+  if(!id||!podeEditar('mural'))return;
+  if(!confirm('Excluir este item do mural?'))return;
+  try{await api('/crm_avisos?id=eq.'+id,{method:'DELETE'});}
+  catch(e){toast('N\u00e3o foi poss\u00edvel excluir.');return;}
+  MURAL.avisos=(MURAL.avisos||[]).filter(function(x){return x.id!==id;});
+  uiModalClose();
+  toast('Aviso exclu\u00eddo.');
+  renderMural();
+}
+
+/* ---------- Duvidas frequentes (tela propria) ---------- */
+async function openFaq(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando d\u00favidas frequentes...</div>';
+  try{
+    MURAL.faq=(await api('/crm_faq?select=*&order=categoria.asc,ordem.asc'))||[];
+  }catch(e){
+    $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar as d\u00favidas frequentes.</div>';return;
+  }
+  renderFaq();
+}
+
+function renderFaq(){
+  const adm=podeEditar('mural');
+  const q=faqQ.trim().toLowerCase();
+  const faq=(MURAL.faq||[]).filter(function(f){
+    if(!adm&&!f.ativo)return false;
+    if(!q)return true;
+    return (f.pergunta+' '+f.resposta+' '+f.categoria+' '+(f.tags||[]).join(' ')).toLowerCase().indexOf(q)>-1;
+  });
+
+  let h='<div class="pane"><div class="rcard"><div class="paneh"><h3>D\u00favidas frequentes</h3>'+
+    (adm?'<button class="btn primary" id="addFaq">+ Nova pergunta</button>':'')+'</div>'+
+    '<input id="faqq" type="search" placeholder="Buscar por palavra-chave: material, trancamento, reposi\u00e7\u00e3o..." '+
+    'value="'+esc(faqQ)+'" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:6px">';
   if(!faq.length){
     h+='<div style="color:var(--gray);font-size:13px;padding:10px 0">'+(q?'Nada encontrado para essa busca.':'Nenhuma pergunta cadastrada ainda.')+'</div>';
   }else{
@@ -5458,153 +5608,101 @@ function renderMural(){
     faq.forEach(function(f){
       if(f.categoria!==cat){cat=f.categoria;h+='<div class="faqcat">'+esc(cat)+'</div>';}
       h+='<div class="faqq" data-fq="'+f.id+'">'+
-        '<button type="button"><span>'+esc(f.pergunta)+(f.ativo?'':' <span class="tag gray">Inativa</span>')+'</span><span class="ar">▾</span></button>'+
+        '<button type="button"><span>'+esc(f.pergunta)+(f.ativo?'':' <span class="tag gray">Inativa</span>')+'</span><span class="ar">\u25be</span></button>'+
         '<div class="fa">'+esc(f.resposta)+
           (adm?'<div class="pbtns"><button class="btn" data-ef="'+f.id+'">Editar</button>'+
                '<button class="btn danger" data-df="'+f.id+'">Excluir</button></div>':'')+
         '</div></div>';
     });
   }
-  if(adm&&mEdit&&mEdit.tipo==='faq')h+=formFaq();
   h+='</div></div>';
 
   $('board').innerHTML=h;
-  wireMural();
-}
 
-function formAviso(){
-  const a=mEdit.id?MURAL.avisos.find(function(x){return x.id===mEdit.id;}):null;
-  const g=function(k,d){return a&&a[k]!=null?a[k]:d;};
-  return '<div class="mform" id="fav">'+
-    '<div class="full"><label>Título</label><input id="av_titulo" value="'+esc(g('titulo',''))+'"></div>'+
-    '<div><label>Tipo</label><select id="av_tipo">'+
-      '<option value="promocao"'+(g('tipo','promocao')==='promocao'?' selected':'')+'>Promoção</option>'+
-      '<option value="aviso"'+(g('tipo','promocao')==='aviso'?' selected':'')+'>Aviso</option></select></div>'+
-    '<div><label>Ordem</label><input id="av_ordem" type="number" value="'+g('ordem',0)+'"></div>'+
-    '<div class="full"><label>Texto</label><textarea id="av_corpo">'+esc(g('corpo',''))+'</textarea></div>'+
-    '<div><label>Início da vigência</label><input id="av_ini" type="date" value="'+g('vigencia_inicio',hojeISO())+'"></div>'+
-    '<div><label>Fim da vigência (vazio = sem prazo)</label><input id="av_fim" type="date" value="'+g('vigencia_fim','')+'"></div>'+
-    '<div class="full row"><label style="margin:0"><input type="checkbox" id="av_destaque"'+(g('destaque',false)?' checked':'')+'> Destacar no topo</label>'+
-      '<label style="margin:0 0 0 16px"><input type="checkbox" id="av_ativo"'+(g('ativo',true)?' checked':'')+'> Ativo</label></div>'+
-    '<div class="full row"><button class="btn primary" id="av_save">Salvar</button>'+
-      '<button class="btn" id="av_cancel">Cancelar</button><span id="av_msg" style="font-size:12px;color:var(--ok)"></span></div>'+
-  '</div>';
-}
-
-function formFaq(){
-  const f=mEdit.id?MURAL.faq.find(function(x){return x.id===mEdit.id;}):null;
-  const g=function(k,d){return f&&f[k]!=null?f[k]:d;};
-  return '<div class="mform" id="ffq">'+
-    '<div><label>Categoria</label><input id="fq_cat" list="fqcats" value="'+esc(g('categoria','Geral'))+'">'+
-      '<datalist id="fqcats"><option>Matrícula</option><option>Financeiro</option><option>Pedagógico</option>'+
-      '<option>Material</option><option>Cancelamento</option><option>Geral</option></datalist></div>'+
-    '<div><label>Ordem</label><input id="fq_ordem" type="number" value="'+g('ordem',0)+'"></div>'+
-    '<div class="full"><label>Pergunta</label><input id="fq_perg" value="'+esc(g('pergunta',''))+'"></div>'+
-    '<div class="full"><label>Resposta</label><textarea id="fq_resp">'+esc(g('resposta',''))+'</textarea></div>'+
-    '<div class="full"><label>Palavras-chave (separadas por vírgula)</label><input id="fq_tags" value="'+esc((g('tags',[])||[]).join(', '))+'"></div>'+
-    '<div class="full row"><label style="margin:0"><input type="checkbox" id="fq_ativo"'+(g('ativo',true)?' checked':'')+'> Ativa</label></div>'+
-    '<div class="full row"><button class="btn primary" id="fq_save">Salvar</button>'+
-      '<button class="btn" id="fq_cancel">Cancelar</button><span id="fq_msg" style="font-size:12px;color:var(--ok)"></span></div>'+
-  '</div>';
-}
-
-function wireMural(){
   const fq=$('faqq');
   if(fq){
     fq.oninput=function(e){
       faqQ=e.target.value;
       const pos=e.target.selectionStart;
-      renderMural();
+      renderFaq();
       const n=$('faqq');if(n){n.focus();n.setSelectionRange(pos,pos);}
     };
   }
   document.querySelectorAll('.faqq>button').forEach(function(b){
     b.onclick=function(){b.parentNode.classList.toggle('open');};
   });
-  if($('addAviso'))$('addAviso').onclick=function(){mEdit={tipo:'aviso',id:null};renderMural();};
-  if($('addFaq'))$('addFaq').onclick=function(){mEdit={tipo:'faq',id:null};renderMural();};
-  document.querySelectorAll('[data-ea]').forEach(function(b){
-    b.onclick=function(){mEdit={tipo:'aviso',id:b.dataset.ea};renderMural();};
-  });
+  if($('addFaq'))$('addFaq').onclick=function(){faqAbrir(null);};
   document.querySelectorAll('[data-ef]').forEach(function(b){
-    b.onclick=function(e){e.stopPropagation();mEdit={tipo:'faq',id:b.dataset.ef};renderMural();};
-  });
-  document.querySelectorAll('[data-da]').forEach(function(b){
-    b.onclick=async function(){
-      if(!confirm('Excluir este item do mural?'))return;
-      await api('/crm_avisos?id=eq.'+b.dataset.da,{method:'DELETE'});
-      MURAL.avisos=MURAL.avisos.filter(function(x){return x.id!==b.dataset.da;});
-      mEdit=null;renderMural();
-    };
+    b.onclick=function(e){e.stopPropagation();faqAbrir(b.dataset.ef);};
   });
   document.querySelectorAll('[data-df]').forEach(function(b){
-    b.onclick=async function(e){
-      e.stopPropagation();
-      if(!confirm('Excluir esta pergunta?'))return;
-      await api('/crm_faq?id=eq.'+b.dataset.df,{method:'DELETE'});
-      MURAL.faq=MURAL.faq.filter(function(x){return x.id!==b.dataset.df;});
-      mEdit=null;renderMural();
-    };
+    b.onclick=function(e){e.stopPropagation();faqExcluir(b.dataset.df);};
   });
+}
 
-  if($('av_cancel'))$('av_cancel').onclick=function(){mEdit=null;renderMural();};
-  if($('fq_cancel'))$('fq_cancel').onclick=function(){mEdit=null;renderMural();};
+function faqAbrir(id){
+  if(!podeEditar('mural'))return;
+  mEdit={tipo:'faq',id:id||null};
+  const f=id?(MURAL.faq||[]).find(function(x){return x.id===id;}):null;
+  const g=function(k,d){return f&&f[k]!=null?f[k]:d;};
+  const body='<div class="mform inmodal">'+
+    '<div><label>Categoria</label><input id="fq_cat" list="fqcats" value="'+esc(g('categoria','Geral'))+'">'+
+      '<datalist id="fqcats"><option>Matr\u00edcula</option><option>Financeiro</option><option>Pedag\u00f3gico</option>'+
+      '<option>Material</option><option>Cancelamento</option><option>Geral</option></datalist></div>'+
+    '<div><label>Ordem</label><input id="fq_ordem" type="number" value="'+g('ordem',0)+'"></div>'+
+    '<div class="full"><label>Pergunta</label><input id="fq_perg" value="'+esc(g('pergunta',''))+'" placeholder="Do jeito que o cliente pergunta"></div>'+
+    '<div class="full"><label>Resposta</label><textarea id="fq_resp" style="min-height:150px">'+esc(g('resposta',''))+'</textarea></div>'+
+    '<div class="full"><label>Palavras-chave (separadas por v\u00edrgula)</label><input id="fq_tags" value="'+esc((g('tags',[])||[]).join(', '))+'"></div>'+
+    '<div class="full row"><label style="margin:0"><input type="checkbox" id="fq_ativo"'+(g('ativo',true)?' checked':'')+'> Ativa</label></div>'+
+  '</div>';
+  const foot='<button class="btn primary" id="fq_save">Salvar</button>'+
+    '<button class="btn" id="fq_cancel">Cancelar</button>'+
+    (id?'<div class="spacer"></div><button class="btn danger" id="fq_del">Excluir</button>':'');
+  uiModal(id?'Editar pergunta':'Nova pergunta','D\u00favidas frequentes',body,foot,function(){mEdit=null;});
+  $('fq_cancel').onclick=uiModalClose;
+  if($('fq_del'))$('fq_del').onclick=function(){faqExcluir(id);};
+  $('fq_save').onclick=faqSalvar;
+  uiFoco('fq_perg');
+}
 
-  if($('av_save'))$('av_save').onclick=async function(){
-    const btn=$('av_save');if(btn.disabled)return;btn.disabled=true;
-    try{
-      const body={
-        titulo:$('av_titulo').value.trim(),
-        tipo:$('av_tipo').value,
-        corpo:$('av_corpo').value,
-        destaque:$('av_destaque').checked,
-        ativo:$('av_ativo').checked,
-        ordem:parseInt($('av_ordem').value||'0',10),
-        vigencia_inicio:$('av_ini').value||hojeISO(),
-        vigencia_fim:$('av_fim').value||null,
-        atualizado_em:new Date().toISOString()
-      };
-      if(!body.titulo){alert('Coloque um título.');btn.disabled=false;return;}
-      if(body.vigencia_fim&&body.vigencia_fim<body.vigencia_inicio){alert('A data final é anterior à inicial.');btn.disabled=false;return;}
-      if(mEdit.id){
-        const r=await api('/crm_avisos?id=eq.'+mEdit.id,{method:'PATCH',body:JSON.stringify(body)});
-        const i=MURAL.avisos.findIndex(function(x){return x.id===mEdit.id;});
-        if(i>-1&&r&&r[0])MURAL.avisos[i]=r[0];
-      }else{
-        body.criado_por=currentUser;
-        const r=await api('/crm_avisos',{method:'POST',body:JSON.stringify(body)});
-        if(r&&r[0])MURAL.avisos.unshift(r[0]);
-      }
-      mEdit=null;renderMural();
-    }catch(e){alert('Erro ao salvar: '+(e&&e.message?e.message:e));btn.disabled=false;}
-  };
+async function faqSalvar(){
+  const btn=$('fq_save');if(btn.disabled)return;btn.disabled=true;
+  try{
+    const body={
+      categoria:$('fq_cat').value.trim()||'Geral',
+      pergunta:$('fq_perg').value.trim(),
+      resposta:$('fq_resp').value,
+      tags:$('fq_tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+      ativo:$('fq_ativo').checked,
+      ordem:parseInt($('fq_ordem').value||'0',10),
+      atualizado_em:new Date().toISOString()
+    };
+    if(!body.pergunta){toast('Escreva a pergunta.');btn.disabled=false;return;}
+    if(mEdit&&mEdit.id){
+      const r=await api('/crm_faq?id=eq.'+mEdit.id,{method:'PATCH',body:JSON.stringify(body)});
+      const i=MURAL.faq.findIndex(function(x){return x.id===mEdit.id;});
+      if(i>-1&&r&&r[0])MURAL.faq[i]=r[0];
+    }else{
+      body.criado_por=currentUser;
+      const r=await api('/crm_faq',{method:'POST',body:JSON.stringify(body)});
+      if(r&&r[0])MURAL.faq.push(r[0]);
+    }
+    MURAL.faq.sort(function(a,b){return a.categoria===b.categoria?a.ordem-b.ordem:(a.categoria<b.categoria?-1:1);});
+    uiModalClose();
+    toast('Pergunta salva.');
+    renderFaq();
+  }catch(e){toast('Erro ao salvar: '+(e&&e.message?e.message:e));btn.disabled=false;}
+}
 
-  if($('fq_save'))$('fq_save').onclick=async function(){
-    const btn=$('fq_save');if(btn.disabled)return;btn.disabled=true;
-    try{
-      const body={
-        categoria:$('fq_cat').value.trim()||'Geral',
-        pergunta:$('fq_perg').value.trim(),
-        resposta:$('fq_resp').value,
-        tags:$('fq_tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
-        ativo:$('fq_ativo').checked,
-        ordem:parseInt($('fq_ordem').value||'0',10),
-        atualizado_em:new Date().toISOString()
-      };
-      if(!body.pergunta){alert('Escreva a pergunta.');btn.disabled=false;return;}
-      if(mEdit.id){
-        const r=await api('/crm_faq?id=eq.'+mEdit.id,{method:'PATCH',body:JSON.stringify(body)});
-        const i=MURAL.faq.findIndex(function(x){return x.id===mEdit.id;});
-        if(i>-1&&r&&r[0])MURAL.faq[i]=r[0];
-      }else{
-        body.criado_por=currentUser;
-        const r=await api('/crm_faq',{method:'POST',body:JSON.stringify(body)});
-        if(r&&r[0])MURAL.faq.push(r[0]);
-      }
-      MURAL.faq.sort(function(a,b){return a.categoria===b.categoria?a.ordem-b.ordem:(a.categoria<b.categoria?-1:1);});
-      mEdit=null;renderMural();
-    }catch(e){alert('Erro ao salvar: '+(e&&e.message?e.message:e));btn.disabled=false;}
-  };
+async function faqExcluir(id){
+  if(!id||!podeEditar('mural'))return;
+  if(!confirm('Excluir esta pergunta?'))return;
+  try{await api('/crm_faq?id=eq.'+id,{method:'DELETE'});}
+  catch(e){toast('N\u00e3o foi poss\u00edvel excluir.');return;}
+  MURAL.faq=(MURAL.faq||[]).filter(function(x){return x.id!==id;});
+  uiModalClose();
+  toast('Pergunta exclu\u00edda.');
+  renderFaq();
 }
 
 /* ================= Calculadora de valores ================= */
@@ -5852,21 +5950,6 @@ function renderCalc(){
   h+='<div class="rcard"><div class="paneh"><h3>Resultado</h3></div>'+
      '<div id="cresult">'+resultadoHTML(R)+'</div></div>';
 
-  /* ---------- MODELO DA MENSAGEM (admin) ---------- */
-  if(CALCMSG.editando&&podeTotal('calc')){
-    const vars=CALC_VARS.map(function(v){return '<code>{'+v+'}</code>';}).join(' ');
-    const blocos=CALC_BLOCOS.map(function(b){return '<code>['+b+']</code>';}).join(' ');
-    h+='<div class="rcard ctplcard"><div class="paneh"><h3>Modelo da mensagem \u00b7 vale para toda a equipe</h3></div>'+
-       '<div class="cmsg ctpl">'+
-       '<div class="vars"><b>Campos:</b> '+vars+'</div>'+
-       '<div class="vars"><b>Blocos:</b> '+blocos+' \u2014 o que estiver entre <code>[bloco]</code> e <code>[/bloco]</code> s\u00f3 aparece quando faz sentido (material inclu\u00eddo, taxa maior que zero, validade preenchida, dois per\u00edodos, parcela \u00fanica de curso mais material).</div>'+
-       '<textarea id="c_tpl" spellcheck="false">'+esc(CALCMSG.draft==null?tplAtual():CALCMSG.draft)+'</textarea>'+
-       '<span class="nota">Salvar grava no banco e passa a valer para todos os consultores na pr\u00f3xima vez que abrirem a calculadora.</span>'+
-       '<div class="cbtns"><button class="btn primary" id="c_tpl_save">Salvar modelo</button>'+
-       '<button class="btn" id="c_tpl_def">Restaurar padr\u00e3o</button>'+
-       '<button class="btn" id="c_tpl_cancel">Fechar</button></div></div></div>';
-  }
-
   /* ---------- CERTIFICAÇÕES ---------- */
   if((PRECOS.certs||[]).length){
     h+='<div class="rcard"><div class="paneh"><h3>Certificações · valores avulsos</h3></div>';
@@ -5965,7 +6048,6 @@ function wireCalc(){
   if(val)val.onchange=function(e){CALC.validade=e.target.value;CALCMSG.override=null;};
 
   wireResultado();
-  wireTpl();
 }
 
 function atualizaResultado(){
@@ -5983,11 +6065,7 @@ function wireResultado(){
 
   if($('c_regen'))$('c_regen').onclick=function(){CALCMSG.override=null;atualizaResultado();};
 
-  if($('c_tpl_open'))$('c_tpl_open').onclick=function(){
-    if(!podeTotal('calc'))return;
-    CALCMSG.editando=true;CALCMSG.draft=tplAtual();renderCalc();
-    const t=$('c_tpl');if(t)t.focus();
-  };
+  if($('c_tpl_open'))$('c_tpl_open').onclick=abrirModeloMensagem;
 
   if($('c_copy'))$('c_copy').onclick=function(){
     const box=$('c_txt');
@@ -5999,16 +6077,37 @@ function wireResultado(){
   };
 }
 
+/* modelo da mensagem: edicao em modal, como todo cadastro do CRM */
+function abrirModeloMensagem(){
+  if(!podeTotal('calc'))return;
+  CALCMSG.editando=true;CALCMSG.draft=tplAtual();
+  const vars=CALC_VARS.map(function(v){return '<code>{'+v+'}</code>';}).join(' ');
+  const blocos=CALC_BLOCOS.map(function(b){return '<code>['+b+']</code>';}).join(' ');
+  const body='<div class="cmsg ctpl inmodal">'+
+    '<div class="vars"><b>Campos:</b> '+vars+'</div>'+
+    '<div class="vars"><b>Blocos:</b> '+blocos+' \u2014 o que estiver entre <code>[bloco]</code> e <code>[/bloco]</code> s\u00f3 aparece quando faz sentido (material inclu\u00eddo, taxa maior que zero, validade preenchida, dois per\u00edodos, parcela \u00fanica de curso mais material).</div>'+
+    '<textarea id="c_tpl" spellcheck="false">'+esc(CALCMSG.draft)+'</textarea>'+
+    '<span class="nota">Salvar grava no banco e passa a valer para todos os consultores na pr\u00f3xima vez que abrirem a calculadora.</span>'+
+  '</div>';
+  const foot='<button class="btn primary" id="c_tpl_save">Salvar modelo</button>'+
+    '<button class="btn" id="c_tpl_def">Restaurar padr\u00e3o</button>'+
+    '<button class="btn" id="c_tpl_cancel">Cancelar</button>';
+  uiModal('Modelo da mensagem','Vale para toda a equipe',body,foot,function(){
+    CALCMSG.editando=false;CALCMSG.draft=null;
+  });
+  wireTpl();
+  uiFoco('c_tpl');
+}
+
 function wireTpl(){
   const t=$('c_tpl');
   if(t)t.oninput=function(e){CALCMSG.draft=e.target.value;};
 
-  if($('c_tpl_cancel'))$('c_tpl_cancel').onclick=function(){
-    CALCMSG.editando=false;CALCMSG.draft=null;renderCalc();
-  };
+  if($('c_tpl_cancel'))$('c_tpl_cancel').onclick=uiModalClose;
 
   if($('c_tpl_def'))$('c_tpl_def').onclick=function(){
-    CALCMSG.draft=CALC_TPL_PADRAO;renderCalc();
+    CALCMSG.draft=CALC_TPL_PADRAO;
+    const ta=$('c_tpl');if(ta){ta.value=CALC_TPL_PADRAO;ta.focus();}
   };
 
   if($('c_tpl_save'))$('c_tpl_save').onclick=async function(){
@@ -6021,7 +6120,8 @@ function wireTpl(){
         body:JSON.stringify({chave:'calculadora_mensagem',valor:novo||null,
           atualizado_em:new Date().toISOString(),atualizado_por:meuId()})});
       CALCMSG.tpl=novo||null;
-      CALCMSG.override=null;CALCMSG.editando=false;CALCMSG.draft=null;
+      CALCMSG.override=null;
+      uiModalClose();
       toast(novo?'Modelo salvo. Vale para toda a equipe.':'Modelo voltou ao padrão.');
       renderCalc();
     }catch(e){
@@ -6053,7 +6153,8 @@ async function openTeam(){
     board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
   board.innerHTML='<div class="eq">'+
-    '<div class="rcard"><h3>Equipe \u00b7 quem acessa o CRM</h3><div id="eqlist">'+
+    '<div class="rcard"><div class="paneh"><h3>Equipe \u00b7 quem acessa o CRM</h3>'+
+      '<button class="btn primary" id="nuadd">+ Adicionar pessoa</button></div><div id="eqlist">'+
     users.map(function(u){
       const ex=Object.keys(u.permissoes||{}).length;
       return '<div class="eqrow'+(u.ativo?'':' inativo')+'" data-id="'+u.id+'">'+
@@ -6082,19 +6183,6 @@ async function openTeam(){
         PAPEIS.map(function(p){return '<button class="btn" data-papel="'+p[0]+'">'+p[1]+'</button>';}).join('')+
       '</div>'+
       '<p class="eqnote">O papel define o pacote padr\u00e3o de cada pessoa, m\u00f3dulo por m\u00f3dulo: <b>Sem acesso</b> some do menu, <b>Ver</b> s\u00f3 consulta, <b>Editar</b> cria e altera, <b>Total</b> inclui excluir e configurar. Mudar o padr\u00e3o aqui vale para todo mundo do papel; para abrir uma exce\u00e7\u00e3o s\u00f3 para uma pessoa, use o bot\u00e3o <b>Permiss\u00f5es</b> na linha dela.</p>'+
-    '</div>'+
-    '<div class="rcard"><h3>Adicionar pessoa</h3>'+
-      '<div class="eqform">'+
-        '<input type="text" id="nun" placeholder="Nome">'+
-        '<input type="email" id="numail" autocapitalize="off" spellcheck="false" placeholder="E-mail de acesso">'+
-        '<input type="password" id="nup" autocomplete="new-password" placeholder="Senha inicial (a pessoa troca ao entrar)">'+
-        '<select id="nupap" class="papelsel">'+
-          PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
-        '</select>'+
-        '<input type="color" id="nuc" value="#1E7A46">'+
-        '<button class="btn primary" id="nuok">Adicionar \u00e0 equipe</button>'+
-      '</div>'+
-      '<p class="eqnote">O nome \u00e9 a assinatura da pessoa nos registros e n\u00e3o pode ser alterado depois (pra n\u00e3o descasar do hist\u00f3rico). Quem sai da equipe deve ser <b>desativado</b>, n\u00e3o exclu\u00eddo: o hist\u00f3rico continua no nome dela, mas o acesso \u00e9 bloqueado na hora. Todas as a\u00e7\u00f5es aqui gravam direto no banco.</p>'+
     '</div>'+
   '</div>';
 
@@ -6128,19 +6216,9 @@ async function openTeam(){
           if(a==='perm'){
             abrirPermUsuario(u);
           }else if(a==='email'){
-            const mail=window.prompt('E-mail de acesso de '+u.nome+':',u.email||'');
-            if(mail==null)return;
-            const lim=mail.trim().toLowerCase();
-            if(lim&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lim)){toast('E-mail inv\u00e1lido.');return;}
-            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({email:lim||null})});
-            await loadUsers();openTeam();
-            toast(lim?('E-mail de '+u.nome+' atualizado.'):('E-mail de '+u.nome+' removido. Ela n\u00e3o consegue mais entrar.'));
+            eqEmail(u);
           }else if(a==='senha'){
-            const nova=window.prompt('Nova senha de '+u.nome+' (mínimo 8 caracteres, com letra e número):');
-            if(nova==null)return;
-            if(!senhaValida(nova)){toast(SENHAREGRA);return;}
-            await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova,p_temporaria:true})});
-            toast('Senha de '+u.nome+' redefinida. Ela vai ter que criar uma nova no próximo acesso.');
+            eqSenha(u);
           }else if(a==='cor'){
             const pick=row.querySelector('[data-a=corpick]');
             pick.onchange=async function(){
@@ -6162,27 +6240,98 @@ async function openTeam(){
     bt.onclick=function(){abrirPermPapel(bt.dataset.papel);};
   });
 
-  board.querySelector('#nuok').onclick=async function(){
-    const btn=board.querySelector('#nuok');
-    const nome=board.querySelector('#nun').value.trim();
-    const mail=board.querySelector('#numail').value.trim().toLowerCase();
-    const pin=board.querySelector('#nup').value;
-    const cor=board.querySelector('#nuc').value;
-    const papel=board.querySelector('#nupap').value;
-    if(!nome){toast('Digite o nome.');return;}
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){toast('Digite um e-mail v\u00e1lido: \u00e9 com ele que a pessoa entra.');return;}
-    if(USERS.some(function(x){return (x.email||'').toLowerCase()===mail;})){toast('J\u00e1 existe alguém com esse e-mail.');return;}
-    if(!senhaValida(pin)){toast(SENHAREGRA);return;}
-    if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('Já existe alguém com esse nome.');return;}
-    btn.disabled=true;
+  board.querySelector('#nuadd').onclick=eqNovaPessoa;
+}
+
+/* --- adicionar pessoa: modal --- */
+function eqNovaPessoa(){
+  if(!podeTotal('equipe'))return;
+  var body='<div class="mform inmodal">'+
+    '<div class="full"><label>Nome</label><input id="nun" type="text" placeholder="Como a pessoa assina no sistema"></div>'+
+    '<div class="full"><label>E-mail de acesso</label><input id="numail" type="email" autocapitalize="off" spellcheck="false" placeholder="nome@cna.com.br"></div>'+
+    '<div class="full"><label>Senha inicial</label><input id="nup" type="password" autocomplete="new-password" placeholder="A pessoa troca no primeiro acesso"></div>'+
+    '<div><label>Papel</label><select id="nupap">'+
+      PAPEIS.map(function(p){return '<option value="'+p[0]+'"'+(p[0]==='comercial'?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+    '</select></div>'+
+    '<div><label>Cor da inicial</label><input id="nuc" type="color" value="#1E7A46" style="height:38px;padding:3px"></div>'+
+    '<div class="full"><span style="font-size:11.5px;color:var(--gray);line-height:1.55;display:block">O nome \u00e9 a assinatura da pessoa nos registros e n\u00e3o pode ser alterado depois. A senha \u00e9 tempor\u00e1ria: no primeiro acesso o sistema pede uma nova.</span></div>'+
+  '</div>';
+  var foot='<button class="btn primary" id="nuok">Adicionar \u00e0 equipe</button>'+
+    '<button class="btn" id="nucancel">Cancelar</button>';
+  uiModal('Adicionar pessoa','Equipe \u00b7 quem acessa o CRM',body,foot);
+  $('nucancel').onclick=uiModalClose;
+  $('nuok').onclick=eqCriarPessoa;
+  uiFoco('nun');
+}
+
+async function eqCriarPessoa(){
+  var btn=$('nuok');
+  var nome=$('nun').value.trim();
+  var mail=$('numail').value.trim().toLowerCase();
+  var pin=$('nup').value;
+  var cor=$('nuc').value;
+  var papel=$('nupap').value;
+  if(!nome){toast('Digite o nome.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){toast('Digite um e-mail v\u00e1lido: \u00e9 com ele que a pessoa entra.');return;}
+  if(USERS.some(function(x){return (x.email||'').toLowerCase()===mail;})){toast('J\u00e1 existe algu\u00e9m com esse e-mail.');return;}
+  if(!senhaValida(pin)){toast(SENHAREGRA);return;}
+  if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('J\u00e1 existe algu\u00e9m com esse nome.');return;}
+  btn.disabled=true;
+  try{
+    var criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,email:mail,cor:cor,papel:papel,admin:papel==='admin'})});
+    var novoId=(criado&&criado[0]&&criado[0].id)||null;
+    if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin,p_temporaria:true})});
+    uiModalClose();
+    toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
+    await loadUsers();openTeam();
+  }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
+}
+
+/* --- e-mail de acesso: modal --- */
+function eqEmail(u){
+  var body='<div class="mform inmodal">'+
+    '<div class="full"><label>E-mail de acesso</label><input id="eqm_mail" type="email" autocapitalize="off" spellcheck="false" value="'+esc(u.email||'')+'" placeholder="nome@cna.com.br"></div>'+
+    '<div class="full"><span style="font-size:11.5px;color:var(--gray);line-height:1.55;display:block">Deixar em branco remove o acesso: a pessoa continua no hist\u00f3rico, mas n\u00e3o consegue mais entrar.</span></div>'+
+  '</div>';
+  uiModal('E-mail de acesso',u.nome,body,
+    '<button class="btn primary" id="eqm_ok">Salvar</button><button class="btn" id="eqm_cancel">Cancelar</button>');
+  $('eqm_cancel').onclick=uiModalClose;
+  $('eqm_ok').onclick=async function(){
+    var lim=$('eqm_mail').value.trim().toLowerCase();
+    if(lim&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lim)){toast('E-mail inv\u00e1lido.');return;}
+    $('eqm_ok').disabled=true;
     try{
-      const criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,email:mail,cor:cor,papel:papel,admin:papel==='admin'})});
-      const novoId=(criado&&criado[0]&&criado[0].id)||null;
-      if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin,p_temporaria:true})});
-      toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
+      await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({email:lim||null})});
+      uiModalClose();
       await loadUsers();openTeam();
-    }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
+      toast(lim?('E-mail de '+u.nome+' atualizado.'):('E-mail de '+u.nome+' removido. Ela n\u00e3o consegue mais entrar.'));
+    }catch(e){$('eqm_ok').disabled=false;toast('N\u00e3o foi poss\u00edvel salvar.');}
   };
+  uiFoco('eqm_mail');
+}
+
+/* --- redefinir senha de outra pessoa: modal --- */
+function eqSenha(u){
+  var body='<div class="mform inmodal">'+
+    '<div class="full"><label>Nova senha</label><input id="eqs_a" type="password" autocomplete="new-password"></div>'+
+    '<div class="full"><label>Confirmar a nova senha</label><input id="eqs_b" type="password" autocomplete="new-password"></div>'+
+    '<div class="full"><span style="font-size:11.5px;color:var(--gray);line-height:1.55;display:block">'+esc(SENHAREGRA)+' Ela entra com essa senha e o sistema pede uma nova no primeiro acesso.</span></div>'+
+  '</div>';
+  uiModal('Redefinir senha',u.nome,body,
+    '<button class="btn primary" id="eqs_ok">Redefinir</button><button class="btn" id="eqs_cancel">Cancelar</button>');
+  $('eqs_cancel').onclick=uiModalClose;
+  $('eqs_ok').onclick=async function(){
+    var nova=$('eqs_a').value, conf=$('eqs_b').value;
+    if(!senhaValida(nova)){toast(SENHAREGRA);return;}
+    if(nova!==conf){toast('As duas senhas n\u00e3o bateram.');return;}
+    $('eqs_ok').disabled=true;
+    try{
+      await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova,p_temporaria:true})});
+      uiModalClose();
+      toast('Senha de '+u.nome+' redefinida. Ela vai ter que criar uma nova no pr\u00f3ximo acesso.');
+    }catch(e){$('eqs_ok').disabled=false;toast('N\u00e3o foi poss\u00edvel redefinir.');}
+  };
+  uiFoco('eqs_a');
 }
 
 BOOT();
