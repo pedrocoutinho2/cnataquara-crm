@@ -252,6 +252,8 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 /* ===== Modal ===== */
 .ov{position:fixed;inset:0;background:rgba(26,26,26,.45);display:none;align-items:center;justify-content:center;padding:24px 14px;z-index:50}
 .ov.open{display:flex}
+/* a troca obrigatoria de senha abre por cima da tela de login (.login = z-index 200) */
+#sov{z-index:210}
 .modal{background:var(--white);border-radius:16px;width:100%;max-width:860px;margin:0;display:flex;flex-direction:column;max-height:calc(100% - 8px)}
 .mhead{padding:20px 20px 0;position:relative;flex:0 0 auto}
 .mbody{padding:14px 20px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
@@ -280,7 +282,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .int .itipo{background:var(--white);border:1px solid var(--line);border-radius:var(--r-sm);padding:0 6px;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
 .int p{font-size:13px}
 
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--white);border-radius:var(--r-md);padding:10px 18px;font-size:13px;z-index:99;display:none}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--white);border-radius:var(--r-md);padding:10px 18px;font-size:13px;z-index:300;display:none}
 
 /* ===== Relatório de funil ===== */
 .rmodal{max-width:1100px}
