@@ -1095,7 +1095,6 @@ input[type=date].dvazio{color:#C9C9CE}
 .agpadd{display:flex;gap:6px;margin-top:6px}
 .agpadd select{flex:1}
 .agnenhum{font-size:12px;color:var(--gray);align-self:center}
-#ag_pchips{margin-top:6px}
 @media(max-width:700px){
   .agcols{grid-template-columns:1fr !important}
   .agbarra select{max-width:none;flex:1;min-width:130px}
@@ -1177,6 +1176,23 @@ input[type=date].dvazio{color:#C9C9CE}
 .acchk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer}
 .acped{border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 12px;background:var(--surface)}
 .acsub{font-size:11.5px;color:var(--gray);margin-top:3px}
+/* separador de secao dentro do .agform */
+.fsec{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:10px 0 0}
+.fsec:first-child{margin-top:0}
+.fsec b{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--blue);white-space:nowrap}
+.fsec i{flex:1;height:1px;background:var(--line)}
+/* picker padrao: input com autocomplete + chips */
+.pick input{width:100%}
+.pick .agpchips{margin-top:6px}
+.pkhint{font-size:11px;color:var(--gray);margin-top:5px}
+.agpchip.mat{background:var(--pastelRed);color:var(--redDark)}
+.agpchip.mat button{color:var(--redDark)}
+.acbox{grid-column:1/-1;border:1px solid var(--line);border-radius:var(--r-lg);padding:12px 14px;background:var(--surface)}
+.acbox h5{margin:0 0 6px;font-size:12.5px;color:var(--blue)}
+.acnums{display:flex;flex-wrap:wrap;gap:18px;margin:8px 0 2px}
+.acnum{min-width:88px}
+.acnum b{display:block;font-size:20px;line-height:1.1;color:var(--ink)}
+.acnum span{font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px}
 @media(max-width:700px){
   .demrow .acmeta,.demrow .actipo{display:none}
 }
@@ -1218,7 +1234,7 @@ input[type=date].dvazio{color:#C9C9CE}
       <a data-t="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.6-3.7 3.6-5.6 7.2-5.6s6.6 1.9 7.2 5.6"/></svg><span>Clientes B2C</span></a>
       <a data-t="escolas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6 2.6 8.6 12 13.6l9.4-5L12 3.6Z"/><path d="M6.2 11v4.6c0 1.6 2.6 2.9 5.8 2.9s5.8-1.3 5.8-2.9V11"/></svg><span>Escolas</span></a>
       <a data-t="empresas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 20.5V6.6L12 3.2l7.8 3.4v13.9"/><path d="M2.6 20.5h18.8"/><path d="M9.6 20.5V16h4.8v4.5"/><path d="M8.4 10.2h1.4M14.2 10.2h1.4"/></svg><span>Empresas</span></a>
-      <a data-t="acoes" title="A\u00e7\u00f5es comerciais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10.2v3.6a1.6 1.6 0 0 0 1.6 1.6h2.2l6.4 4V4.6l-6.4 4H5.2a1.6 1.6 0 0 0-1.6 1.6Z"/><path d="M17.8 9.2a4 4 0 0 1 0 5.6"/><path d="M7.4 15.4v3.4a1.6 1.6 0 0 0 1.6 1.6h.9"/></svg><span>A\u00e7\u00f5es comerciais</span><b class="nb" id="nbAcoes">0</b></a>
+      <a data-t="acoes" title="Ações comerciais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10.2v3.6a1.6 1.6 0 0 0 1.6 1.6h2.2l6.4 4V4.6l-6.4 4H5.2a1.6 1.6 0 0 0-1.6 1.6Z"/><path d="M17.8 9.2a4 4 0 0 1 0 5.6"/><path d="M7.4 15.4v3.4a1.6 1.6 0 0 0 1.6 1.6h.9"/></svg><span>Ações comerciais</span><b class="nb" id="nbAcoes">0</b></a>
       </div>
     </div>
     <div class="sgroup" id="sg_atendimento">
@@ -1699,6 +1715,81 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&GMODAL.aberto)uiModalClose();
 });
 function uiFoco(id){setTimeout(function(){var el=$(id);if(el)el.focus();},70);}
+
+/* ---- PADRAO DO CRM para escolha multipla: campo unico com autocomplete + chips.
+   Nunca use grade de checkbox para isso. Usado em equipe e materiais da acao
+   comercial e nos participantes do calendario.
+   uiPickHTML(id,{itens,sel,ph,vazio,dica,chip,valida,mudou,ro}) devolve o markup;
+   chame uiPickBind(id) depois que o modal estiver na tela e leia com uiPickVal(id). */
+var UIPICK={};
+function uiPickHTML(id,o){
+  o=o||{};
+  UIPICK[id]={itens:(o.itens||[]).slice(),sel:(o.sel||[]).slice(),
+    vazio:o.vazio||'Nada selecionado ainda.',chip:o.chip||'',
+    valida:o.valida||null,mudou:o.mudou||null,ro:!!o.ro};
+  return '<div class="pick" id="'+id+'_w">'+
+    (o.ro?'':'<input id="'+id+'_in" list="'+id+'_dl" autocomplete="off" placeholder="'+
+       esc(o.ph||'Digite e tecle Enter')+'"><datalist id="'+id+'_dl"></datalist>')+
+    '<div class="agpchips" id="'+id+'_ch"></div>'+
+    (o.dica?'<div class="pkhint">'+esc(o.dica)+'</div>':'')+
+  '</div>';
+}
+function uiPickRender(id){
+  var st=UIPICK[id];if(!st)return;
+  var ch=$(id+'_ch');
+  if(ch){
+    ch.innerHTML=st.sel.length
+      ? st.sel.map(function(v){
+          return '<span class="agpchip'+(st.chip?' '+st.chip:'')+'">'+esc(v)+
+            (st.ro?'':'<button type="button" data-pk="'+esc(v)+'" title="Remover">&times;</button>')+'</span>';
+        }).join('')
+      : '<span class="agnenhum">'+esc(st.vazio)+'</span>';
+    ch.querySelectorAll('[data-pk]').forEach(function(b){
+      b.onclick=function(){uiPickDel(id,b.getAttribute('data-pk'));};
+    });
+  }
+  var dl=$(id+'_dl');
+  if(dl)dl.innerHTML=st.itens.filter(function(x){return st.sel.indexOf(x)<0;})
+    .map(function(x){return '<option value="'+esc(x)+'"></option>';}).join('');
+}
+function uiPickAdd(id,silencioso){
+  var st=UIPICK[id],inp=$(id+'_in');
+  if(!st||!inp)return;
+  var v=(inp.value||'').trim();
+  if(!v)return;
+  var alvo=v.toLowerCase(),m=null,c=[];
+  m=st.itens.filter(function(x){return x.toLowerCase()===alvo;})[0]||null;
+  if(!m){c=st.itens.filter(function(x){return x.toLowerCase().indexOf(alvo)===0;});if(c.length===1)m=c[0];}
+  if(!m){c=st.itens.filter(function(x){return x.toLowerCase().indexOf(alvo)>-1;});if(c.length===1)m=c[0];}
+  if(!m){if(!silencioso)toast('N\u00e3o encontrei "'+v+'" na lista.');return;}
+  if(st.valida){var erro=st.valida(m);if(erro){if(!silencioso)toast(erro);inp.value='';return;}}
+  if(st.sel.indexOf(m)<0)st.sel.push(m);
+  inp.value='';
+  uiPickRender(id);
+  if(st.mudou)st.mudou(st.sel.slice());
+}
+function uiPickDel(id,v){
+  var st=UIPICK[id];if(!st)return;
+  st.sel=st.sel.filter(function(x){return x!==v;});
+  uiPickRender(id);
+  if(st.mudou)st.mudou(st.sel.slice());
+}
+function uiPickBind(id){
+  var inp=$(id+'_in');
+  if(inp){
+    inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();uiPickAdd(id,false);}};
+    inp.onchange=function(){uiPickAdd(id,false);};
+    inp.onblur=function(){uiPickAdd(id,true);};
+  }
+  uiPickRender(id);
+}
+function uiPickVal(id){return UIPICK[id]?UIPICK[id].sel.slice():[];}
+function uiPickItens(id,arr){
+  var st=UIPICK[id];if(!st)return;
+  st.itens=(arr||[]).slice();
+  st.sel=st.sel.filter(function(x){return st.itens.indexOf(x)>-1;});
+  uiPickRender(id);
+}
 
 let currentUser=null;
 function SF(cfg){return cfg.statusField||'status';}
@@ -7495,40 +7586,7 @@ function agdColunas(){
 }
 
 /* ---- formulario de evento ---- */
-function agdPartsRender(){
-  var el=$('ag_pchips');
-  if(!el)return;
-  el.innerHTML=AGD.parts.length
-    ? AGD.parts.map(function(p){return '<span class="agpchip">'+esc(p)+'<button type="button" data-del="'+esc(p)+'" title="Remover">&times;</button></span>';}).join('')
-    : '<span class="agnenhum">Ninguém além do responsável.</span>';
-  el.querySelectorAll('[data-del]').forEach(function(b){
-    b.onclick=function(){AGD.parts=AGD.parts.filter(function(x){return x!==b.dataset.del;});agdPartsRender();};
-  });
-}
-function agdPartAdd(silencioso){
-  var inp=$('ag_padd');
-  if(!inp)return;
-  var v=(inp.value||'').trim();
-  if(!v)return;
-  var alvo=v.toLowerCase();
-  var m=RESP.filter(function(r){return r.toLowerCase()===alvo;})[0];
-  if(!m){
-    var cand=RESP.filter(function(r){return r.toLowerCase().indexOf(alvo)===0;});
-    if(cand.length===1)m=cand[0];
-  }
-  if(!m){
-    if(!silencioso)toast('Não encontrei "'+v+'" na equipe. Escolha um nome da lista.');
-    return;
-  }
-  var resp=$('ag_resp')?$('ag_resp').value:'';
-  if(m===resp){
-    if(!silencioso)toast('Essa pessoa já é a responsável pelo evento.');
-    inp.value='';return;
-  }
-  if(AGD.parts.indexOf(m)<0)AGD.parts.push(m);
-  inp.value='';
-  agdPartsRender();
-}
+/* participantes migraram para o picker padrao (uiPickHTML/uiPickBind) */
 
 function agdFormEvento(){
   var ev=AGD.edit.id?AGD.eventos.find(function(x){return x.id===AGD.edit.id;}):null;
@@ -7544,10 +7602,10 @@ function agdFormEvento(){
     '<div><label>Responsável</label><select id="ag_resp">'+
       RESP.map(function(r){return '<option value="'+esc(r)+'"'+(resp===r?' selected':'')+'>'+esc(r)+'</option>';}).join('')+'</select></div>'+
     '<div class="full"><label>Participantes</label>'+
-      '<input id="ag_padd" list="ag_padd_list" autocomplete="off" placeholder="Digite o nome e tecle Enter">'+
-      '<datalist id="ag_padd_list">'+
-        RESP.map(function(r){return '<option value="'+esc(r)+'"></option>';}).join('')+'</datalist>'+
-      '<div class="agpchips" id="ag_pchips"></div></div>'+
+      uiPickHTML('ag_part',{itens:RESP.filter(function(r){return r!==resp;}),sel:AGD.parts,
+        ph:'Digite o nome e tecle Enter',vazio:'Ningu\u00e9m al\u00e9m do respons\u00e1vel.',
+        mudou:function(sel){AGD.parts=sel;}})+
+    '</div>'+
     '<div><label>Data</label><input id="ag_data" type="date" value="'+esc(g('data',hojeISO()))+'"></div>'+
     '<div class="row"><div style="flex:1"><label>Início</label><input id="ag_hi" type="time" value="'+esc(agdH(g('hora_inicio','')))+'"></div>'+
       '<div style="flex:1"><label>Fim</label><input id="ag_hf" type="time" value="'+esc(agdH(g('hora_fim','')))+'"></div></div>'+
@@ -7632,15 +7690,12 @@ function agdOpenEvento(ed){
     '<button class="btn primary" id="ag_save">Salvar</button>'+
     '<button class="btn" id="ag_cancel">Cancelar</button>'+
     (ev?'<div class="spacer"></div><button class="btn" id="ag_del" style="color:var(--red)">Excluir</button>':''));
-  agdPartsRender();
-  var agPin=$('ag_padd');
-  agPin.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();agdPartAdd(false);}};
-  agPin.onchange=function(){agdPartAdd(false);};
-  agPin.onblur=function(){agdPartAdd(true);};
+  uiPickBind('ag_part');
   $('ag_resp').onchange=function(){
     var r=$('ag_resp').value;
     AGD.parts=AGD.parts.filter(function(x){return x!==r;});
-    agdPartsRender();
+    uiPickItens('ag_part',RESP.filter(function(x){return x!==r;}));
+    AGD.parts=uiPickVal('ag_part');
   };
   $('ag_save').onclick=agdSalvar;
   $('ag_cancel').onclick=agdCloseModal;
@@ -8570,54 +8625,70 @@ function acAbrir(id){
   var vinc=c.escola_id?('e:'+c.escola_id):(c.empresa_id?('m:'+c.empresa_id):'');
   var cap=ACOES.porAcao[c.id]||0;
 
+  var pedVal=c.pedagogico?(c.pedagogico_quem||'__def__'):'';
+
   var body='<div class="agform">'+
-    '<div class="full"><label>T\u00edtulo da a\u00e7\u00e3o</label><input id="ac_tit" value="'+esc(c.titulo||'')+'" placeholder="Ex: Panfletagem na sa\u00edda do Col\u00e9gio Salesiano"'+ro+'></div>'+
+    '<div class="fsec"><b>A a\u00e7\u00e3o</b><i></i></div>'+
+    '<div class="full"><label>T\u00edtulo</label><input id="ac_tit" value="'+esc(c.titulo||'')+'" placeholder="Ex: Panfletagem na sa\u00edda do Col\u00e9gio Salesiano"'+ro+'></div>'+
     '<div><label>Tipo</label><select id="ac_tipo"'+dis+'>'+ACTIPOS.map(function(t){
       return '<option value="'+t[0]+'"'+(c.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
     '<div><label>Data</label><input id="ac_data" type="date" value="'+esc(c.data||'')+'"'+dis+'></div>'+
     '<div><label>In\u00edcio</label><input id="ac_hi" type="time" step="900" value="'+esc(String(c.hora_inicio||'').slice(0,5))+'"'+dis+'></div>'+
     '<div><label>Fim</label><input id="ac_hf" type="time" step="900" value="'+esc(String(c.hora_fim||'').slice(0,5))+'"'+dis+'></div>'+
-    '<div class="full"><label>Escola ou empresa do CRM</label><select id="ac_vinc"'+dis+'>'+
-      '<option value="">— n\u00e3o vinculado —</option>'+
+
+    '<div class="fsec"><b>Onde</b><i></i></div>'+
+    '<div class="full"><label>Escola ou empresa j\u00e1 cadastrada</label><select id="ac_vinc"'+dis+'>'+
+      '<option value="">\u2014 nenhuma, \u00e9 local avulso \u2014</option>'+
       '<optgroup label="Escolas">'+ACOES.escolas.map(function(x){
         return '<option value="e:'+x.id+'"'+(vinc==='e:'+x.id?' selected':'')+'>'+esc(x.nome)+'</option>';}).join('')+'</optgroup>'+
       '<optgroup label="Empresas">'+ACOES.empresas.map(function(x){
         return '<option value="m:'+x.id+'"'+(vinc==='m:'+x.id?' selected':'')+'>'+esc(x.nome)+'</option>';}).join('')+'</optgroup>'+
-      '</select><div class="acsub">Vincular \u00e9 o que mostra depois quantas vezes j\u00e1 batemos no mesmo lugar.</div></div>'+
-    '<div><label>Local (como aparece na agenda)</label><input id="ac_local" value="'+esc(c.local_nome||'')+'" placeholder="Ex: Academia Bodytech Taquara"'+ro+'></div>'+
-    '<div><label>Endere\u00e7o</label><input id="ac_end" value="'+esc(c.endereco||'')+'"'+ro+'></div>'+
-    '<div class="full"><label>Equipe escalada</label><div class="acchks" id="ac_eq">'+
-      RESP.map(function(n){
-        return '<label class="acchk"><input type="checkbox" data-eq="'+esc(n)+'"'+
-          ((c.equipe||[]).indexOf(n)>-1?' checked':'')+dis+'> '+esc(n)+'</label>';}).join('')+'</div></div>'+
-    '<div class="full acped">'+
-      '<label class="acchk"><input type="checkbox" id="ac_ped"'+(c.pedagogico?' checked':'')+dis+'> <b>Tem participa\u00e7\u00e3o do pedag\u00f3gico</b></label>'+
-      '<div id="ac_pedw" style="margin-top:8px'+(c.pedagogico?'':';display:none')+'">'+
-        '<label>Quem do pedag\u00f3gico</label><select id="ac_pedq"'+dis+'><option value="">— a definir —</option>'+
-        RESP.map(function(n){return '<option value="'+esc(n)+'"'+(c.pedagogico_quem===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+
-        '</select><div class="acsub">Entra como participante do evento no calend\u00e1rio.</div></div>'+
-    '</div>'+
+      '</select><div class="pkhint">Vincular \u00e9 o que mostra depois quantas vezes j\u00e1 batemos no mesmo lugar.</div></div>'+
+    '<div><label>Local</label><input id="ac_local" value="'+esc(c.local_nome||'')+'" placeholder="Ex: Academia Bodytech Taquara"'+ro+'></div>'+
+    '<div><label>Endere\u00e7o</label><input id="ac_end" value="'+esc(c.endereco||'')+'" placeholder="Rua, n\u00famero, bairro"'+ro+'></div>'+
+
+    '<div class="fsec"><b>Quem vai</b><i></i></div>'+
+    '<div class="full"><label>Equipe escalada</label>'+
+      uiPickHTML('ac_eq',{itens:RESP.slice(),sel:(c.equipe||[]).slice(),ro:!ed,
+        ph:'Digite o nome e tecle Enter',vazio:'Ningu\u00e9m escalado ainda.',
+        dica:'Todo mundo daqui vira participante do evento no calend\u00e1rio.'})+'</div>'+
+    '<div class="full"><label>Participa\u00e7\u00e3o do pedag\u00f3gico</label><select id="ac_ped"'+dis+'>'+
+      '<option value=""'+(pedVal===''?' selected':'')+'>Sem participa\u00e7\u00e3o do pedag\u00f3gico</option>'+
+      '<option value="__def__"'+(pedVal==='__def__'?' selected':'')+'>Sim, mas ainda a definir quem</option>'+
+      RESP.map(function(n){return '<option value="'+esc(n)+'"'+(pedVal===n?' selected':'')+'>Sim, com '+esc(n)+'</option>';}).join('')+
+      '</select></div>'+
+
+    '<div class="fsec"><b>Apoio e materiais</b><i></i></div>'+
     '<div class="full"><label>Papel do social media</label><select id="ac_cob"'+dis+'>'+ACCOB.map(function(x){
       return '<option value="'+x[0]+'"'+(c.cobertura===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div>'+
-    '<div class="full"><label>Estruturas e materiais</label><div class="acchks" id="ac_mat">'+
-      ACOES.mats.map(function(m){
-        return '<label class="acchk"><input type="checkbox" data-mat="'+esc(m.nome)+'"'+
-          ((c.materiais||[]).indexOf(m.nome)>-1?' checked':'')+dis+'> '+esc(m.nome)+'</label>';}).join('')+'</div></div>'+
-    '<div><label>Meta de leads</label><input id="ac_meta" type="number" min="0" max="999" value="'+esc(c.meta_leads==null?'':c.meta_leads)+'"'+ro+'></div>'+
+    '<div class="full"><label>Estruturas e materiais</label>'+
+      uiPickHTML('ac_mat',{itens:ACOES.mats.map(function(m){return m.nome;}),sel:(c.materiais||[]).slice(),
+        ro:!ed,chip:'mat',ph:'Digite o material e tecle Enter',
+        vazio:'Nenhum material listado.',
+        dica:'Conferir isto antes de sair \u00e9 o que evita chegar l\u00e1 sem o banner.'})+'</div>'+
+
+    '<div class="fsec"><b>Meta e custo</b><i></i></div>'+
+    '<div><label>Meta de leads</label><input id="ac_meta" type="number" inputmode="numeric" min="0" max="999" value="'+esc(c.meta_leads==null?'':c.meta_leads)+'" placeholder="Ex: 20"'+ro+'></div>'+
     '<div><label>Custo previsto (R$)</label><input id="ac_custo" type="number" min="0" step="0.01" value="'+
-      esc(c.custo_previsto_cents?(c.custo_previsto_cents/100).toFixed(2):'')+'"'+ro+'></div>'+
-    '<div class="full"><label>Observa\u00e7\u00f5es</label><textarea id="ac_obs" class="ataarea sm"'+ro+'>'+esc(c.observacoes||'')+'</textarea></div>';
+      esc(c.custo_previsto_cents?(c.custo_previsto_cents/100).toFixed(2):'')+'" placeholder="0,00"'+ro+'></div>'+
+    '<div class="full"><label>Observa\u00e7\u00f5es</label><textarea id="ac_obs" class="ataarea sm" placeholder="O que \u00e9 importante o time saber antes de ir"'+ro+'>'+esc(c.observacoes||'')+'</textarea></div>';
 
   if(!novo){
-    body+='<div class="full acped"><b>Resultado</b>'+
-      '<div class="acsub">Leads j\u00e1 lan\u00e7ados com esta a\u00e7\u00e3o como origem: <b>'+cap+'</b>'+
-      (c.meta_leads?' de '+c.meta_leads+' da meta':'')+'. O n\u00famero sobe sozinho conforme o consultor cadastra o lead.</div>'+
-      '<div style="margin-top:8px"><label>Custo real (R$)</label><input id="ac_custor" type="number" min="0" step="0.01" value="'+
-        esc(c.custo_real_cents?(c.custo_real_cents/100).toFixed(2):'')+'"'+ro+'></div>'+
-      (cap&&c.custo_real_cents?'<div class="acsub">Custo por lead: <b>'+acBRL(Math.round(c.custo_real_cents/cap))+'</b></div>':'')+
-    '</div>';
-    body+='<div class="full"><label>Parecer da dire\u00e7\u00e3o</label><textarea id="ac_par" class="ataarea sm"'+(adm?'':' readonly')+' placeholder="'+
-      (adm?'Obrigat\u00f3rio ao devolver para ajuste':'Preenchido pela dire\u00e7\u00e3o')+'">'+esc(c.parecer||'')+'</textarea></div>';
+    var cpl=(cap&&c.custo_real_cents)?acBRL(Math.round(c.custo_real_cents/cap)):'\u2014';
+    body+='<div class="fsec"><b>Resultado</b><i></i></div>'+
+      '<div class="acbox">'+
+        '<div class="acnums">'+
+          '<div class="acnum"><b>'+cap+'</b><span>leads captados</span></div>'+
+          '<div class="acnum"><b>'+(c.meta_leads||'\u2014')+'</b><span>meta</span></div>'+
+          '<div class="acnum"><b>'+cpl+'</b><span>custo por lead</span></div>'+
+        '</div>'+
+        '<div class="pkhint">O n\u00famero de leads sobe sozinho conforme o consultor cadastra com esta a\u00e7\u00e3o como origem.</div>'+
+      '</div>'+
+      '<div><label>Custo real (R$)</label><input id="ac_custor" type="number" min="0" step="0.01" value="'+
+        esc(c.custo_real_cents?(c.custo_real_cents/100).toFixed(2):'')+'" placeholder="0,00"'+ro+'></div>'+
+      '<div></div>'+
+      '<div class="full"><label>Parecer da dire\u00e7\u00e3o</label><textarea id="ac_par" class="ataarea sm"'+(adm?'':' readonly')+' placeholder="'+
+        (adm?'Obrigat\u00f3rio ao devolver para ajuste':'Preenchido pela dire\u00e7\u00e3o')+'">'+esc(c.parecer||'')+'</textarea></div>';
   }
   body+='</div>';
 
@@ -8638,8 +8709,8 @@ function acAbrir(id){
      (c.aprovado_por?' \u00b7 por '+c.aprovado_por:''));
   uiModal(novo?'Nova a\u00e7\u00e3o comercial':c.titulo,sub,body,foot);
 
-  var pc=$('ac_ped');
-  if(pc)pc.onchange=function(){var w=$('ac_pedw');if(w)w.style.display=pc.checked?'':'none';};
+  uiPickBind('ac_eq');
+  uiPickBind('ac_mat');
   $('ac_close').onclick=uiModalClose;
   var el;
   if((el=$('ac_save')))el.onclick=function(){acSalvar(false);};
@@ -8652,10 +8723,8 @@ function acAbrir(id){
 }
 
 function acColeta(){
-  var eq=[];
-  document.querySelectorAll('#ac_eq [data-eq]').forEach(function(i){if(i.checked)eq.push(i.getAttribute('data-eq'));});
-  var mat=[];
-  document.querySelectorAll('#ac_mat [data-mat]').forEach(function(i){if(i.checked)mat.push(i.getAttribute('data-mat'));});
+  var eq=uiPickVal('ac_eq'),mat=uiPickVal('ac_mat');
+  var ped=$('ac_ped').value||'';
   var v=$('ac_vinc').value||'';
   var cent=function(id){var e=$(id);if(!e||e.value==='')return null;return Math.round(parseFloat(e.value)*100);};
   return {
@@ -8664,8 +8733,8 @@ function acColeta(){
     local_nome:$('ac_local').value.trim()||null,endereco:$('ac_end').value.trim()||null,
     escola_id:v.indexOf('e:')===0?v.slice(2):null,
     empresa_id:v.indexOf('m:')===0?v.slice(2):null,
-    equipe:eq,pedagogico:$('ac_ped').checked,
-    pedagogico_quem:$('ac_ped').checked?($('ac_pedq').value||null):null,
+    equipe:eq,pedagogico:ped!=='',
+    pedagogico_quem:(ped&&ped!=='__def__')?ped:null,
     cobertura:$('ac_cob').value,materiais:mat,
     meta_leads:$('ac_meta').value===''?null:parseInt($('ac_meta').value,10),
     custo_previsto_cents:cent('ac_custo')||0,
