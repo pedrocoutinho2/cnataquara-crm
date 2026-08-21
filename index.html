@@ -6889,6 +6889,7 @@ function renderTurmas(){
   h+='<button class="tchip'+(tView==='grade'?' on':'')+'" data-view="grade">Grade</button>';
   h+='<button class="tchip'+(tView==='lista'?' on':'')+'" data-view="lista">Lista</button>';
   h+='</div>';
+  h+='<button class="btn" id="timp" style="margin-left:8px">Imprimir</button>';
   if(adm)h+='<button class="btn primary" id="tnova" style="margin-left:8px">+ Nova turma</button>';
   h+='</div>';
 
@@ -7089,6 +7090,97 @@ function tCloseEdit(){
   renderTurmas();
 }
 
+/* ---- impressão do mapa de turmas: abre janela limpa em A4 paisagem ---- */
+function tPrintTabela(lista){
+  var h='';
+  T_DIAS.forEach(function(d){
+    var doDia=lista.filter(function(t){return t.dias===d&&!t.__nova;});
+    if(!doDia.length)return;
+    var salas=T_SALAS.filter(function(sl){return doDia.some(function(t){return t.sala===sl;});});
+    doDia.forEach(function(t){if(salas.indexOf(t.sala)<0)salas.push(t.sala);});
+    var faixas=tFaixas(doDia);
+    var al=0,vgs=0;
+    doDia.forEach(function(t){al+=(t.alunos||0);vgs+=tVagas(t);});
+    h+='<div class="dia"><div class="diah">'+esc(d)+' <span>'+doDia.length+' turma'+(doDia.length>1?'s':'')+' · '+al+' alunos · '+vgs+' vagas livres</span></div>';
+    h+='<table><thead><tr><th class="hr">Horário</th>';
+    salas.forEach(function(sl){h+='<th>'+esc(sl)+'</th>';});
+    h+='</tr></thead><tbody>';
+    faixas.forEach(function(f){
+      h+='<tr><td class="hr">'+f.horarios.map(esc).join('<br>')+'</td>';
+      salas.forEach(function(sl){
+        var nesta=doDia.filter(function(t){return t.sala===sl&&f.horarios.indexOf(t.horario)>-1;});
+        if(!nesta.length){h+='<td></td>';return;}
+        h+='<td>';
+        nesta.forEach(function(t){
+          var v=tVagas(t);
+          var cls=(t.sem_vaga||v<=0)?' cheia':(v>=9?' vaga':'');
+          h+='<div class="c'+cls+'">';
+          h+='<b>'+esc(t.curso)+'</b>'+(t.codigo?' <i>'+esc(t.codigo)+'</i>':'');
+          h+='<div class="p">'+esc(t.professor||'sem professor')+'</div>';
+          h+='<div class="q">'+(t.alunos||0)+'/'+(t.capacidade||16)+' · '+(t.sem_vaga?'sem vaga':(v>0?v+' vaga'+(v>1?'s':''):'lotada'))+'</div>';
+          if(t.obs)h+='<div class="o">'+esc(t.obs)+'</div>';
+          h+='</div>';
+        });
+        h+='</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  return h;
+}
+
+function tPrint(){
+  var lista=tFiltradas();
+  if(!lista.length){toast('Nenhuma turma para imprimir com esses filtros.');return;}
+  var filtros=[];
+  if(tFiltroDia)filtros.push(tFiltroDia);
+  if(tFiltroProf)filtros.push('Prof. '+tFiltroProf);
+  if(tSoVaga)filtros.push('só com vaga');
+  if(tBusca.trim())filtros.push('busca: '+tBusca.trim());
+  var totAl=0,comVaga=0,vagasTot=0;
+  lista.forEach(function(t){totAl+=(t.alunos||0);var v=tVagas(t);if(v>0){comVaga++;vagasTot+=v;}});
+  var hoje=new Date().toLocaleDateString('pt-BR');
+  var css='@page{size:A4 landscape;margin:8mm}'
+    +'*{box-sizing:border-box}'
+    +'body{font-family:Poppins,Arial,Helvetica,sans-serif;color:#1A1A1A;margin:0;font-size:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:3px solid #E6143C;padding-bottom:6px;margin-bottom:10px}'
+    +'.head h1{font-size:16px;margin:0;color:#E6143C}'
+    +'.head .sub{font-size:9px;color:#5A5A5A;margin-top:2px}'
+    +'.head .meta{font-size:8px;color:#5A5A5A;text-align:right;white-space:nowrap}'
+    +'.dia{margin-bottom:12px;page-break-inside:avoid}'
+    +'.diah{background:#19408B;color:#FFFFFF;font-weight:700;font-size:10px;padding:4px 8px;border-radius:4px 4px 0 0}'
+    +'.diah span{font-weight:400;font-size:8px;opacity:.85;margin-left:6px}'
+    +'table{width:100%;border-collapse:collapse;table-layout:fixed}'
+    +'th{background:#F7F7F9;border:1px solid #C9C9CF;font-size:8px;text-transform:uppercase;padding:3px;color:#19408B}'
+    +'td{border:1px solid #C9C9CF;vertical-align:top;padding:2px}'
+    +'.hr{width:62px;font-size:8px;font-weight:700;text-align:center;background:#F7F7F9;color:#5A5A5A}'
+    +'.c{border-left:3px solid #C9C9CF;padding:2px 4px;margin-bottom:2px;line-height:1.25}'
+    +'.c.vaga{border-left-color:#1E9E5A}'
+    +'.c.cheia{border-left-color:#E6143C}'
+    +'.c b{font-size:8.5px}'
+    +'.c i{font-style:normal;color:#5A5A5A;font-size:7.5px}'
+    +'.c .p{font-size:7.5px;color:#19408B}'
+    +'.c .q{font-size:7.5px;color:#5A5A5A}'
+    +'.c .o{font-size:7px;color:#A30E2A}'
+    +'.foot{margin-top:8px;font-size:7.5px;color:#5A5A5A;text-align:center}';
+  var html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+    +'<title>Mapa de turmas '+esc(tSemestre)+' · CNA Taquara</title><style>'+css+'</style></head><body>'
+    +'<div class="head"><div><h1>Mapa de turmas '+esc(tSemestre)+'</h1>'
+    +'<div class="sub">CNA Taquara · Estrada da Soca, 129'+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
+    +'<div class="meta">'+lista.length+' turmas · '+totAl+' alunos<br>'+comVaga+' turmas com vaga · '+vagasTot+' vagas livres<br>Impresso em '+hoje+'</div></div>'
+    +tPrintTabela(lista)
+    +'<div class="foot">CNA Taquara · (21) 3579-6700 · taquara@cna.com.br</div>'
+    +'</body></html>';
+  var w=window.open('','_blank');
+  if(!w){toast('Libere os pop-ups do navegador para imprimir o mapa.');return;}
+  w.document.open();w.document.write(html);w.document.close();
+  var feito=false;
+  function go(){if(feito)return;feito=true;try{w.focus();w.print();}catch(e){}}
+  w.onload=go;
+  setTimeout(go,800);
+}
+
 function tBind(){
   var q=$('tq');
   if(q)q.oninput=function(){tBusca=q.value;var p=q.selectionStart;renderTurmas();var n=$('tq');if(n){n.focus();try{n.setSelectionRange(p,p);}catch(_){}}};
@@ -7099,6 +7191,8 @@ function tBind(){
   });
   var vg=$('tvaga');
   if(vg)vg.onclick=function(){tSoVaga=!tSoVaga;renderTurmas();};
+  var ip=$('timp');
+  if(ip)ip.onclick=tPrint;
   document.querySelectorAll('.tchip[data-dia]').forEach(function(b){
     b.onclick=function(){tFiltroDia=b.dataset.dia;renderTurmas();};
   });
