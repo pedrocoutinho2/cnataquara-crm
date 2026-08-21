@@ -1163,6 +1163,23 @@ input[type=date].dvazio{color:#C9C9CE}
 .demp.pri-alta{background:var(--pastelRed);color:var(--redDark)}
 .demp.pri-media{background:var(--pastelBlue);color:var(--blue)}
 .demp.pri-baixa{background:var(--surface);color:var(--gray)}
+.acst{font-size:10.5px;font-weight:700;border-radius:var(--r-pill);padding:2px 8px;white-space:nowrap}
+.acst.ac-r{background:var(--surface);color:var(--gray)}
+.acst.ac-w{background:var(--warnBg);color:var(--warn)}
+.acst.ac-o{background:var(--pastelBlue);color:var(--blue)}
+.acst.ac-x{background:var(--pastelRed);color:var(--redDark)}
+.acst.ac-k{background:#E4F4EA;color:var(--ok)}
+.acst.ac-c{background:var(--surface);color:var(--gray);text-decoration:line-through}
+.actipo{font-size:10.5px;font-weight:700;border-radius:var(--r-pill);padding:1px 8px;background:var(--pastelBlue);color:var(--blue);white-space:nowrap}
+.acmeta{font-size:11.5px;color:var(--gray);white-space:nowrap}
+.acmeta b{color:var(--ink)}
+.acchks{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:4px}
+.acchk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer}
+.acped{border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 12px;background:var(--surface)}
+.acsub{font-size:11.5px;color:var(--gray);margin-top:3px}
+@media(max-width:700px){
+  .demrow .acmeta,.demrow .actipo{display:none}
+}
 @media(max-width:700px){
   .revrow .revt{min-width:100%}
   .ataarea{min-height:220px}
@@ -1201,6 +1218,7 @@ input[type=date].dvazio{color:#C9C9CE}
       <a data-t="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.6-3.7 3.6-5.6 7.2-5.6s6.6 1.9 7.2 5.6"/></svg><span>Clientes B2C</span></a>
       <a data-t="escolas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6 2.6 8.6 12 13.6l9.4-5L12 3.6Z"/><path d="M6.2 11v4.6c0 1.6 2.6 2.9 5.8 2.9s5.8-1.3 5.8-2.9V11"/></svg><span>Escolas</span></a>
       <a data-t="empresas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 20.5V6.6L12 3.2l7.8 3.4v13.9"/><path d="M2.6 20.5h18.8"/><path d="M9.6 20.5V16h4.8v4.5"/><path d="M8.4 10.2h1.4M14.2 10.2h1.4"/></svg><span>Empresas</span></a>
+      <a data-t="acoes" title="A\u00e7\u00f5es comerciais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10.2v3.6a1.6 1.6 0 0 0 1.6 1.6h2.2l6.4 4V4.6l-6.4 4H5.2a1.6 1.6 0 0 0-1.6 1.6Z"/><path d="M17.8 9.2a4 4 0 0 1 0 5.6"/><path d="M7.4 15.4v3.4a1.6 1.6 0 0 0 1.6 1.6h.9"/></svg><span>A\u00e7\u00f5es comerciais</span><b class="nb" id="nbAcoes">0</b></a>
       </div>
     </div>
     <div class="sgroup" id="sg_atendimento">
@@ -1572,7 +1590,7 @@ const CFG={
     nextField:'proximo_atendimento',
     prioField:'curso',prioLabel:'Curso',tipoLabel:'Origem',
     prios:[['Inglês','Inglês','p2'],['Espanhol','Espanhol','p1'],['Robótica','Robótica','p3'],['Proficiência','Proficiência','p3']],
-    tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']],
+    tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['Outro','Outro']],
     sub:function(s){
       var d=s.data_entrada?s.data_entrada.split('-').reverse().join('/'):'';
       var pa=agLabel(s.proximo_atendimento,s.proximo_atendimento_hora);
@@ -1583,7 +1601,12 @@ const CFG={
       {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['','—'],['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
-      {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Outro','Outro']]},
+      {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['Outro','Outro']]},
+      {k:'acao_id',l:'De qual ação comercial',t:'select',opts:function(){
+        var l=(typeof ACOES==='object'&&ACOES&&ACOES.lista)?ACOES.lista:[];
+        return [['','— escolha a ação —']].concat(l.filter(function(a){return a.status!=='cancelada';})
+          .map(function(a){return [a.id,brDate(a.data)+' · '+a.titulo+(a.local_nome?' · '+a.local_nome:'')];}));
+      }},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
       {k:'nome_aluno',l:'Nome do aluno',t:'text',full:true},
@@ -2234,6 +2257,7 @@ function openModal(id){
     }
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
+    if(f.k==='acao_id')d.id='fAcao';
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
     if(f.k==='nivel')d.id='fNivel';
@@ -2264,7 +2288,9 @@ function openModal(id){
   if(inpRL)inpRL.addEventListener('input',function(){syncResp(true);});
   const inpAl=form.querySelector('[data-k=nome_aluno]');
   if(inpAl)inpAl.addEventListener('input',syncAluno);
-  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();syncAluno();marcaDatasVazias(form);
+  const selOr=form.querySelector('[data-k=origem]');
+  if(selOr)selOr.addEventListener('change',syncAcao);
+  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();syncAluno();syncAcao();marcaDatasVazias(form);
   $('del').style.display=s?'':'none';
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -2530,6 +2556,17 @@ async function avancaEtapa(id,alvo){
 }
 
 /* Motivo da perda so existe quando a etapa e' "perdido"; fora disso fica nulo */
+/* Campo "de qual acao" so aparece quando a origem do lead e uma acao comercial de rua */
+function syncAcao(){
+  const w=$('fAcao');
+  if(!w)return;
+  const so=document.querySelector('#form [data-k=origem]');
+  const on=!!so&&so.value==='Ação comercial';
+  w.style.display=on?'':'none';
+  const sa=w.querySelector('[data-k=acao_id]');
+  if(sa&&!on)sa.value='';
+}
+
 function syncPerda(){
   const w=$('fPerda');
   if(!w)return;
@@ -2771,6 +2808,14 @@ $('save').onclick=async function(){
   if(tab==='leads'){
     if(!editing&&!body.curso){toast('Escolha o curso de interesse.');return;}
     if(!editing&&!body.origem){toast('Informe a origem do lead. É o que alimenta o relatório de canais.');return;}
+    if(body.origem==='Ação comercial'&&!body.acao_id){
+      syncAcao();
+      const sac=document.querySelector('#form [data-k=acao_id]');
+      if(sac)sac.focus();
+      toast('Escolha de qual ação comercial veio esse lead.');
+      return;
+    }
+    if(body.origem!=='Ação comercial')body.acao_id=null;
     if(!body.nome_aluno&&alunoObrigatorio()){
       syncAluno();
       const sa=document.querySelector('#form [data-k=nome_aluno]');
@@ -3505,7 +3550,7 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='faq'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas');
+  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='faq'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas'||t==='acoes');
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -3520,6 +3565,7 @@ function setTab(t){
   if(t==='calendario'){openCalendario();return;}
   if(t==='atas'){openAtas();return;}
   if(t==='demandas'){openDemandas();return;}
+  if(t==='acoes'){openAcoes();return;}
   buildChips();loadTab();
 }
 document.querySelectorAll('#snav a[data-t]').forEach(function(a){
@@ -3532,11 +3578,11 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 });
 
 /* ================= Menu lateral ================= */
-const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',
+const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',acoes:'comercial',
   conversas:'atendimento',calc:'atendimento',
   turmas:'operacao',calendario:'operacao',mural:'operacao',faq:'operacao',atas:'operacao',demandas:'operacao',
   relatorios:'gestao',equipe:'gestao'};
-const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',conversas:'Conversas',
+const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',acoes:'Ações comerciais',conversas:'Conversas',
   calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural de avisos',faq:'Dúvidas frequentes',
   atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',equipe:'Equipe'};
 
@@ -3925,6 +3971,7 @@ async function loadAlerts(){
   AGITENS=itens;
   bucketAlerts();
   loadDemBadge();
+  loadAcoesRef();
 }
 
 /* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
@@ -4076,7 +4123,7 @@ var PERMNIVEIS=[['nenhum','Sem acesso'],['ver','Ver'],['editar','Editar'],['tota
 var NIVORD={nenhum:0,ver:1,editar:2,total:3};
 var MODULOS=[];
 var PAPELPERM={};
-var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',conversas:'conversas',
+var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',acoes:'acoes',conversas:'conversas',
   calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
   relatorios:'rel_meudia',equipe:'equipe'};
 
@@ -4117,7 +4164,7 @@ function tabLiberada(t){
   return podeVer(m);
 }
 function primeiraTabPermitida(){
-  var ordem=['inicio','leads','turmas','calendario','atas','demandas','mural','faq','conversas','calc','relatorios','escolas','empresas','equipe'];
+  var ordem=['inicio','leads','acoes','turmas','calendario','atas','demandas','mural','faq','conversas','calc','relatorios','escolas','empresas','equipe'];
   for(var i=0;i<ordem.length;i++){if(tabLiberada(ordem[i]))return ordem[i];}
   return 'inicio';
 }
@@ -8377,6 +8424,394 @@ async function demExcluir(){
   catch(e){toast('Erro ao excluir: '+e.message);return;}
   toast('Demanda excluída.');
   ataClose();openDemandas();
+}
+
+/* ================= Acoes comerciais de campo ================= */
+var ACOES={lista:[],mats:[],escolas:[],empresas:[],porAcao:{},filtro:'abertas',soMinhas:false,cur:null,catId:null};
+var ACTIPOS=[['panfletagem','Panfletagem'],['captacao_leads','Capta\u00e7\u00e3o de leads'],['blitz','Blitz comercial'],
+  ['acao_escola','A\u00e7\u00e3o em escola'],['evento_institucional','Evento institucional'],
+  ['visita_corporativa','Visita corporativa'],['outro','Outro']];
+var ACCOB=[['sem','Sem cobertura'],['registros','S\u00f3 registros (fotos e stories)'],
+  ['mascote','Mascote + registros'],['live','Live ou cobertura especial']];
+var ACSTS={rascunho:['Rascunho','ac-r'],aguardando:['Aguardando aprova\u00e7\u00e3o','ac-w'],
+  aprovada:['Aprovada','ac-o'],ajustar:['Ajustar','ac-x'],realizada:['Realizada','ac-k'],cancelada:['Cancelada','ac-c']};
+
+function acLab(map,v){var f=map.find(function(x){return x[0]===v;});return f?f[1]:(v||'');}
+function acPodeAprovar(){return podeTotal('acoes');}
+function acPodeEditar(a){
+  if(!podeEditar('acoes'))return false;
+  if(!a||!a.id)return true;
+  if(acPodeAprovar())return true;
+  if(a.status==='realizada'||a.status==='cancelada')return false;
+  return true;
+}
+function acMinha(a){return a.criado_por===currentUser||(a.equipe||[]).indexOf(currentUser)>-1;}
+function acHora(a){
+  var h=function(v){return v?String(v).slice(0,5):'';};
+  var i=h(a.hora_inicio),f=h(a.hora_fim);
+  return i?(i+(f?' \u00e0s '+f:'')):'';
+}
+function acBRL(c){return 'R$ '+((c||0)/100).toFixed(2).replace('.',',');}
+
+function renderAcBadge(){
+  var b=$('nbAcoes');
+  if(!b)return;
+  var n=0;
+  if(acPodeAprovar())n=ACOES.lista.filter(function(a){return a.status==='aguardando';}).length;
+  else n=ACOES.lista.filter(function(a){return a.status==='ajustar'&&acMinha(a);}).length;
+  b.textContent=n;b.style.display=n?'':'none';
+}
+async function loadAcoesRef(){
+  if(!currentUser||!podeVer('acoes'))return;
+  try{ACOES.lista=await api('/crm_acoes?select=*&order=data.desc')||[];}catch(e){return;}
+  renderAcBadge();
+}
+
+async function openAcoes(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando a\u00e7\u00f5es comerciais...</div>';
+  try{
+    var r=await Promise.all([
+      api('/crm_acoes?select=*&order=data.desc'),
+      api('/crm_acoes_materiais?select=*&ativo=is.true&order=ordem.asc'),
+      api('/crm_leads?select=acao_id&acao_id=not.is.null'),
+      api('/crm_escolas?select=id,nome&order=nome.asc'),
+      api('/crm_empresas?select=id,nome&order=nome.asc')
+    ]);
+    ACOES.lista=r[0]||[];ACOES.mats=r[1]||[];ACOES.escolas=r[3]||[];ACOES.empresas=r[4]||[];
+    ACOES.porAcao={};
+    (r[2]||[]).forEach(function(l){ACOES.porAcao[l.acao_id]=(ACOES.porAcao[l.acao_id]||0)+1;});
+  }catch(e){
+    $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;
+  }
+  renderAcBadge();
+  renderAcoes();
+}
+
+function acGrupo(a,hoje){
+  if(a.status==='cancelada')return 'canceladas';
+  if(a.status==='aguardando')return 'aprovacao';
+  if(a.status==='ajustar')return 'ajustar';
+  if(a.status==='realizada')return 'historico';
+  if(a.data<hoje)return 'aconferir';
+  if(a.data===hoje)return 'hoje';
+  return 'proximas';
+}
+
+function renderAcoes(){
+  var hoje=hojeISO(),podeCriar=podeEditar('acoes');
+  var lista=ACOES.lista.filter(function(a){
+    if(ACOES.soMinhas&&!acMinha(a))return false;
+    if(ACOES.filtro==='abertas')return a.status!=='realizada'&&a.status!=='cancelada';
+    if(ACOES.filtro==='realizadas')return a.status==='realizada';
+    return true;
+  });
+  var g={aprovacao:[],ajustar:[],hoje:[],proximas:[],aconferir:[],historico:[],canceladas:[]};
+  lista.forEach(function(a){g[acGrupo(a,hoje)].push(a);});
+  g.proximas.sort(function(x,y){return x.data<y.data?-1:1;});
+  g.aconferir.sort(function(x,y){return x.data<y.data?1:-1;});
+
+  var h='<div class="rscreen"><div class="atawrap">';
+  h+='<div class="aghead"><h2>A\u00e7\u00f5es comerciais</h2><div class="spacer" style="flex:1"></div>'+
+     (podeCriar?'<button class="btn primary" id="acNova">+ Nova a\u00e7\u00e3o</button>':'')+'</div>';
+  h+='<div class="agbarra"><span class="fl">Filtros</span>'+
+     '<div class="agvsel">'+[['abertas','Em aberto'],['realizadas','Realizadas'],['todas','Todas']].map(function(f){
+       return '<button data-af="'+f[0]+'"'+(ACOES.filtro===f[0]?' class="on"':'')+'>'+f[1]+'</button>';}).join('')+'</div>'+
+     '<label class="agmeus"><input type="checkbox" id="acMinhas"'+(ACOES.soMinhas?' checked':'')+'> S\u00f3 as minhas</label></div>';
+
+  var tit={aprovacao:['Aguardando sua aprova\u00e7\u00e3o','late'],ajustar:['Devolvidas para ajuste','late'],
+    hoje:['Hoje','today'],proximas:['Pr\u00f3ximas',''],aconferir:['Passadas, sem fechamento','late'],
+    historico:['Realizadas','pv'],canceladas:['Canceladas','']};
+  if(!acPodeAprovar())tit.aprovacao=['Enviadas para aprova\u00e7\u00e3o',''];
+  var tem=false;
+  ['aprovacao','ajustar','hoje','proximas','aconferir','historico','canceladas'].forEach(function(k){
+    if(!g[k].length)return;
+    tem=true;
+    h+='<div class="aggrp '+tit[k][1]+'"><h4>'+tit[k][0]+' <span>'+g[k].length+'</span></h4>';
+    g[k].forEach(function(a){
+      var st=ACSTS[a.status]||['',''];
+      var cap=ACOES.porAcao[a.id]||0;
+      var eq=(a.equipe||[]).join(', ')||'sem equipe';
+      if(a.pedagogico)eq+=' \u00b7 pedag\u00f3gico';
+      h+='<div class="demrow" data-ac="'+a.id+'">'+
+        '<div class="agd" style="min-width:76px">'+brDate(a.data)+'<br><small style="color:var(--gray)">'+esc(acHora(a)||'sem hora')+'</small></div>'+
+        '<div class="demn"><b>'+esc(a.titulo)+'</b><span class="agr">'+
+          esc(a.local_nome||'local a definir')+' \u00b7 '+esc(eq)+'</span></div>'+
+        '<span class="actipo">'+esc(acLab(ACTIPOS,a.tipo))+'</span>'+
+        '<span class="acmeta">leads <b>'+cap+'</b>'+(a.meta_leads?' / '+a.meta_leads:'')+'</span>'+
+        '<span class="acst '+st[1]+'">'+esc(st[0])+'</span>'+
+      '</div>';
+    });
+    h+='</div>';
+  });
+  if(!tem)h+='<div class="empty">Nenhuma a\u00e7\u00e3o neste filtro.</div>';
+  h+='</div></div>';
+  $('board').innerHTML=h;
+
+  var b=$('acNova');if(b)b.onclick=function(){acAbrir(null);};
+  document.querySelectorAll('[data-af]').forEach(function(el){
+    el.onclick=function(){ACOES.filtro=el.dataset.af;renderAcoes();};
+  });
+  var m=$('acMinhas');if(m)m.onchange=function(){ACOES.soMinhas=m.checked;renderAcoes();};
+  document.querySelectorAll('[data-ac]').forEach(function(el){
+    el.onclick=function(){acAbrir(el.dataset.ac);};
+  });
+}
+
+/* ---- ficha ---- */
+function acAbrir(id){
+  var a=id?ACOES.lista.find(function(x){return x.id===id;}):null;
+  ACOES.cur=a||{titulo:'',tipo:'panfletagem',data:hojeISO(),hora_inicio:'',hora_fim:'',
+    local_nome:'',escola_id:null,empresa_id:null,endereco:'',equipe:[currentUser],
+    pedagogico:false,pedagogico_quem:'',cobertura:'sem',materiais:['Panfletos'],
+    meta_leads:null,custo_previsto_cents:0,observacoes:'',status:'rascunho'};
+  var c=ACOES.cur,novo=!c.id,ed=acPodeEditar(c),adm=acPodeAprovar();
+  var dis=ed?'':' disabled',ro=ed?'':' readonly';
+  var vinc=c.escola_id?('e:'+c.escola_id):(c.empresa_id?('m:'+c.empresa_id):'');
+  var cap=ACOES.porAcao[c.id]||0;
+
+  var body='<div class="agform">'+
+    '<div class="full"><label>T\u00edtulo da a\u00e7\u00e3o</label><input id="ac_tit" value="'+esc(c.titulo||'')+'" placeholder="Ex: Panfletagem na sa\u00edda do Col\u00e9gio Salesiano"'+ro+'></div>'+
+    '<div><label>Tipo</label><select id="ac_tipo"'+dis+'>'+ACTIPOS.map(function(t){
+      return '<option value="'+t[0]+'"'+(c.tipo===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Data</label><input id="ac_data" type="date" value="'+esc(c.data||'')+'"'+dis+'></div>'+
+    '<div><label>In\u00edcio</label><input id="ac_hi" type="time" step="900" value="'+esc(String(c.hora_inicio||'').slice(0,5))+'"'+dis+'></div>'+
+    '<div><label>Fim</label><input id="ac_hf" type="time" step="900" value="'+esc(String(c.hora_fim||'').slice(0,5))+'"'+dis+'></div>'+
+    '<div class="full"><label>Escola ou empresa do CRM</label><select id="ac_vinc"'+dis+'>'+
+      '<option value="">— n\u00e3o vinculado —</option>'+
+      '<optgroup label="Escolas">'+ACOES.escolas.map(function(x){
+        return '<option value="e:'+x.id+'"'+(vinc==='e:'+x.id?' selected':'')+'>'+esc(x.nome)+'</option>';}).join('')+'</optgroup>'+
+      '<optgroup label="Empresas">'+ACOES.empresas.map(function(x){
+        return '<option value="m:'+x.id+'"'+(vinc==='m:'+x.id?' selected':'')+'>'+esc(x.nome)+'</option>';}).join('')+'</optgroup>'+
+      '</select><div class="acsub">Vincular \u00e9 o que mostra depois quantas vezes j\u00e1 batemos no mesmo lugar.</div></div>'+
+    '<div><label>Local (como aparece na agenda)</label><input id="ac_local" value="'+esc(c.local_nome||'')+'" placeholder="Ex: Academia Bodytech Taquara"'+ro+'></div>'+
+    '<div><label>Endere\u00e7o</label><input id="ac_end" value="'+esc(c.endereco||'')+'"'+ro+'></div>'+
+    '<div class="full"><label>Equipe escalada</label><div class="acchks" id="ac_eq">'+
+      RESP.map(function(n){
+        return '<label class="acchk"><input type="checkbox" data-eq="'+esc(n)+'"'+
+          ((c.equipe||[]).indexOf(n)>-1?' checked':'')+dis+'> '+esc(n)+'</label>';}).join('')+'</div></div>'+
+    '<div class="full acped">'+
+      '<label class="acchk"><input type="checkbox" id="ac_ped"'+(c.pedagogico?' checked':'')+dis+'> <b>Tem participa\u00e7\u00e3o do pedag\u00f3gico</b></label>'+
+      '<div id="ac_pedw" style="margin-top:8px'+(c.pedagogico?'':';display:none')+'">'+
+        '<label>Quem do pedag\u00f3gico</label><select id="ac_pedq"'+dis+'><option value="">— a definir —</option>'+
+        RESP.map(function(n){return '<option value="'+esc(n)+'"'+(c.pedagogico_quem===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+
+        '</select><div class="acsub">Entra como participante do evento no calend\u00e1rio.</div></div>'+
+    '</div>'+
+    '<div class="full"><label>Papel do social media</label><select id="ac_cob"'+dis+'>'+ACCOB.map(function(x){
+      return '<option value="'+x[0]+'"'+(c.cobertura===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Estruturas e materiais</label><div class="acchks" id="ac_mat">'+
+      ACOES.mats.map(function(m){
+        return '<label class="acchk"><input type="checkbox" data-mat="'+esc(m.nome)+'"'+
+          ((c.materiais||[]).indexOf(m.nome)>-1?' checked':'')+dis+'> '+esc(m.nome)+'</label>';}).join('')+'</div></div>'+
+    '<div><label>Meta de leads</label><input id="ac_meta" type="number" min="0" max="999" value="'+esc(c.meta_leads==null?'':c.meta_leads)+'"'+ro+'></div>'+
+    '<div><label>Custo previsto (R$)</label><input id="ac_custo" type="number" min="0" step="0.01" value="'+
+      esc(c.custo_previsto_cents?(c.custo_previsto_cents/100).toFixed(2):'')+'"'+ro+'></div>'+
+    '<div class="full"><label>Observa\u00e7\u00f5es</label><textarea id="ac_obs" class="ataarea sm"'+ro+'>'+esc(c.observacoes||'')+'</textarea></div>';
+
+  if(!novo){
+    body+='<div class="full acped"><b>Resultado</b>'+
+      '<div class="acsub">Leads j\u00e1 lan\u00e7ados com esta a\u00e7\u00e3o como origem: <b>'+cap+'</b>'+
+      (c.meta_leads?' de '+c.meta_leads+' da meta':'')+'. O n\u00famero sobe sozinho conforme o consultor cadastra o lead.</div>'+
+      '<div style="margin-top:8px"><label>Custo real (R$)</label><input id="ac_custor" type="number" min="0" step="0.01" value="'+
+        esc(c.custo_real_cents?(c.custo_real_cents/100).toFixed(2):'')+'"'+ro+'></div>'+
+      (cap&&c.custo_real_cents?'<div class="acsub">Custo por lead: <b>'+acBRL(Math.round(c.custo_real_cents/cap))+'</b></div>':'')+
+    '</div>';
+    body+='<div class="full"><label>Parecer da dire\u00e7\u00e3o</label><textarea id="ac_par" class="ataarea sm"'+(adm?'':' readonly')+' placeholder="'+
+      (adm?'Obrigat\u00f3rio ao devolver para ajuste':'Preenchido pela dire\u00e7\u00e3o')+'">'+esc(c.parecer||'')+'</textarea></div>';
+  }
+  body+='</div>';
+
+  var foot='';
+  if(ed)foot+='<button class="btn" id="ac_save">Salvar</button>';
+  if(ed&&(c.status==='rascunho'||c.status==='ajustar'))foot+='<button class="btn primary" id="ac_send">Salvar e enviar para aprova\u00e7\u00e3o</button>';
+  if(adm&&c.status==='aguardando'){
+    foot+='<button class="btn primary" id="ac_ok">Aprovar</button>'+
+          '<button class="btn danger" id="ac_adj">Pedir ajuste</button>';
+  }
+  if(ed&&c.status==='aprovada')foot+='<button class="btn primary" id="ac_done">Marcar como realizada</button>';
+  foot+='<button class="btn" id="ac_close">Fechar</button>';
+  if(!novo&&ed)foot+='<div class="spacer"></div><button class="btn danger" id="ac_del">Excluir</button>';
+
+  var st=ACSTS[c.status]||['',''];
+  var sub=novo?'Ela entra no calend\u00e1rio assim que voc\u00ea salvar':
+    (st[0]+(c.submetido_por?' \u00b7 enviada por '+c.submetido_por:'')+
+     (c.aprovado_por?' \u00b7 por '+c.aprovado_por:''));
+  uiModal(novo?'Nova a\u00e7\u00e3o comercial':c.titulo,sub,body,foot);
+
+  var pc=$('ac_ped');
+  if(pc)pc.onchange=function(){var w=$('ac_pedw');if(w)w.style.display=pc.checked?'':'none';};
+  $('ac_close').onclick=uiModalClose;
+  var el;
+  if((el=$('ac_save')))el.onclick=function(){acSalvar(false);};
+  if((el=$('ac_send')))el.onclick=function(){acSalvar(true);};
+  if((el=$('ac_ok')))el.onclick=function(){acDecidir('aprovada');};
+  if((el=$('ac_adj')))el.onclick=function(){acDecidir('ajustar');};
+  if((el=$('ac_done')))el.onclick=function(){acDecidir('realizada');};
+  if((el=$('ac_del')))el.onclick=acExcluir;
+  if(novo)uiFoco('ac_tit');
+}
+
+function acColeta(){
+  var eq=[];
+  document.querySelectorAll('#ac_eq [data-eq]').forEach(function(i){if(i.checked)eq.push(i.getAttribute('data-eq'));});
+  var mat=[];
+  document.querySelectorAll('#ac_mat [data-mat]').forEach(function(i){if(i.checked)mat.push(i.getAttribute('data-mat'));});
+  var v=$('ac_vinc').value||'';
+  var cent=function(id){var e=$(id);if(!e||e.value==='')return null;return Math.round(parseFloat(e.value)*100);};
+  return {
+    titulo:$('ac_tit').value.trim(),tipo:$('ac_tipo').value,data:$('ac_data').value,
+    hora_inicio:$('ac_hi').value||null,hora_fim:$('ac_hf').value||null,
+    local_nome:$('ac_local').value.trim()||null,endereco:$('ac_end').value.trim()||null,
+    escola_id:v.indexOf('e:')===0?v.slice(2):null,
+    empresa_id:v.indexOf('m:')===0?v.slice(2):null,
+    equipe:eq,pedagogico:$('ac_ped').checked,
+    pedagogico_quem:$('ac_ped').checked?($('ac_pedq').value||null):null,
+    cobertura:$('ac_cob').value,materiais:mat,
+    meta_leads:$('ac_meta').value===''?null:parseInt($('ac_meta').value,10),
+    custo_previsto_cents:cent('ac_custo')||0,
+    custo_real_cents:cent('ac_custor'),
+    observacoes:$('ac_obs').value.trim()||null
+  };
+}
+
+async function acSalvar(enviar){
+  var b=acColeta(),c=ACOES.cur;
+  if(!b.titulo){toast('D\u00ea um t\u00edtulo para a a\u00e7\u00e3o.');return;}
+  if(!b.data){toast('Escolha a data da a\u00e7\u00e3o.');return;}
+  if(b.hora_inicio&&b.hora_fim&&b.hora_fim<b.hora_inicio){toast('O hor\u00e1rio de fim precisa ser depois do in\u00edcio.');return;}
+  if(!b.equipe.length){toast('Escale pelo menos uma pessoa para a a\u00e7\u00e3o.');return;}
+  if(!b.local_nome&&!b.escola_id&&!b.empresa_id){toast('Informe o local ou vincule uma escola ou empresa.');return;}
+  if(!b.local_nome){
+    var f=b.escola_id?ACOES.escolas.find(function(x){return x.id===b.escola_id;})
+                     :ACOES.empresas.find(function(x){return x.id===b.empresa_id;});
+    if(f)b.local_nome=f.nome;
+  }
+  if(enviar){
+    b.status='aguardando';b.submetido_por=currentUser;b.submetido_em=new Date().toISOString();
+    b.parecer=null;
+  }
+  b.atualizado_em=new Date().toISOString();
+  var bt=$('ac_send')||$('ac_save');
+  if(bt)bt.disabled=true;
+  var salvo;
+  try{
+    if(c.id){
+      var r=await api('/crm_acoes?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify(b)});
+      salvo=r&&r[0];
+    }else{
+      b.criado_por=currentUser;
+      if(!b.status)b.status='rascunho';
+      var r2=await api('/crm_acoes',{method:'POST',body:JSON.stringify(b)});
+      salvo=r2&&r2[0];
+    }
+  }catch(e){toast('Erro ao salvar: '+e.message.slice(0,120));if(bt)bt.disabled=false;return;}
+  toast(enviar?'A\u00e7\u00e3o enviada para aprova\u00e7\u00e3o.':'A\u00e7\u00e3o salva e lan\u00e7ada no calend\u00e1rio.');
+  uiModalClose();
+  if(salvo)await acAgendaSync(salvo);
+  await openAcoes();
+  loadAlerts();
+}
+
+async function acDecidir(novo){
+  var c=ACOES.cur;
+  if(!c||!c.id)return;
+  var b={status:novo,atualizado_em:new Date().toISOString()};
+  var par=$('ac_par')?$('ac_par').value.trim():'';
+  if(novo==='ajustar'&&!par){
+    toast('Escreva o parecer dizendo o que precisa mudar.');
+    var p=$('ac_par');if(p)p.focus();
+    return;
+  }
+  if(novo==='aprovada'||novo==='ajustar'){
+    b.parecer=par||null;b.aprovado_por=currentUser;b.aprovado_em=new Date().toISOString();
+  }
+  if(novo==='realizada'){
+    b.leads_captados=ACOES.porAcao[c.id]||0;
+    var cr=$('ac_custor');
+    if(cr&&cr.value!=='')b.custo_real_cents=Math.round(parseFloat(cr.value)*100);
+  }
+  try{
+    var r=await api('/crm_acoes?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify(b)});
+    var salvo=r&&r[0];
+    if(salvo&&novo!=='ajustar')await acAgendaSync(salvo);
+  }catch(e){toast('Erro: '+e.message.slice(0,120));return;}
+  toast(novo==='aprovada'?'A\u00e7\u00e3o aprovada.':(novo==='ajustar'?'Devolvida para ajuste.':'A\u00e7\u00e3o fechada.'));
+  uiModalClose();
+  await openAcoes();
+  loadAlerts();
+}
+
+async function acExcluir(){
+  var c=ACOES.cur;
+  if(!c||!c.id)return;
+  var b=$('ac_del');
+  if(!b.classList.contains('confirm')){
+    b.classList.add('confirm');b.textContent='Confirmar exclus\u00e3o?';
+    setTimeout(function(){if(!b)return;b.classList.remove('confirm');b.textContent='Excluir';},3500);
+    return;
+  }
+  await acAgendaRemover(c);
+  try{await api('/crm_acoes?id=eq.'+c.id,{method:'DELETE'});}
+  catch(e){toast('N\u00e3o foi poss\u00edvel excluir: '+e.message.slice(0,80));return;}
+  toast('A\u00e7\u00e3o exclu\u00edda. Os leads dela continuam na base.');
+  uiModalClose();
+  await openAcoes();
+  loadAlerts();
+}
+
+/* ---- espelho no calendario ---- */
+async function acCatComercial(){
+  if(ACOES.catId)return ACOES.catId;
+  try{
+    var c=await api('/crm_agenda_categorias?select=id&nome=eq.Comercial&limit=1');
+    ACOES.catId=(c&&c[0])?c[0].id:null;
+  }catch(e){ACOES.catId=null;}
+  return ACOES.catId;
+}
+async function acAgendaSync(a){
+  var cat=await acCatComercial();
+  var parts=(a.equipe||[]).slice();
+  if(a.pedagogico&&a.pedagogico_quem&&parts.indexOf(a.pedagogico_quem)<0)parts.push(a.pedagogico_quem);
+  var aprovada=(a.status==='aprovada'||a.status==='realizada');
+  var desc='Tipo: '+acLab(ACTIPOS,a.tipo)+
+    '\nLocal: '+(a.local_nome||'a definir')+
+    (a.endereco?'\nEndere\u00e7o: '+a.endereco:'')+
+    '\nSocial media: '+acLab(ACCOB,a.cobertura)+
+    '\nMateriais: '+((a.materiais||[]).join(', ')||'nenhum')+
+    (a.pedagogico?'\nCom pedag\u00f3gico'+(a.pedagogico_quem?': '+a.pedagogico_quem:''):'')+
+    (a.meta_leads?'\nMeta de leads: '+a.meta_leads:'')+
+    '\nStatus: '+((ACSTS[a.status]||[''])[0])+
+    (a.observacoes?'\n\n'+a.observacoes:'');
+  var body={titulo:(aprovada?'A\u00e7\u00e3o: ':'A\u00e7\u00e3o (a aprovar): ')+a.titulo,
+    descricao:desc,categoria_id:cat,data:a.data,
+    hora_inicio:a.hora_inicio||null,hora_fim:a.hora_fim||null,
+    responsavel:parts[0]||a.criado_por||null,participantes:parts,
+    lembrete_min:60,atualizado_em:new Date().toISOString(),gcal_sync:'pendente'};
+  var ev=null;
+  try{
+    if(a.agenda_evento_id){
+      var r=await api('/crm_agenda_eventos?id=eq.'+a.agenda_evento_id,{method:'PATCH',body:JSON.stringify(body)});
+      ev=r&&r[0];
+    }
+    if(!ev){
+      body.criado_por=a.criado_por||currentUser;
+      var r2=await api('/crm_agenda_eventos',{method:'POST',body:JSON.stringify(body)});
+      ev=r2&&r2[0];
+      if(ev)await api('/crm_acoes?id=eq.'+a.id,{method:'PATCH',body:JSON.stringify({agenda_evento_id:ev.id})});
+    }
+  }catch(e){toast('A\u00e7\u00e3o salva, mas n\u00e3o entrou no calend\u00e1rio.');return;}
+  if(!ev)return;
+  try{
+    if(!AGD.cfg){var cf=await api('/crm_agenda_config?select=*&limit=1');AGD.cfg=(cf&&cf[0])||null;}
+    agdSyncEvento(ev,'upsert');
+  }catch(e){}
+}
+async function acAgendaRemover(a){
+  if(!a.agenda_evento_id)return;
+  var ev=null;
+  try{var r=await api('/crm_agenda_eventos?select=*&id=eq.'+a.agenda_evento_id);ev=r&&r[0];}catch(e){}
+  try{await api('/crm_agenda_eventos?id=eq.'+a.agenda_evento_id,{method:'DELETE'});}catch(e){}
+  if(ev&&ev.gcal_id){try{agdSyncEvento(ev,'delete');}catch(e){}}
 }
 
 </script>
