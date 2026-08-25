@@ -1226,6 +1226,22 @@ input[type=date].dvazio{color:#C9C9CE}
 .impchk input{width:auto}
 .impprev{max-height:300px;overflow:auto}
 /* ---- demandas: kanban e filtros ---- */
+/* ---- painel lateral da lista de itens ---- */
+.ov.dw{align-items:stretch;justify-content:flex-end;padding:0}
+.dwpanel{background:var(--white);width:min(640px,100%);height:100%;display:flex;flex-direction:column;box-shadow:-10px 0 34px rgba(0,0,0,.18);animation:dwin .18s ease-out}
+@keyframes dwin{from{transform:translateX(34px);opacity:.5}to{transform:none;opacity:1}}
+.dwpanel .mhead{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.dwpanel h2{font-family:'Poppins';font-size:17px;color:var(--red);margin-bottom:2px;padding-right:44px;line-height:1.25}
+.dwpanel .msub{font-size:12px;color:var(--gray)}
+.dwpanel .mx{display:block;top:16px;right:16px}
+.dwbody{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 26px;background:var(--surface)}
+.dwacts{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+@media(max-width:720px){
+  .ov.dw{align-items:flex-end}
+  .dwpanel{width:100%;height:94vh;border-radius:18px 18px 0 0;animation:dwup .2s ease-out}
+  @keyframes dwup{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .dwbody{padding:12px 13px 26px}
+}
 .demscr{display:flex;flex-direction:column;gap:12px}
 .demfil{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .demfil select{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;color:var(--ink)}
@@ -1259,6 +1275,8 @@ input[type=date].dvazio{color:#C9C9CE}
 .dcz.late{background:var(--pastelRed);border-color:var(--pastelRed);color:var(--redDark)}
 .dcz.today{background:var(--warnBg);border-color:var(--warnBg);color:var(--warn)}
 .dcz.ok{background:var(--okBg);border-color:var(--okBg);color:var(--ok)}
+.dcz.link{cursor:pointer}
+.dcz.link:hover{border-color:var(--blue);color:var(--blue)}
 .dcfoot{display:flex;align-items:center;gap:6px;margin-top:8px}
 .dcresp{display:flex;gap:3px;flex:1;min-width:0;flex-wrap:wrap}
 .dav{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-family:'Poppins'}
@@ -1555,6 +1573,17 @@ input[type=date].dvazio{color:#C9C9CE}
     <div class="mbody" id="rmbody"></div>
     <div class="mfoot" id="rmfoot"></div>
   </div>
+</div>
+
+<div class="ov dw" id="dwov">
+  <aside class="dwpanel">
+    <div class="mhead">
+      <h2 id="dwtitle">Lista</h2>
+      <div class="msub" id="dwsub"></div>
+      <button class="mx" id="dwx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="dwbody" id="dwbody"></div>
+  </aside>
 </div>
 
 <div class="ov" id="pov">
@@ -8589,7 +8618,7 @@ function demCardHTML(d,hoje,pode){
   if(i<0)i=0;
   var meta=[];
   if(d.prazo)meta.push('<span class="dcz'+(atras?' late':(pra?' today':''))+'">'+brDate(d.prazo)+'</span>');
-  if(p&&p.t)meta.push('<span class="dcz'+(p.f>=p.t?' ok':'')+'">'+p.f+'/'+p.t+' itens</span>');
+  if(p&&p.t)meta.push('<span class="dcz link'+(p.f>=p.t?' ok':'')+'" data-lista="'+d.id+'" title="Abrir a lista">'+p.f+'/'+p.t+' itens</span>');
   if(an)meta.push('<span class="dcz">\u{1F4CE} '+an+'</span>');
   if(d.origem==='ata_ia')meta.push('<span class="dcz">da ata</span>');
   return '<div class="dcard'+(atras?' late':'')+'" draggable="'+(pode?'true':'false')+'" data-d="'+d.id+'">'+
@@ -8961,14 +8990,35 @@ async function demExcluir(){
 }
 
 /* ---- lista de itens (execu\u00e7\u00e3o) ---- */
+function demDwOpen(){
+  $('dwov').classList.add('open');
+  lockScroll();
+  $('dwx').onclick=demDwClose;
+  $('dwov').onclick=function(e){if(e.target===$('dwov'))demDwClose();};
+}
+function demDwClose(){
+  var id=DEM.curId;
+  $('dwov').classList.remove('open');
+  unlockScroll();
+  if(id){
+    var t=DEM.itens.length,f=DEM.itens.filter(function(x){return demFeito(x.status);}).length;
+    if(t)DEM.prog[id]={t:t,f:f};else delete DEM.prog[id];
+  }
+  DEM.curId=null;DEM.itens=[];
+  if(typeof tab!=='undefined'&&tab==='demandas')renderDemandas();
+}
+
 async function demAbrirLista(id){
   if(!id)return;
+  DEM.curId=id;DEM.busca='';DEM.fItem='pendentes';DEM.itens=[];
+  var d=DEM.lista.find(function(x){return x.id===id;})||{titulo:'Lista'};
+  $('dwtitle').textContent=d.titulo||'Lista';
+  $('dwsub').textContent='Carregando itens...';
+  $('dwbody').innerHTML='<div class="loading">Carregando itens...</div>';
+  demDwOpen();
   ataClose();
-  DEM.curId=id;DEM.view='itens';DEM.busca='';
-  $('stats').innerHTML='';
-  $('board').innerHTML='<div class="loading">Carregando itens...</div>';
   try{DEM.itens=await api('/crm_demanda_itens?select=*&demanda_id=eq.'+id+'&order=ordem.asc');}
-  catch(e){$('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;}
+  catch(e){$('dwbody').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;}
   renderDemItens();
 }
 
@@ -8991,10 +9041,12 @@ function renderDemItens(){
   var pct=tot?Math.round(fei*100/tot):0;
   var lista=demItensFiltrados();
 
-  var h='<div class="rscreen"><div class="atawrap">';
-  h+='<div class="aghead"><button class="btn dembtn" id="demBack">\u2190 Demandas</button>'+
-     '<h2 style="flex:1;min-width:160px">'+esc(d.titulo)+'</h2>'+
-     (pode?'<button class="btn dembtn" id="demItNovo">+ Item</button><button class="btn dembtn" id="demItEdit">Editar demanda</button>':'')+'</div>';
+  $('dwtitle').textContent=d.titulo||'Lista';
+  $('dwsub').textContent=tot+(tot===1?' item \u00b7 ':' itens \u00b7 ')+fei+' resolvido'+(fei===1?'':'s');
+
+  var h='';
+  if(pode)h+='<div class="dwacts"><button class="btn dembtn" id="demItNovo">+ Item</button>'+
+     '<button class="btn dembtn" id="demItEdit">Editar demanda</button></div>';
   h+='<div class="demprogbig"><div class="dpbar"><i style="width:'+pct+'%"></i></div>'+
      '<b>'+fei+' de '+tot+'</b><span>'+pct+'% resolvido</span></div>';
   if(tot&&fei===tot&&d.status!=='concluida'&&pode)
@@ -9035,13 +9087,12 @@ function renderDemItens(){
       (it.atualizado_por?'<div class="itmeta">\u00daltima atualiza\u00e7\u00e3o por '+esc(it.atualizado_por)+'</div>':'')+
     '</div>';
   });
-  h+='</div></div>';
-  $('board').innerHTML=h;
+  $('dwbody').innerHTML=h;
 
-  $('demBack').onclick=openDemandas;
-  var ed=$('demItEdit');if(ed)ed.onclick=function(){demAbrir(DEM.curId);};
+  var ed=$('demItEdit');
+  if(ed)ed.onclick=function(){var id=DEM.curId;demDwClose();demAbrir(id);};
   var nv=$('demItNovo');if(nv)nv.onclick=demItemNovo;
-  document.querySelectorAll('[data-fi]').forEach(function(el){
+  dw.querySelectorAll('[data-fi]').forEach(function(el){
     el.onclick=function(){DEM.fItem=el.dataset.fi;renderDemItens();};
   });
   var bs=$('demBusca');
@@ -9049,16 +9100,17 @@ function renderDemItens(){
     clearTimeout(bs._h);
     bs._h=setTimeout(function(){DEM.busca=bs.value;renderDemItens();var n=$('demBusca');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);}},350);
   };
-  document.querySelectorAll('[data-st]').forEach(function(el){
+  var dw=$('dwbody');
+  dw.querySelectorAll('[data-st]').forEach(function(el){
     el.onclick=function(){demItemPatch(el.dataset.id,{status:el.dataset.st});};
   });
-  document.querySelectorAll('.itresp').forEach(function(el){
+  dw.querySelectorAll('.itresp').forEach(function(el){
     el.onchange=function(){demItemPatch(el.dataset.id,{responsavel:el.value||null},true);};
   });
-  document.querySelectorAll('.itobs').forEach(function(el){
+  dw.querySelectorAll('.itobs').forEach(function(el){
     el.onchange=function(){demItemPatch(el.dataset.id,{obs:el.value.trim()||null},true);};
   });
-  document.querySelectorAll('[data-del]').forEach(function(el){
+  dw.querySelectorAll('[data-del]').forEach(function(el){
     el.onclick=function(){demItemExcluir(el.dataset.del);};
   });
 }
