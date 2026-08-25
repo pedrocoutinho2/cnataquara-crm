@@ -1162,6 +1162,75 @@ input[type=date].dvazio{color:#C9C9CE}
 .demp.pri-alta{background:var(--pastelRed);color:var(--redDark)}
 .demp.pri-media{background:var(--pastelBlue);color:var(--blue)}
 .demp.pri-baixa{background:var(--surface);color:var(--gray)}
+/* ---- demandas: responsaveis, anexos, listas de itens ---- */
+.demrsel{display:flex;flex-wrap:wrap;gap:6px}
+.demrsel button{border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer;font-family:inherit}
+.demrsel button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.demrsel button:disabled{opacity:.6;cursor:default}
+.dembtn{padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.demprog{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:3px 10px;font-size:11.5px;font-weight:700;color:var(--gray);cursor:pointer;font-family:inherit;white-space:nowrap}
+.demprog.full{border-color:var(--ok);color:var(--ok)}
+.dpb{display:block;width:46px;height:5px;border-radius:3px;background:var(--surface);overflow:hidden}
+.dpb i{display:block;height:100%;background:var(--blue);border-radius:3px}
+.demprog.full .dpb i{background:var(--ok)}
+.demlbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px}
+.demlbox b{display:block}
+.demlbox span{font-size:11.5px;color:var(--gray)}
+.demlacts{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.demanx{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:7px 10px;margin-bottom:5px;font-size:13px}
+.demanx.pend{border-style:dashed;color:var(--gray)}
+.demanx b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue);cursor:pointer;font-weight:600}
+.demanx.pend b{color:var(--gray);cursor:default}
+.demanx .dam{font-size:11px;color:var(--gray);white-space:nowrap}
+.daxdel{border:0;background:transparent;color:var(--gray);font-size:17px;line-height:1;cursor:pointer;padding:0 2px;font-family:inherit}
+.demprogbig{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 13px;flex-wrap:wrap}
+.demprogbig .dpbar{flex:1;min-width:120px;height:8px;border-radius:4px;background:var(--surface);overflow:hidden}
+.demprogbig .dpbar i{display:block;height:100%;background:var(--blue);border-radius:4px;transition:width .25s}
+.demprogbig b{font-size:14px}
+.demprogbig span{font-size:12px;color:var(--gray)}
+.dembusca{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;min-width:150px;flex:1}
+.itcard{background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px}
+.itcard.ist-k{border-left-color:var(--ok);opacity:.75}
+.itcard.ist-a{border-left-color:var(--warn)}
+.itcard.ist-x{border-left-color:var(--red)}
+.itcard.ist-n{border-left-color:var(--line);opacity:.65}
+.ithead{display:flex;align-items:center;gap:8px}
+.ithead b{flex:1;font-size:14.5px}
+.itst{border-radius:var(--r-pill);padding:2px 9px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.itst.ist-p{background:var(--surface);color:var(--gray)}
+.itst.ist-a{background:var(--warnBg);color:var(--warn)}
+.itst.ist-k{background:var(--okBg);color:var(--ok)}
+.itst.ist-x{background:var(--pastelRed);color:var(--redDark)}
+.itst.ist-n{background:var(--surface);color:var(--gray)}
+.itsub{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:5px;font-size:12px;color:var(--ink);border-top:1px dashed var(--line);padding-top:5px}
+.itsub i{font-style:normal;color:var(--gray);font-size:10.5px;text-transform:uppercase;font-weight:700;margin-right:3px}
+.itacts{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}
+.itbt{border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);padding:5px 11px;font-size:11.5px;font-weight:700;color:var(--gray);cursor:pointer;font-family:inherit}
+.itbt.on.ist-p{background:var(--gray);border-color:var(--gray);color:#fff}
+.itbt.on.ist-a{background:var(--warn);border-color:var(--warn);color:#fff}
+.itbt.on.ist-k{background:var(--ok);border-color:var(--ok);color:#fff}
+.itbt.on.ist-x{background:var(--red);border-color:var(--red);color:#fff}
+.itbt.on.ist-n{background:var(--ink);border-color:var(--ink);color:#fff}
+.itwa{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--okBg);color:var(--ok);flex:none}
+.itwa .waico{width:17px;height:17px}
+.itfoot{display:flex;gap:6px;align-items:center;margin-top:7px}
+.itfoot .itresp{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;font-family:inherit;max-width:150px}
+.itfoot .itobs{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit}
+.itdel{border:0;background:transparent;color:var(--gray);font-size:18px;line-height:1;cursor:pointer;font-family:inherit;flex:none}
+.itmeta{font-size:10.5px;color:var(--gray);margin-top:5px}
+.impgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:4px}
+.impgrid label{display:block;font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:3px}
+.impgrid select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:inherit}
+.impcols{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:8px}
+.impchk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer}
+.impchk input{width:auto}
+.impprev{max-height:300px;overflow:auto}
+@media(max-width:720px){
+  .impgrid{grid-template-columns:1fr}
+  .itfoot{flex-wrap:wrap}
+  .itfoot .itresp{max-width:none;flex:1}
+  .demprog .dpb{display:none}
+}
 .acst{font-size:10.5px;font-weight:700;border-radius:var(--r-pill);padding:2px 8px;white-space:nowrap}
 .acst.ac-r{background:var(--surface);color:var(--gray)}
 .acst.ac-w{background:var(--warnBg);color:var(--warn)}
@@ -4126,7 +4195,10 @@ function renderDemBadge(n){
 async function loadDemBadge(){
   if(!currentUser||!podeVer('tarefas'))return;
   try{
-    var r=await api('/crm_demandas?select=id&status=eq.pendente&responsavel=eq.'+encodeURIComponent(currentUser));
+    var f='&responsaveis=cs.'+encodeURIComponent('{"'+String(currentUser).replace(/"/g,'\\"')+'"}');
+    var r;
+    try{r=await api('/crm_demandas?select=id&status=eq.pendente'+f);}
+    catch(e2){r=await api('/crm_demandas?select=id&status=eq.pendente&responsavel=eq.'+encodeURIComponent(currentUser));}
     renderDemBadge((r||[]).length);
   }catch(e){}
 }
@@ -8337,15 +8409,42 @@ function ataBaixar(r){
 }
 
 /* ================= Demandas ================= */
-var DEM={lista:[],filtro:'abertas',soMinhas:false,cur:null};
+var DEM={lista:[],prog:{},filtro:'abertas',soMinhas:false,cur:null,resps:[],
+  pendArqs:[],pendItens:null,anexos:[],
+  view:'lista',curId:null,itens:[],fItem:'pendentes',busca:'',imp:null};
+var DEMSTG=SUPA.replace('/rest/v1','/storage/v1');
+var DEMIST=[['pendente','Pendente','ist-p'],['andamento','Em contato','ist-a'],
+  ['ok','Resolvido','ist-k'],['sem_sucesso','Sem sucesso','ist-x'],['na','N\u00e3o se aplica','ist-n']];
+function demIst(s,i){var x=DEMIST.find(function(p){return p[0]===s;});return x?x[i]:(i===1?s:'ist-p');}
+function demResps(d){
+  if(d&&d.responsaveis&&d.responsaveis.length)return d.responsaveis;
+  return (d&&d.responsavel)?[d.responsavel]:[];
+}
+function demFeito(st){return st==='ok'||st==='na';}
+function demTam(n){
+  n=+n||0;
+  if(n<1024)return n+' B';
+  if(n<1048576)return (n/1024).toFixed(0)+' KB';
+  return (n/1048576).toFixed(1)+' MB';
+}
 
 async function openDemandas(){
+  DEM.view='lista';DEM.curId=null;
   $('stats').innerHTML='';
   $('board').innerHTML='<div class="loading">Carregando demandas...</div>';
   try{
-    DEM.lista=await api('/crm_demandas?select=*&order=prazo.asc.nullslast,criado_em.desc');
+    var r=await Promise.all([
+      api('/crm_demandas?select=*&order=prazo.asc.nullslast,criado_em.desc'),
+      api('/crm_demanda_itens?select=demanda_id,status&limit=20000')
+    ]);
+    DEM.lista=r[0]||[];
+    DEM.prog={};
+    (r[1]||[]).forEach(function(i){
+      var p=DEM.prog[i.demanda_id]||(DEM.prog[i.demanda_id]={t:0,f:0});
+      p.t++;if(demFeito(i.status))p.f++;
+    });
   }catch(e){
-    $('board').innerHTML='<div class="loading">Não foi possível carregar: '+esc(e.message)+'</div>';return;
+    $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;
   }
   renderDemandas();
 }
@@ -8361,7 +8460,7 @@ function demGrupo(d,hoje){
 function renderDemandas(){
   var pode=podeEditar('tarefas'),hoje=hojeISO();
   var lista=DEM.lista.filter(function(d){
-    if(DEM.soMinhas&&d.responsavel!==currentUser)return false;
+    if(DEM.soMinhas&&demResps(d).indexOf(currentUser)<0)return false;
     if(DEM.filtro==='abertas')return d.status!=='concluida';
     if(DEM.filtro==='concluidas')return d.status==='concluida';
     return true;
@@ -8373,27 +8472,30 @@ function renderDemandas(){
   h+='<div class="aghead"><h2>Demandas</h2><div class="spacer" style="flex:1"></div>'+
      (pode?'<button class="btn primary" id="demNova">+ Nova demanda</button>':'')+'</div>';
   h+='<div class="agbarra"><span class="fl">Filtros</span>'+
-     '<div class="agvsel">'+[['abertas','Abertas'],['concluidas','Concluídas'],['todas','Todas']].map(function(f){
+     '<div class="agvsel">'+[['abertas','Abertas'],['concluidas','Conclu\u00eddas'],['todas','Todas']].map(function(f){
        return '<button data-df="'+f[0]+'"'+(DEM.filtro===f[0]?' class="on"':'')+'>'+f[1]+'</button>';}).join('')+'</div>'+
-     '<label class="agmeus"><input type="checkbox" id="demMinhas"'+(DEM.soMinhas?' checked':'')+'> Só as minhas</label></div>';
+     '<label class="agmeus"><input type="checkbox" id="demMinhas"'+(DEM.soMinhas?' checked':'')+'> S\u00f3 as minhas</label></div>';
 
-  var titulos={atrasadas:['Atrasadas','late'],hoje:['Para hoje','today'],proximas:['Próximas',''],
-    semprazo:['Sem prazo',''],concluidas:['Concluídas','pv']};
+  var titulos={atrasadas:['Atrasadas','late'],hoje:['Para hoje','today'],proximas:['Pr\u00f3ximas',''],
+    semprazo:['Sem prazo',''],concluidas:['Conclu\u00eddas','pv']};
   var tem=false;
   ['atrasadas','hoje','proximas','semprazo','concluidas'].forEach(function(k){
     if(!g[k].length)return;
     tem=true;
     h+='<div class="aggrp '+titulos[k][1]+'"><h4>'+titulos[k][0]+' <span>'+g[k].length+'</span></h4>';
     g[k].forEach(function(d){
+      var rs=demResps(d),p=DEM.prog[d.id];
       h+='<div class="demrow'+(d.status==='concluida'?' done':'')+'" data-d="'+d.id+'">'+
-        (pode?'<button class="demchk'+(d.status==='concluida'?' on':'')+'" data-tog="'+d.id+'" title="'+(d.status==='concluida'?'Reabrir':'Concluir')+'">'+(d.status==='concluida'?'✓':'')+'</button>':'')+
+        (pode?'<button class="demchk'+(d.status==='concluida'?' on':'')+'" data-tog="'+d.id+'" title="'+(d.status==='concluida'?'Reabrir':'Concluir')+'">'+(d.status==='concluida'?'\u2713':'')+'</button>':'')+
         '<div class="demn"><b>'+esc(d.titulo)+'</b><span class="agr">'+
-          (d.responsavel?esc(d.responsavel):'sem responsável')+
-          (d.origem==='ata_ia'?' · <span class="revtag">da ata</span>':'')+
-          (d.prazo_inferido&&d.status!=='concluida'?' · <span class="revtag">prazo sugerido</span>':'')+
+          (rs.length?esc(rs.join(' \u00b7 ')):'sem respons\u00e1vel')+
+          (d.origem==='ata_ia'?' \u00b7 <span class="revtag">da ata</span>':'')+
+          (d.prazo_inferido&&d.status!=='concluida'?' \u00b7 <span class="revtag">prazo sugerido</span>':'')+
           '</span></div>'+
-        '<div class="demp pri-'+esc(d.prioridade||'media')+'">'+esc((ATAPRIO.find(function(p){return p[0]===d.prioridade;})||['','Média'])[1])+'</div>'+
-        '<div class="agd">'+(d.prazo?brDate(d.prazo):'—')+'</div>'+
+        (p&&p.t?'<button class="demprog'+(p.f>=p.t?' full':'')+'" data-lista="'+d.id+'" title="Abrir lista">'+
+          '<span class="dpb"><i style="width:'+Math.round(p.f*100/p.t)+'%"></i></span>'+p.f+'/'+p.t+'</button>':'')+
+        '<div class="demp pri-'+esc(d.prioridade||'media')+'">'+esc((ATAPRIO.find(function(p2){return p2[0]===d.prioridade;})||['','M\u00e9dia'])[1])+'</div>'+
+        '<div class="agd">'+(d.prazo?brDate(d.prazo):'\u2014')+'</div>'+
       '</div>';
     });
     h+='</div>';
@@ -8409,6 +8511,9 @@ function renderDemandas(){
   var m=$('demMinhas');if(m)m.onchange=function(){DEM.soMinhas=m.checked;renderDemandas();};
   document.querySelectorAll('[data-tog]').forEach(function(el){
     el.onclick=function(e){e.stopPropagation();demToggle(el.dataset.tog);};
+  });
+  document.querySelectorAll('[data-lista]').forEach(function(el){
+    el.onclick=function(e){e.stopPropagation();demAbrirLista(el.dataset.lista);};
   });
   document.querySelectorAll('.demrow').forEach(function(el){
     el.onclick=function(){demAbrir(el.dataset.d);};
@@ -8429,56 +8534,647 @@ async function demToggle(id){
   renderDemandas();
 }
 
-function demAbrir(id){
-  var d=id?DEM.lista.find(function(x){return x.id===id;}):null;
-  DEM.cur=d||{titulo:'',descricao:'',responsavel:currentUser,prazo:addDias(hojeISO(),7),prioridade:'media',status:'pendente'};
-  var c=DEM.cur,novo=!c.id,pode=podeEditar('tarefas');
+/* ---- modal da demanda ---- */
+function demAbrir(id,manter){
+  if(!manter){
+    var d=id?DEM.lista.find(function(x){return x.id===id;}):null;
+    DEM.cur=d||{titulo:'',descricao:'',responsaveis:[currentUser],prazo:addDias(hojeISO(),7),prioridade:'media',status:'pendente'};
+    DEM.resps=demResps(DEM.cur).slice();
+    DEM.pendArqs=[];DEM.pendItens=null;DEM.anexos=[];
+  }
+  var c=DEM.cur,novo=!c.id,pode=podeEditar('tarefas'),p=c.id?DEM.prog[c.id]:null;
   var body='<div class="agform">'+
     '<div class="full"><label>Demanda</label><input id="dem_tit" value="'+esc(c.titulo||'')+'" placeholder="O que precisa ser feito"'+(pode?'':' readonly')+'></div>'+
-    '<div><label>Responsável</label><select id="dem_resp"'+(pode?'':' disabled')+'><option value="">Sem responsável</option>'+
-      RESP.map(function(n){return '<option value="'+esc(n)+'"'+(c.responsavel===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Respons\u00e1veis</label><div class="demrsel" id="dem_resps"></div>'+
+      (pode?'<div class="atahint">Toque para incluir ou remover. Pode marcar mais de uma pessoa.</div>':'')+'</div>'+
     '<div><label>Prazo</label><input id="dem_prazo" type="date" value="'+esc(c.prazo||'')+'"'+(pode?'':' disabled')+'></div>'+
-    '<div><label>Prioridade</label><select id="dem_prio"'+(pode?'':' disabled')+'>'+ATAPRIO.map(function(p){
-      return '<option value="'+p[0]+'"'+(c.prioridade===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Prioridade</label><select id="dem_prio"'+(pode?'':' disabled')+'>'+ATAPRIO.map(function(pr){
+      return '<option value="'+pr[0]+'"'+(c.prioridade===pr[0]?' selected':'')+'>'+pr[1]+'</option>';}).join('')+'</select></div>'+
     '<div><label>Status</label><select id="dem_st"'+(pode?'':' disabled')+'>'+
-      [['pendente','Pendente'],['andamento','Em andamento'],['concluida','Concluída'],['cancelada','Cancelada']].map(function(x){
+      [['pendente','Pendente'],['andamento','Em andamento'],['concluida','Conclu\u00edda'],['cancelada','Cancelada']].map(function(x){
         return '<option value="'+x[0]+'"'+(c.status===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div>'+
     '<div class="full"><label>Detalhes</label><textarea id="dem_desc" class="ataarea sm"'+(pode?'':' readonly')+'>'+esc(c.descricao||'')+'</textarea></div>'+
+    '<div class="full"><label>Lista de itens</label><div id="dem_listabox"></div></div>'+
+    '<div class="full"><label>Anexos</label><div id="dem_anx"></div>'+
+      (pode?'<input type="file" id="dem_file" multiple style="display:none"><button type="button" class="btn dembtn" id="dem_addfile">+ Anexar arquivo</button>':'')+'</div>'+
     (c.trecho_origem?'<div class="full"><label>Veio da ata</label><div class="revsrc">"'+esc(c.trecho_origem)+'"</div></div>':'')+
   '</div>';
   var foot=(pode?'<button class="btn primary" id="dem_save">Salvar</button>':'')+
     '<button class="btn" id="dem_cancel">Fechar</button>'+
     (novo||!pode?'':'<div class="spacer"></div><button class="btn" id="dem_del" style="color:var(--red)">Excluir</button>');
   ataShow(novo?'Nova demanda':'Demanda',c.origem==='ata_ia'?'Criada a partir de uma ata':'',body,foot);
+  demRenderResps();
+  demRenderListaBox(p);
+  demRenderAnexos();
+  if(c.id&&!manter)demCarregarAnexos(c.id);
   $('dem_cancel').onclick=ataClose;
   var sv=$('dem_save');if(sv)sv.onclick=demSalvar;
   var dl=$('dem_del');if(dl)dl.onclick=demExcluir;
+  var af=$('dem_addfile');
+  if(af)af.onclick=function(){$('dem_file').click();};
+  var fi=$('dem_file');
+  if(fi)fi.onchange=function(){
+    var arr=Array.prototype.slice.call(fi.files||[]);
+    fi.value='';
+    if(!arr.length)return;
+    if(DEM.cur.id)demEnviarArqs(DEM.cur.id,arr);
+    else{DEM.pendArqs=DEM.pendArqs.concat(arr);demRenderAnexos();}
+  };
+}
+
+function demCapturarForm(){
+  if(!DEM.cur||!$('dem_tit'))return;
+  DEM.cur.titulo=$('dem_tit').value;
+  DEM.cur.descricao=$('dem_desc').value;
+  DEM.cur.prazo=$('dem_prazo').value;
+  DEM.cur.prioridade=$('dem_prio').value;
+  DEM.cur.status=$('dem_st').value;
+}
+function demVoltarDoImp(){demAbrir(DEM.cur&&DEM.cur.id?DEM.cur.id:null,true);}
+
+function demRenderResps(){
+  var el=$('dem_resps');if(!el)return;
+  var pode=podeEditar('tarefas');
+  var nomes=RESP.slice();
+  DEM.resps.forEach(function(n){if(nomes.indexOf(n)<0)nomes.push(n);});
+  el.innerHTML=nomes.length
+    ? nomes.map(function(n){
+        return '<button type="button" data-r="'+esc(n)+'"'+(DEM.resps.indexOf(n)>=0?' class="on"':'')+(pode?'':' disabled')+'>'+esc(n)+'</button>';
+      }).join('')
+    : '<span class="atahint">Nenhum usu\u00e1rio cadastrado.</span>';
+  if(!pode)return;
+  el.querySelectorAll('[data-r]').forEach(function(b){
+    b.onclick=function(){
+      var n=b.dataset.r,i=DEM.resps.indexOf(n);
+      if(i>=0)DEM.resps.splice(i,1);else DEM.resps.push(n);
+      demRenderResps();
+    };
+  });
+}
+
+function demRenderListaBox(p){
+  var el=$('dem_listabox');if(!el)return;
+  var pode=podeEditar('tarefas'),h='';
+  if(DEM.pendItens&&DEM.pendItens.length){
+    h+='<div class="demlbox"><b>'+DEM.pendItens.length+' itens prontos para importar</b>'+
+       '<span>Ser\u00e3o criados quando voc\u00ea salvar a demanda.</span></div>';
+  }else if(p&&p.t){
+    h+='<div class="demlbox"><b>'+p.t+' itens \u00b7 '+p.f+' resolvidos</b>'+
+       '<span>A equipe marca cada linha conforme resolve.</span></div>';
+  }else{
+    h+='<div class="atahint">Cole uma planilha ou uma lista de nomes e cada linha vira um item que a equipe vai marcando.</div>';
+  }
+  h+='<div class="demlacts">'+
+     (p&&p.t?'<button type="button" class="btn dembtn" id="dem_verlista">Abrir lista</button>':'')+
+     (pode?'<button type="button" class="btn dembtn" id="dem_imp">'+((p&&p.t)||(DEM.pendItens&&DEM.pendItens.length)?'Importar mais itens':'Importar planilha ou texto')+'</button>':'')+
+     ((DEM.pendItens&&DEM.pendItens.length)?'<button type="button" class="btn dembtn" id="dem_impclr">Descartar importa\u00e7\u00e3o</button>':'')+
+     '</div>';
+  el.innerHTML=h;
+  var v=$('dem_verlista');if(v)v.onclick=function(){demAbrirLista(DEM.cur.id);};
+  var i=$('dem_imp');if(i)i.onclick=function(){demCapturarForm();demImpAbrir();};
+  var cl=$('dem_impclr');if(cl)cl.onclick=function(){DEM.pendItens=null;demRenderListaBox(DEM.cur.id?DEM.prog[DEM.cur.id]:null);};
+}
+
+/* ---- anexos ---- */
+async function demCarregarAnexos(id){
+  try{DEM.anexos=await api('/crm_demanda_anexos?select=*&demanda_id=eq.'+id+'&order=criado_em.asc');}
+  catch(e){DEM.anexos=[];}
+  demRenderAnexos();
+}
+function demRenderAnexos(){
+  var el=$('dem_anx');if(!el)return;
+  var pode=podeEditar('tarefas'),h='';
+  DEM.anexos.forEach(function(a){
+    h+='<div class="demanx"><span class="dax">\u{1F4CE}</span><b data-anx="'+a.id+'">'+esc(a.nome)+'</b>'+
+       '<span class="dam">'+demTam(a.tamanho)+(a.enviado_por?' \u00b7 '+esc(a.enviado_por):'')+'</span>'+
+       (pode?'<button type="button" class="daxdel" data-anxdel="'+a.id+'" title="Remover">&times;</button>':'')+'</div>';
+  });
+  DEM.pendArqs.forEach(function(f,i){
+    h+='<div class="demanx pend"><span class="dax">\u{1F4CE}</span><b>'+esc(f.name)+'</b>'+
+       '<span class="dam">'+demTam(f.size)+' \u00b7 envia ao salvar</span>'+
+       '<button type="button" class="daxdel" data-pdel="'+i+'" title="Remover">&times;</button></div>';
+  });
+  if(!h)h='<div class="atahint">Nenhum arquivo anexado.</div>';
+  el.innerHTML=h;
+  el.querySelectorAll('[data-anx]').forEach(function(b){
+    b.onclick=function(){
+      var a=DEM.anexos.find(function(x){return x.id===b.dataset.anx;});
+      if(a)demBaixar(a);
+    };
+  });
+  el.querySelectorAll('[data-anxdel]').forEach(function(b){
+    b.onclick=function(){demExcluirAnexo(b.dataset.anxdel);};
+  });
+  el.querySelectorAll('[data-pdel]').forEach(function(b){
+    b.onclick=function(){DEM.pendArqs.splice(+b.dataset.pdel,1);demRenderAnexos();};
+  });
+}
+async function demEnviarArqs(demandaId,arqs){
+  toast('Enviando '+arqs.length+' arquivo'+(arqs.length>1?'s':'')+'...');
+  for(var i=0;i<arqs.length;i++){
+    try{await demUpload(demandaId,arqs[i]);}
+    catch(e){toast('Falha ao enviar '+arqs[i].name);}
+  }
+  await demCarregarAnexos(demandaId);
+  toast('Anexos atualizados.');
+}
+async function demUpload(demandaId,file){
+  var ext=(String(file.name).match(/\.[A-Za-z0-9]+$/)||[''])[0];
+  var path=demandaId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
+  var r=await fetch(DEMSTG+'/object/demandas/'+path,{method:'POST',
+    headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'x-upsert':'true',
+      'Content-Type':file.type||'application/octet-stream'},body:file});
+  if(!r.ok)throw new Error(await r.text());
+  await api('/crm_demanda_anexos',{method:'POST',body:JSON.stringify({
+    demanda_id:demandaId,nome:file.name,path:path,mime:file.type||null,
+    tamanho:file.size,enviado_por:currentUser})});
+}
+async function demBaixar(a){
+  try{
+    var r=await fetch(DEMSTG+'/object/sign/demandas/'+a.path,{method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({expiresIn:3600})});
+    if(!r.ok)throw new Error('assinatura');
+    var j=await r.json(),u=j.signedURL||j.signedUrl||'';
+    if(u.indexOf('http')!==0)u=(u.indexOf('/storage/v1')===0?SUPA.replace('/rest/v1',''):DEMSTG)+u;
+    window.open(u,'_blank');
+  }catch(e){toast('N\u00e3o foi poss\u00edvel abrir o arquivo.');}
+}
+async function demExcluirAnexo(id){
+  var a=DEM.anexos.find(function(x){return x.id===id;});
+  if(!a||!confirm('Remover "'+a.nome+'"?'))return;
+  try{
+    await fetch(DEMSTG+'/object/demandas/'+a.path,{method:'DELETE',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
+    await api('/crm_demanda_anexos?id=eq.'+id,{method:'DELETE'});
+  }catch(e){toast('Erro ao remover: '+e.message);return;}
+  DEM.anexos=DEM.anexos.filter(function(x){return x.id!==id;});
+  demRenderAnexos();
 }
 
 async function demSalvar(){
   var b={titulo:$('dem_tit').value.trim(),descricao:$('dem_desc').value.trim()||null,
-    responsavel:$('dem_resp').value||null,prazo:$('dem_prazo').value||null,
+    responsaveis:DEM.resps.slice(),prazo:$('dem_prazo').value||null,
     prioridade:$('dem_prio').value,status:$('dem_st').value};
   if(!b.titulo){toast('Escreva a demanda.');return;}
   if(b.status==='concluida'&&DEM.cur.status!=='concluida'){
     b.concluida_em=new Date().toISOString();b.concluida_por=currentUser;
   }else if(b.status!=='concluida'){b.concluida_em=null;b.concluida_por=null;}
   $('dem_save').disabled=true;
+  var id=DEM.cur.id;
   try{
-    if(DEM.cur.id)await api('/crm_demandas?id=eq.'+DEM.cur.id,{method:'PATCH',body:JSON.stringify(b)});
-    else{b.criado_por=currentUser;b.origem='manual';await api('/crm_demandas',{method:'POST',body:JSON.stringify(b)});}
+    if(id)await api('/crm_demandas?id=eq.'+id,{method:'PATCH',body:JSON.stringify(b)});
+    else{
+      b.criado_por=currentUser;b.origem='manual';
+      var novo=await api('/crm_demandas',{method:'POST',body:JSON.stringify(b)});
+      id=novo&&novo[0]?novo[0].id:null;
+    }
+    if(id&&DEM.pendItens&&DEM.pendItens.length)await demGravarItens(id,DEM.pendItens);
+    if(id&&DEM.pendArqs.length){
+      for(var i=0;i<DEM.pendArqs.length;i++){
+        try{await demUpload(id,DEM.pendArqs[i]);}catch(e){toast('Falha ao enviar '+DEM.pendArqs[i].name);}
+      }
+    }
   }catch(e){toast('Erro ao salvar: '+e.message);$('dem_save').disabled=false;return;}
+  DEM.pendItens=null;DEM.pendArqs=[];
   toast('Demanda salva.');
   ataClose();openDemandas();
 }
 
+async function demGravarItens(demandaId,itens){
+  var base=0;
+  try{
+    var u=await api('/crm_demanda_itens?select=ordem&demanda_id=eq.'+demandaId+'&order=ordem.desc&limit=1');
+    if(u&&u[0])base=(+u[0].ordem||0)+1;
+  }catch(e){}
+  var body=itens.map(function(it,i){
+    return {demanda_id:demandaId,ordem:base+i,titulo:it.titulo,
+      detalhes:it.detalhes||[],telefone:it.telefone||null,status:'pendente'};
+  });
+  for(var i=0;i<body.length;i+=200){
+    await api('/crm_demanda_itens',{method:'POST',headers:{'Prefer':'return=minimal'},
+      body:JSON.stringify(body.slice(i,i+200))});
+  }
+}
+
 async function demExcluir(){
   if(!DEM.cur||!DEM.cur.id)return;
-  if(!confirm('Excluir esta demanda?'))return;
+  if(!confirm('Excluir esta demanda? Os itens e anexos v\u00e3o junto.'))return;
   try{await api('/crm_demandas?id=eq.'+DEM.cur.id,{method:'DELETE'});}
   catch(e){toast('Erro ao excluir: '+e.message);return;}
-  toast('Demanda excluída.');
+  toast('Demanda exclu\u00edda.');
   ataClose();openDemandas();
+}
+
+/* ---- lista de itens (execu\u00e7\u00e3o) ---- */
+async function demAbrirLista(id){
+  if(!id)return;
+  ataClose();
+  DEM.curId=id;DEM.view='itens';DEM.busca='';
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando itens...</div>';
+  try{DEM.itens=await api('/crm_demanda_itens?select=*&demanda_id=eq.'+id+'&order=ordem.asc');}
+  catch(e){$('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;}
+  renderDemItens();
+}
+
+function demItensFiltrados(){
+  var q=DEM.busca.toLowerCase();
+  return DEM.itens.filter(function(it){
+    if(DEM.fItem==='pendentes'&&demFeito(it.status))return false;
+    if(DEM.fItem==='feitos'&&!demFeito(it.status))return false;
+    if(DEM.fItem==='meus'&&it.responsavel!==currentUser)return false;
+    if(!q)return true;
+    var t=it.titulo+' '+(it.telefone||'')+' '+(it.obs||'')+' '+JSON.stringify(it.detalhes||[]);
+    return t.toLowerCase().indexOf(q)>=0;
+  });
+}
+
+function renderDemItens(){
+  var d=DEM.lista.find(function(x){return x.id===DEM.curId;})||{titulo:'Lista'};
+  var pode=podeEditar('tarefas');
+  var tot=DEM.itens.length,fei=DEM.itens.filter(function(i){return demFeito(i.status);}).length;
+  var pct=tot?Math.round(fei*100/tot):0;
+  var lista=demItensFiltrados();
+
+  var h='<div class="rscreen"><div class="atawrap">';
+  h+='<div class="aghead"><button class="btn dembtn" id="demBack">\u2190 Demandas</button>'+
+     '<h2 style="flex:1;min-width:160px">'+esc(d.titulo)+'</h2>'+
+     (pode?'<button class="btn dembtn" id="demItNovo">+ Item</button><button class="btn dembtn" id="demItEdit">Editar demanda</button>':'')+'</div>';
+  h+='<div class="demprogbig"><div class="dpbar"><i style="width:'+pct+'%"></i></div>'+
+     '<b>'+fei+' de '+tot+'</b><span>'+pct+'% resolvido</span></div>';
+  if(tot&&fei===tot&&d.status!=='concluida'&&pode)
+    h+='<div class="atalerta">Todos os itens foram resolvidos. Marque a demanda como conclu\u00edda quando quiser.</div>';
+  h+='<div class="agbarra"><span class="fl">Filtros</span>'+
+     '<div class="agvsel">'+[['pendentes','Pendentes'],['meus','Meus'],['feitos','Resolvidos'],['todos','Todos']].map(function(f){
+       return '<button data-fi="'+f[0]+'"'+(DEM.fItem===f[0]?' class="on"':'')+'>'+f[1]+'</button>';}).join('')+'</div>'+
+     '<input class="dembusca" id="demBusca" placeholder="Buscar na lista" value="'+esc(DEM.busca)+'"></div>';
+
+  if(!lista.length)h+='<div class="empty">Nenhum item neste filtro.</div>';
+  lista.forEach(function(it){
+    var det=Array.isArray(it.detalhes)?it.detalhes:[];
+    h+='<div class="itcard '+demIst(it.status,2)+'" data-it="'+it.id+'">'+
+      '<div class="ithead"><b>'+esc(it.titulo)+'</b>'+
+        '<span class="itst '+demIst(it.status,2)+'">'+esc(demIst(it.status,1))+'</span></div>';
+    det.forEach(function(o){
+      var parts=[];
+      Object.keys(o||{}).forEach(function(k){
+        var v=o[k];
+        if(v==null||v===''||v==='--'||v==='-')return;
+        parts.push('<span><i>'+esc(k)+'</i> '+esc(v)+'</span>');
+      });
+      if(parts.length)h+='<div class="itsub">'+parts.join('')+'</div>';
+    });
+    h+='<div class="itacts">'+
+      DEMIST.map(function(s){
+        return '<button class="itbt '+s[2]+(it.status===s[0]?' on':'')+'" data-st="'+s[0]+'" data-id="'+it.id+'"'+(pode?'':' disabled')+'>'+s[1]+'</button>';
+      }).join('')+
+      (waLink(it.telefone)?'<a class="itwa" href="'+esc(waLink(it.telefone))+'" target="_blank" rel="noopener" title="Abrir WhatsApp">'+WAICO+'</a>':'')+
+      '</div>'+
+      '<div class="itfoot">'+
+        '<select class="itresp" data-id="'+it.id+'"'+(pode?'':' disabled')+'><option value="">Sem respons\u00e1vel</option>'+
+          RESP.map(function(n){return '<option value="'+esc(n)+'"'+(it.responsavel===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+
+        '</select>'+
+        '<input class="itobs" data-id="'+it.id+'" placeholder="Observa\u00e7\u00e3o" value="'+esc(it.obs||'')+'"'+(pode?'':' readonly')+'>'+
+        (pode?'<button class="itdel" data-del="'+it.id+'" title="Excluir item">&times;</button>':'')+
+      '</div>'+
+      (it.atualizado_por?'<div class="itmeta">\u00daltima atualiza\u00e7\u00e3o por '+esc(it.atualizado_por)+'</div>':'')+
+    '</div>';
+  });
+  h+='</div></div>';
+  $('board').innerHTML=h;
+
+  $('demBack').onclick=openDemandas;
+  var ed=$('demItEdit');if(ed)ed.onclick=function(){demAbrir(DEM.curId);};
+  var nv=$('demItNovo');if(nv)nv.onclick=demItemNovo;
+  document.querySelectorAll('[data-fi]').forEach(function(el){
+    el.onclick=function(){DEM.fItem=el.dataset.fi;renderDemItens();};
+  });
+  var bs=$('demBusca');
+  if(bs)bs.oninput=function(){
+    clearTimeout(bs._h);
+    bs._h=setTimeout(function(){DEM.busca=bs.value;renderDemItens();var n=$('demBusca');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);}},350);
+  };
+  document.querySelectorAll('[data-st]').forEach(function(el){
+    el.onclick=function(){demItemPatch(el.dataset.id,{status:el.dataset.st});};
+  });
+  document.querySelectorAll('.itresp').forEach(function(el){
+    el.onchange=function(){demItemPatch(el.dataset.id,{responsavel:el.value||null},true);};
+  });
+  document.querySelectorAll('.itobs').forEach(function(el){
+    el.onchange=function(){demItemPatch(el.dataset.id,{obs:el.value.trim()||null},true);};
+  });
+  document.querySelectorAll('[data-del]').forEach(function(el){
+    el.onclick=function(){demItemExcluir(el.dataset.del);};
+  });
+}
+
+async function demItemPatch(id,campos,silencioso){
+  if(!podeEditar('tarefas'))return;
+  campos.atualizado_em=new Date().toISOString();
+  campos.atualizado_por=currentUser;
+  var it=DEM.itens.find(function(x){return x.id===id;});
+  if(it)Object.assign(it,campos);
+  if(!silencioso)renderDemItens();
+  try{await api('/crm_demanda_itens?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify(campos)});}
+  catch(e){toast('Erro ao salvar item: '+e.message);}
+}
+
+async function demItemExcluir(id){
+  if(!confirm('Excluir este item da lista?'))return;
+  try{await api('/crm_demanda_itens?id=eq.'+id,{method:'DELETE'});}
+  catch(e){toast('Erro: '+e.message);return;}
+  DEM.itens=DEM.itens.filter(function(x){return x.id!==id;});
+  renderDemItens();
+}
+
+async function demItemNovo(){
+  var t=prompt('Nome ou descri\u00e7\u00e3o do item:');
+  if(!t||!t.trim())return;
+  var ordem=DEM.itens.length?Math.max.apply(null,DEM.itens.map(function(i){return +i.ordem||0;}))+1:0;
+  try{
+    var r=await api('/crm_demanda_itens',{method:'POST',body:JSON.stringify({
+      demanda_id:DEM.curId,ordem:ordem,titulo:t.trim(),detalhes:[],status:'pendente'})});
+    if(r&&r[0])DEM.itens.push(r[0]);
+  }catch(e){toast('Erro: '+e.message);return;}
+  renderDemItens();
+}
+
+/* ---- importador de planilha ou texto ---- */
+function demLoadXLSX(){
+  return new Promise(function(res,rej){
+    if(window.XLSX)return res(window.XLSX);
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=function(){window.XLSX?res(window.XLSX):rej(new Error('leitor'));};
+    s.onerror=function(){rej(new Error('N\u00e3o foi poss\u00edvel carregar o leitor de Excel.'));};
+    document.head.appendChild(s);
+  });
+}
+function demSplitDel(linha,del){
+  var out=[],cur='',q=false;
+  for(var i=0;i<linha.length;i++){
+    var ch=linha[i];
+    if(ch==='"'){
+      if(q&&linha[i+1]==='"'){cur+='"';i++;}
+      else q=!q;
+    }else if(ch===del&&!q){out.push(cur);cur='';}
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out.map(function(c){return c.trim();});
+}
+function demParseTexto(txt){
+  var L=String(txt||'').replace(/\r/g,'').split('\n').filter(function(l){return l.trim()!=='';});
+  if(!L.length)return [];
+  var del=null;
+  function conta(c){return L.filter(function(l){return l.indexOf(c)>=0;}).length;}
+  if(conta('\t')>=L.length*0.6)del='\t';
+  else if(conta(';')>=L.length*0.6)del=';';
+  else if(conta(',')>=L.length*0.6)del=',';
+  return L.map(function(l){
+    return del?demSplitDel(l,del):l.split(/\s{2,}/).map(function(c){return c.trim();});
+  });
+}
+function demNormRows(rows){
+  rows=(rows||[]).map(function(r){return (r||[]).map(function(c){return c==null?'':String(c).trim();});});
+  var max=0;rows.forEach(function(r){if(r.length>max)max=r.length;});
+  rows=rows.map(function(r){var o=r.slice();while(o.length<max)o.push('');return o;});
+  var keep=[];
+  for(var c=0;c<max;c++){
+    var vazio=rows.every(function(r){return !r[c];});
+    if(!vazio)keep.push(c);
+  }
+  rows=rows.map(function(r){return keep.map(function(c){return r[c];});});
+  return rows.filter(function(r){return r.some(function(c){return c!=='';});});
+}
+function demDetectHead(rows){
+  var lim=Math.min(rows.length,10),best=-1,bn=1;
+  for(var i=0;i<lim;i++){
+    var n=rows[i].filter(function(c){return c&&c!=='--'&&c!=='-';}).length;
+    if(n>bn){bn=n;best=i;}
+  }
+  if(best<0)return -1;
+  var h=rows[best],rep=0,num=0,tot=0;
+  for(var c=0;c<h.length;c++){
+    if(!h[c])continue;
+    tot++;
+    if(/^[\d.,\/:\s-]+$/.test(h[c]))num++;
+    for(var r=best+1;r<rows.length;r++){
+      if(rows[r][c]&&rows[r][c].toLowerCase()===h[c].toLowerCase()){rep++;break;}
+    }
+  }
+  if(!tot)return -1;
+  return (rep/tot<0.2&&num/tot<0.3)?best:-1;
+}
+function demColunas(imp){
+  if(imp.head>=0)return imp.rows[imp.head].map(function(c,i){return c||('Coluna '+(i+1));});
+  var n=imp.rows.length?imp.rows[0].length:0,a=[];
+  for(var i=0;i<n;i++)a.push('Coluna '+(i+1));
+  return a;
+}
+function demDados(imp){
+  return imp.head>=0?imp.rows.slice(imp.head+1):imp.rows.slice();
+}
+function demEhTel(v){return /^[+\s(]*\d[\d\s().-]{7,}$/.test(String(v||''));}
+function demAutoMapa(imp){
+  var cols=demColunas(imp),dados=demDados(imp);
+  imp.tel=-1;
+  for(var c=0;c<cols.length;c++){
+    if(/cel|tel|whats|fone/i.test(cols[c])){imp.tel=c;break;}
+  }
+  if(imp.tel<0){
+    for(var c2=0;c2<cols.length;c2++){
+      var v=dados.filter(function(r){return r[c2];});
+      if(v.length&&v.filter(function(r){return demEhTel(r[c2]);}).length>=v.length*0.7){imp.tel=c2;break;}
+    }
+  }
+  imp.tit=0;
+  for(var c3=0;c3<cols.length;c3++){
+    if(c3===imp.tel)continue;
+    var vals=dados.map(function(r){return r[c3];}).filter(function(x){return x&&x!=='--'&&x!=='-';});
+    if(!vals.length)continue;
+    var med=vals.reduce(function(a,b){return a+b.length;},0)/vals.length;
+    var uni={};vals.forEach(function(x){uni[x]=1;});
+    if(med>=5&&Object.keys(uni).length>=Math.max(2,vals.length*0.4)){imp.tit=c3;break;}
+    if(c3===0)imp.tit=0;
+  }
+  imp.show=[];
+  cols.forEach(function(_,c4){
+    if(c4===imp.tit||c4===imp.tel)return;
+    var vals=dados.map(function(r){return r[c4];}).filter(function(x){return x&&x!=='--'&&x!=='-';});
+    if(!vals.length)return;
+    var uni={};vals.forEach(function(x){uni[x]=1;});
+    if(Object.keys(uni).length<=1)return;
+    imp.show.push(c4);
+  });
+  var vistos={},dup=0;
+  dados.forEach(function(r){
+    var k=(r[imp.tit]||'').toLowerCase();
+    if(!k)return;
+    if(vistos[k])dup++;else vistos[k]=1;
+  });
+  imp.dups=dup;
+  imp.group=dup>0;
+}
+function demVal(v){
+  var m=/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(v);
+  return m?(m[3]+'/'+m[2]+'/'+m[1]+(m[4]?' '+m[4]+':'+m[5]:'')):v;
+}
+function demMontarItens(imp){
+  var cols=demColunas(imp),dados=demDados(imp),out=[],idx={};
+  dados.forEach(function(r){
+    var t=(r[imp.tit]||'').trim();
+    if(!t)return;
+    var det={};
+    imp.show.forEach(function(c){
+      var v=(r[c]||'').trim();
+      if(v&&v!=='--'&&v!=='-')det[cols[c]]=demVal(v);
+    });
+    var tel=imp.tel>=0?(r[imp.tel]||'').trim():'';
+    var k=t.toLowerCase();
+    if(imp.group&&idx[k]!==undefined){
+      var it=out[idx[k]];
+      if(Object.keys(det).length)it.detalhes.push(det);
+      if(!it.telefone&&tel)it.telefone=tel;
+      return;
+    }
+    idx[k]=out.length;
+    out.push({titulo:t,detalhes:Object.keys(det).length?[det]:[],telefone:tel||null});
+  });
+  return out;
+}
+
+function demImpAbrir(){
+  DEM.imp=null;
+  DEM.anexos=DEM.anexos||[];
+  var body='<div class="agform">'+
+    '<div class="full"><label>Colar da planilha ou lista</label>'+
+      '<textarea id="imp_txt" class="ataarea sm" placeholder="Cole aqui as linhas copiadas do CNA Box, do Excel, ou uma lista simples com um nome por linha."></textarea>'+
+      '<div class="atahint">Aceita colunas separadas por tabula\u00e7\u00e3o, ponto e v\u00edrgula ou v\u00edrgula.</div></div>'+
+    '<div class="full"><label>Ou enviar um arquivo</label>'+
+      '<input type="file" id="imp_file" accept=".xlsx,.xls,.csv,.tsv,.txt">'+
+      '<div class="atahint">Excel (.xlsx), CSV ou TXT. A primeira aba \u00e9 lida.</div></div>'+
+    '<div class="full" id="imp_prev"></div>'+
+  '</div>';
+  var foot='<button class="btn primary" id="imp_ler">Ler dados</button>'+
+    '<button class="btn" id="imp_cancel">Voltar</button>';
+  ataShow('Importar lista','Cada linha vira um item que a equipe marca conforme resolve',body,foot);
+  $('imp_cancel').onclick=demVoltarDoImp;
+  $('imp_ler').onclick=function(){demImpLer(null);};
+  $('imp_file').onchange=function(){
+    var f=$('imp_file').files&&$('imp_file').files[0];
+    if(f)demImpLer(f);
+  };
+}
+
+async function demImpLer(file){
+  var rows=[];
+  try{
+    if(file){
+      if(/\.(xlsx|xls)$/i.test(file.name)){
+        var X=await demLoadXLSX();
+        var buf=await file.arrayBuffer();
+        var wb=X.read(new Uint8Array(buf),{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        rows=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+      }else{
+        rows=demParseTexto(await file.text());
+      }
+    }else{
+      rows=demParseTexto($('imp_txt').value);
+    }
+  }catch(e){toast('Erro ao ler: '+e.message);return;}
+  rows=demNormRows(rows);
+  if(!rows.length){toast('Nada foi identificado. Confira o conte\u00fado.');return;}
+  DEM.imp={rows:rows,head:demDetectHead(rows),tit:0,show:[],tel:-1,group:false,dups:0};
+  demAutoMapa(DEM.imp);
+  demImpPrev();
+}
+
+function demImpPrev(){
+  var imp=DEM.imp,el=$('imp_prev');
+  if(!imp||!el)return;
+  var cols=demColunas(imp),dados=demDados(imp),itens=demMontarItens(imp);
+  var h='<div class="fsec"><b>Como ler estes dados</b></div>';
+  h+='<div class="impgrid">'+
+    '<div><label>Linha de cabe\u00e7alho</label><select id="imp_head"><option value="-1"'+(imp.head<0?' selected':'')+'>Sem cabe\u00e7alho</option>'+
+      imp.rows.slice(0,Math.min(10,imp.rows.length)).map(function(r,i){
+        return '<option value="'+i+'"'+(imp.head===i?' selected':'')+'>Linha '+(i+1)+': '+esc(r.filter(function(c){return c;}).slice(0,3).join(' | ').slice(0,50))+'</option>';
+      }).join('')+'</select></div>'+
+    '<div><label>T\u00edtulo do item</label><select id="imp_tit">'+
+      cols.map(function(c,i){return '<option value="'+i+'"'+(imp.tit===i?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Telefone / WhatsApp</label><select id="imp_tel"><option value="-1"'+(imp.tel<0?' selected':'')+'>Nenhum</option>'+
+      cols.map(function(c,i){return '<option value="'+i+'"'+(imp.tel===i?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></div>'+
+    '</div>';
+  h+='<div class="fsec"><b>Mostrar em cada item</b></div>';
+  h+='<div class="impcols">'+cols.map(function(c,i){
+      if(i===imp.tit)return '';
+      return '<label class="impchk"><input type="checkbox" data-col="'+i+'"'+(imp.show.indexOf(i)>=0?' checked':'')+'> '+esc(c)+'</label>';
+    }).join('')+'</div>';
+  h+='<label class="impchk"><input type="checkbox" id="imp_group"'+(imp.group?' checked':'')+'> Agrupar linhas repetidas pelo t\u00edtulo'+
+     (imp.dups?' <span class="revtag">'+imp.dups+' repeti\u00e7\u00f5es</span>':'')+'</label>';
+  h+='<div class="fsec"><b>Pr\u00e9via</b></div>';
+  h+='<div class="atahint">'+dados.length+' linha'+(dados.length===1?'':'s')+' de dados \u2192 <b>'+itens.length+' item'+(itens.length===1?'':'ns')+'</b>.</div>';
+  h+='<div class="impprev">'+itens.slice(0,4).map(function(it){
+      var sub=(it.detalhes||[]).map(function(o){
+        return '<div class="itsub">'+Object.keys(o).map(function(k){return '<span><i>'+esc(k)+'</i> '+esc(o[k])+'</span>';}).join('')+'</div>';
+      }).join('');
+      return '<div class="itcard ist-p"><div class="ithead"><b>'+esc(it.titulo)+'</b>'+
+        (it.telefone?'<span class="itst ist-a">'+esc(it.telefone)+'</span>':'')+'</div>'+sub+'</div>';
+    }).join('')+(itens.length>4?'<div class="atahint">e mais '+(itens.length-4)+'...</div>':'')+'</div>';
+  el.innerHTML=h;
+
+  $('imp_head').onchange=function(){
+    DEM.imp.head=+this.value;demAutoMapa(DEM.imp);demImpPrev();
+  };
+  $('imp_tit').onchange=function(){
+    DEM.imp.tit=+this.value;
+    DEM.imp.show=DEM.imp.show.filter(function(c){return c!==DEM.imp.tit;});
+    demImpPrev();
+  };
+  $('imp_tel').onchange=function(){
+    DEM.imp.tel=+this.value;
+    DEM.imp.show=DEM.imp.show.filter(function(c){return c!==DEM.imp.tel;});
+    demImpPrev();
+  };
+  $('imp_group').onchange=function(){DEM.imp.group=this.checked;demImpPrev();};
+  el.querySelectorAll('[data-col]').forEach(function(cb){
+    cb.onchange=function(){
+      var c=+cb.dataset.col,i=DEM.imp.show.indexOf(c);
+      if(cb.checked){if(i<0)DEM.imp.show.push(c);DEM.imp.show.sort(function(a,b){return a-b;});}
+      else if(i>=0)DEM.imp.show.splice(i,1);
+      demImpPrev();
+    };
+  });
+
+  $('rmfoot').innerHTML='<button class="btn primary" id="imp_ok">Adicionar '+itens.length+' item'+(itens.length===1?'':'ns')+'</button>'+
+    '<button class="btn" id="imp_cancel2">Voltar</button>';
+  $('imp_cancel2').onclick=demVoltarDoImp;
+  $('imp_ok').onclick=demImpConfirmar;
+}
+
+async function demImpConfirmar(){
+  var itens=demMontarItens(DEM.imp);
+  if(!itens.length){toast('Nenhum item para adicionar.');return;}
+  var bt=$('imp_ok');bt.disabled=true;
+  var cols=demColunas(DEM.imp);
+  var labels=DEM.imp.show.map(function(c){return cols[c];});
+  if(DEM.cur&&DEM.cur.id){
+    try{
+      await demGravarItens(DEM.cur.id,itens);
+      await api('/crm_demandas?id=eq.'+DEM.cur.id,{method:'PATCH',headers:{'Prefer':'return=minimal'},
+        body:JSON.stringify({lista_cols:labels})});
+    }catch(e){toast('Erro ao criar itens: '+e.message);bt.disabled=false;return;}
+    toast(itens.length+' itens adicionados.');
+    var p=DEM.prog[DEM.cur.id]||(DEM.prog[DEM.cur.id]={t:0,f:0});
+    p.t+=itens.length;
+    demVoltarDoImp();
+  }else{
+    DEM.pendItens=(DEM.pendItens||[]).concat(itens);
+    toast(itens.length+' itens prontos. Salve a demanda para criar.');
+    demVoltarDoImp();
+  }
 }
 
 /* ================= Acoes comerciais de campo ================= */
