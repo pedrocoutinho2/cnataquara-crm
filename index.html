@@ -1774,7 +1774,12 @@ const CFG={
       {id:'experimental',n:'Experimental / Teste',c:'#B87500'},
       {id:'negociacao',n:'Negociação',c:'#E6143C'},
       {id:'fechado',n:'Matrícula fechada',c:'#1E7A46',ok:true},
-      {id:'perdido',n:'Perdido',c:'#B9B9BE',off:true}
+      {id:'perdido',n:'Perdido',c:'#B9B9BE',off:true},
+      /* Coluna de parada: quem quer estudar mas so entra no semestre 27.1.
+         Nao e perda nem fechamento, entao segue contando como lead ativo e
+         continua entrando na fila de alertas. Ao cair aqui o banco carimba
+         o proximo contato em 01/10 (trigger crm_leads_aguarda_271_tg). */
+      {id:'aguardando_271',n:'Aguardando 27.1',c:'#0E7490',side:true}
     ],
     nextField:'proximo_atendimento',
     prioField:'curso',prioLabel:'Curso',tipoLabel:'Origem',
@@ -2174,9 +2179,12 @@ function cardEl(s,st,showStage){
   const telD=phone(s.telefone);
   const ig=igLink(s.instagram);
 
-  const idx=cfg.stages.findIndex(function(x){return x.id===st.id;});
-  const prev=idx>0?cfg.stages[idx-1]:null;
-  const next=idx<cfg.stages.length-1?cfg.stages[idx+1]:null;
+  /* etapa lateral (parada fora da progressao) nao entra na navegacao por setas:
+     para chegar nela ou sair dela, arraste o card ou mude a etapa na ficha */
+  const cadeia=cfg.stages.filter(function(x){return !x.side;});
+  const cidx=st.side?-1:cadeia.findIndex(function(x){return x.id===st.id;});
+  const prev=cidx>0?cadeia[cidx-1]:null;
+  const next=(cidx>=0&&cidx<cadeia.length-1)?cadeia[cidx+1]:null;
 
   c.innerHTML=
     '<div class="top"><span class="dot '+pr[2]+'" title="'+esc(pr[1])+'"></span><h3>'+esc(s.nome)+'</h3>'+av+'</div>'+
@@ -2432,7 +2440,10 @@ async function moveTo(id,stage){
   }
   render();
   try{
-    await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+    const res=await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
+    /* o banco pode carimbar campos sozinho (ex.: proximo contato de quem entra
+       em "Aguardando 27.1"), entao a linha volta para o card e para a fila */
+    if(res&&res[0]){Object.keys(res[0]).forEach(function(k){s[k]=res[0][k];});render();loadAlerts();}
     if(tab==='leads')logEtapa(id,stage);
     if(tab==='leads'){
       if(stage==='fechado'){
@@ -2807,7 +2818,7 @@ function marcaDatasVazias(root){
 async function avancaEtapa(id,alvo){
   if(tab!=='leads')return;
   const s=(DATA.leads||[]).find(function(x){return x.id===id;});
-  if(!s||s.etapa==='fechado'||s.etapa==='perdido')return;
+  if(!s||s.etapa==='fechado'||s.etapa==='perdido'||s.etapa==='aguardando_271')return;
   const ordem=CFG.leads.stages.map(function(x){return x.id;});
   const at=ordem.indexOf(s.etapa),nv=ordem.indexOf(alvo);
   if(at<0||nv<0||nv<=at)return;
