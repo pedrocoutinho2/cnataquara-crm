@@ -1225,6 +1225,55 @@ input[type=date].dvazio{color:#C9C9CE}
 .impchk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer}
 .impchk input{width:auto}
 .impprev{max-height:300px;overflow:auto}
+/* ---- demandas: kanban e filtros ---- */
+.demscr{display:flex;flex-direction:column;gap:12px}
+.demfil{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.demfil select{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;color:var(--ink)}
+.demfil .dembusca{flex:0 1 220px;min-width:150px}
+.demvista{margin-left:auto;display:flex;border:1px solid var(--line);background:#fff;border-radius:var(--r-pill);overflow:hidden}
+.demvista button{border:0;background:transparent;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--gray);cursor:pointer;font-family:inherit}
+.demvista button.on{background:var(--blue);color:#fff}
+.demkan{display:flex;gap:12px;align-items:flex-start;overflow-x:auto;padding-bottom:12px;min-height:220px}
+.demkan::-webkit-scrollbar{height:10px}
+.demkan::-webkit-scrollbar-thumb{background:#C4C4CB;border-radius:var(--r-pill)}
+.dcol{background:var(--colBg);border-radius:var(--r-lg);min-width:280px;width:280px;flex:0 0 auto;display:flex;flex-direction:column;max-height:calc(100vh - 260px)}
+.dcolh{padding:10px 12px 8px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--cc,var(--blue));border-radius:14px 14px 0 0;background:var(--colBg);position:sticky;top:0;z-index:1}
+.dcolh .ddot{width:9px;height:9px;border-radius:50%;background:var(--cc,var(--blue));flex:none}
+.dcolh h3{font-family:'Poppins';font-size:12.5px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.4px;margin:0}
+.dcolh b{margin-left:auto;background:#fff;border-radius:var(--r-pill);font-size:11px;font-weight:600;color:var(--gray);padding:2px 8px}
+.dcards{padding:9px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:60px}
+.dcol.drop{outline:2px dashed var(--blue);outline-offset:-3px;background:var(--pastelBlue)}
+.dcard{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 11px;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer}
+.dcard[draggable=true]{cursor:grab}
+.dcard.dragging{opacity:.45;cursor:grabbing}
+.dcard.late{border-left:3px solid var(--red)}
+.dctop{display:flex;align-items:flex-start;gap:7px}
+.dctop b{flex:1;font-size:13.5px;font-weight:600;line-height:1.25}
+.dpri{width:9px;height:9px;border-radius:50%;flex:none;margin-top:4px;background:#B9B9BE}
+.dpri.pri-alta{background:var(--red)}
+.dpri.pri-media{background:var(--blue)}
+.dpri.pri-baixa{background:#B9B9BE}
+.dcdesc{font-size:11.5px;color:var(--gray);line-height:1.35;margin-top:5px}
+.dcmeta{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.dcz{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:1px 7px;font-size:10.5px;font-weight:600;color:var(--gray)}
+.dcz.late{background:var(--pastelRed);border-color:var(--pastelRed);color:var(--redDark)}
+.dcz.today{background:var(--warnBg);border-color:var(--warnBg);color:var(--warn)}
+.dcz.ok{background:var(--okBg);border-color:var(--okBg);color:var(--ok)}
+.dcfoot{display:flex;align-items:center;gap:6px;margin-top:8px}
+.dcresp{display:flex;gap:3px;flex:1;min-width:0;flex-wrap:wrap}
+.dav{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-family:'Poppins'}
+.dcsem{font-size:11px;color:var(--gray)}
+.dcmv{display:flex;gap:3px;flex:none}
+.dcmv button{border:1px solid var(--line);background:#fff;border-radius:7px;width:26px;height:26px;font-size:11px;color:var(--gray);cursor:pointer;font-family:inherit}
+.dcmv button:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+@media(max-width:720px){
+  .demvista{margin-left:0}
+  .demfil .dembusca{flex:1 1 100%}
+  .demfil select{flex:1 1 45%}
+  .demkan{scroll-snap-type:x mandatory}
+  .dcol{scroll-snap-align:center;min-width:calc(100vw - 46px);width:calc(100vw - 46px);max-height:none}
+  .dcards{max-height:none}
+}
 @media(max-width:720px){
   .impgrid{grid-template-columns:1fr}
   .itfoot{flex-wrap:wrap}
@@ -8409,9 +8458,14 @@ function ataBaixar(r){
 }
 
 /* ================= Demandas ================= */
-var DEM={lista:[],prog:{},filtro:'abertas',soMinhas:false,cur:null,resps:[],
+var DEM={lista:[],prog:{},anx:{},cur:null,resps:[],
+  vista:(safeGet('crmDemVista')==='lista'?'lista':'kanban'),
+  q:'',fResp:'',fPrio:'',fPrazo:'',
   pendArqs:[],pendItens:null,anexos:[],
   view:'lista',curId:null,itens:[],fItem:'pendentes',busca:'',imp:null};
+var DEMDRAG=null;
+var DEMSTATUS=[['pendente','Pendente','#5A5A5A'],['andamento','Em andamento','#B45309'],
+  ['concluida','Conclu\u00edda','#1B7A3D'],['cancelada','Cancelada','#B9B9BE']];
 var DEMSTG=SUPA.replace('/rest/v1','/storage/v1');
 var DEMIST=[['pendente','Pendente','ist-p'],['andamento','Em contato','ist-a'],
   ['ok','Resolvido','ist-k'],['sem_sucesso','Sem sucesso','ist-x'],['na','N\u00e3o se aplica','ist-n']];
@@ -8435,14 +8489,16 @@ async function openDemandas(){
   try{
     var r=await Promise.all([
       api('/crm_demandas?select=*&order=prazo.asc.nullslast,criado_em.desc'),
-      api('/crm_demanda_itens?select=demanda_id,status&limit=20000')
+      api('/crm_demanda_itens?select=demanda_id,status&limit=20000'),
+      api('/crm_demanda_anexos?select=demanda_id&limit=20000')
     ]);
     DEM.lista=r[0]||[];
-    DEM.prog={};
+    DEM.prog={};DEM.anx={};
     (r[1]||[]).forEach(function(i){
       var p=DEM.prog[i.demanda_id]||(DEM.prog[i.demanda_id]={t:0,f:0});
       p.t++;if(demFeito(i.status))p.f++;
     });
+    (r[2]||[]).forEach(function(a){DEM.anx[a.demanda_id]=(DEM.anx[a.demanda_id]||0)+1;});
   }catch(e){
     $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(e.message)+'</div>';return;
   }
@@ -8450,65 +8506,166 @@ async function openDemandas(){
 }
 
 function demGrupo(d,hoje){
-  if(d.status==='concluida')return 'concluidas';
+  if(d.status==='concluida'||d.status==='cancelada')return 'concluidas';
   if(!d.prazo)return 'semprazo';
   if(d.prazo<hoje)return 'atrasadas';
   if(d.prazo===hoje)return 'hoje';
   return 'proximas';
 }
 
+function demFiltraBase(d){
+  var q=(DEM.q||'').trim().toLowerCase();
+  if(q){
+    var t=(d.titulo+' '+(d.descricao||'')+' '+demResps(d).join(' ')).toLowerCase();
+    if(t.indexOf(q)<0)return false;
+  }
+  if(DEM.fResp==='__meus'){if(demResps(d).indexOf(currentUser)<0)return false;}
+  else if(DEM.fResp==='__sem'){if(demResps(d).length)return false;}
+  else if(DEM.fResp){if(demResps(d).indexOf(DEM.fResp)<0)return false;}
+  if(DEM.fPrio&&(d.prioridade||'media')!==DEM.fPrio)return false;
+  if(DEM.fPrazo){
+    var h=hojeISO(),ab=(d.status!=='concluida'&&d.status!=='cancelada');
+    if(DEM.fPrazo==='atrasadas'&&!(d.prazo&&d.prazo<h&&ab))return false;
+    if(DEM.fPrazo==='hoje'&&d.prazo!==h)return false;
+    if(DEM.fPrazo==='semana'&&!(d.prazo&&d.prazo>=h&&d.prazo<=addDias(h,7)))return false;
+    if(DEM.fPrazo==='sem'&&d.prazo)return false;
+  }
+  return true;
+}
+function demTemFiltro(){return !!(DEM.q||DEM.fResp||DEM.fPrio||DEM.fPrazo);}
+
+function demBarraHTML(){
+  var nomes=RESP.slice();
+  DEM.lista.forEach(function(d){demResps(d).forEach(function(n){if(nomes.indexOf(n)<0)nomes.push(n);});});
+  var h='<div class="demfil">'+
+    '<input class="dembusca" id="demQ" placeholder="Buscar demanda" value="'+esc(DEM.q||'')+'">'+
+    '<select id="demFResp"><option value="">Todos os respons\u00e1veis</option>'+
+      '<option value="__meus"'+(DEM.fResp==='__meus'?' selected':'')+'>S\u00f3 as minhas</option>'+
+      '<option value="__sem"'+(DEM.fResp==='__sem'?' selected':'')+'>Sem respons\u00e1vel</option>'+
+      nomes.map(function(n){return '<option value="'+esc(n)+'"'+(DEM.fResp===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+
+    '</select>'+
+    '<select id="demFPrio"><option value="">Qualquer prioridade</option>'+
+      ATAPRIO.map(function(p){return '<option value="'+p[0]+'"'+(DEM.fPrio===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+    '</select>'+
+    '<select id="demFPrazo"><option value="">Qualquer prazo</option>'+
+      [['atrasadas','Atrasadas'],['hoje','Para hoje'],['semana','Pr\u00f3ximos 7 dias'],['sem','Sem prazo']].map(function(p){
+        return '<option value="'+p[0]+'"'+(DEM.fPrazo===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+    '</select>'+
+    (demTemFiltro()?'<button class="btn dembtn" id="demFClr">Limpar filtros</button>':'')+
+    '<div class="demvista">'+
+      '<button data-vw="kanban"'+(DEM.vista==='kanban'?' class="on"':'')+'>Kanban</button>'+
+      '<button data-vw="lista"'+(DEM.vista==='lista'?' class="on"':'')+'>Lista</button>'+
+    '</div></div>';
+  return h;
+}
+
+function demLigarBarra(){
+  var q=$('demQ');
+  if(q)q.oninput=function(){
+    clearTimeout(q._h);
+    q._h=setTimeout(function(){
+      DEM.q=q.value;renderDemandas();
+      var n=$('demQ');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);}
+    },320);
+  };
+  var r=$('demFResp');if(r)r.onchange=function(){DEM.fResp=r.value;renderDemandas();};
+  var p=$('demFPrio');if(p)p.onchange=function(){DEM.fPrio=p.value;renderDemandas();};
+  var z=$('demFPrazo');if(z)z.onchange=function(){DEM.fPrazo=z.value;renderDemandas();};
+  var c=$('demFClr');if(c)c.onclick=function(){DEM.q='';DEM.fResp='';DEM.fPrio='';DEM.fPrazo='';renderDemandas();};
+  document.querySelectorAll('[data-vw]').forEach(function(b){
+    b.onclick=function(){DEM.vista=b.dataset.vw;safeSet('crmDemVista',DEM.vista);renderDemandas();};
+  });
+}
+
+function demStatusCol(d){
+  var st=d.status||'pendente';
+  return DEMSTATUS.some(function(s){return s[0]===st;})?st:'pendente';
+}
+function demCardHTML(d,hoje,pode){
+  var rs=demResps(d),p=DEM.prog[d.id],an=DEM.anx[d.id]||0;
+  var ab=(d.status!=='concluida'&&d.status!=='cancelada');
+  var atras=d.prazo&&d.prazo<hoje&&ab,pra=d.prazo===hoje&&ab;
+  var i=DEMSTATUS.map(function(s){return s[0];}).indexOf(d.status||'pendente');
+  if(i<0)i=0;
+  var meta=[];
+  if(d.prazo)meta.push('<span class="dcz'+(atras?' late':(pra?' today':''))+'">'+brDate(d.prazo)+'</span>');
+  if(p&&p.t)meta.push('<span class="dcz'+(p.f>=p.t?' ok':'')+'">'+p.f+'/'+p.t+' itens</span>');
+  if(an)meta.push('<span class="dcz">\u{1F4CE} '+an+'</span>');
+  if(d.origem==='ata_ia')meta.push('<span class="dcz">da ata</span>');
+  return '<div class="dcard'+(atras?' late':'')+'" draggable="'+(pode?'true':'false')+'" data-d="'+d.id+'">'+
+    '<div class="dctop"><span class="dpri pri-'+esc(d.prioridade||'media')+'" title="Prioridade '+
+      esc((ATAPRIO.find(function(x){return x[0]===d.prioridade;})||['','M\u00e9dia'])[1])+'"></span>'+
+      '<b>'+esc(d.titulo)+'</b></div>'+
+    (d.descricao?'<div class="dcdesc">'+esc(String(d.descricao).slice(0,120))+(String(d.descricao).length>120?'\u2026':'')+'</div>':'')+
+    (meta.length?'<div class="dcmeta">'+meta.join('')+'</div>':'')+
+    '<div class="dcfoot">'+
+      '<div class="dcresp">'+(rs.length?rs.map(function(n){
+        return '<span class="dav" style="background:'+(RESPC[n]||'#5A5A5A')+'" title="'+esc(n)+'">'+esc(String(n).charAt(0))+'</span>';
+      }).join(''):'<span class="dcsem">sem respons\u00e1vel</span>')+'</div>'+
+      (pode?'<div class="dcmv">'+
+        (i>0?'<button data-mv="'+d.id+'|'+DEMSTATUS[i-1][0]+'" title="Mover para '+esc(DEMSTATUS[i-1][1])+'">\u25c0</button>':'')+
+        (i>=0&&i<DEMSTATUS.length-1?'<button data-mv="'+d.id+'|'+DEMSTATUS[i+1][0]+'" title="Mover para '+esc(DEMSTATUS[i+1][1])+'">\u25b6</button>':'')+
+      '</div>':'')+
+    '</div>'+
+  '</div>';
+}
+
 function renderDemandas(){
   var pode=podeEditar('tarefas'),hoje=hojeISO();
-  var lista=DEM.lista.filter(function(d){
-    if(DEM.soMinhas&&demResps(d).indexOf(currentUser)<0)return false;
-    if(DEM.filtro==='abertas')return d.status!=='concluida';
-    if(DEM.filtro==='concluidas')return d.status==='concluida';
-    return true;
-  });
-  var g={atrasadas:[],hoje:[],proximas:[],semprazo:[],concluidas:[]};
-  lista.forEach(function(d){g[demGrupo(d,hoje)].push(d);});
+  var base=DEM.lista.filter(demFiltraBase);
 
-  var h='<div class="rscreen"><div class="atawrap">';
+  var h='<div class="rscreen demscr">';
   h+='<div class="aghead"><h2>Demandas</h2><div class="spacer" style="flex:1"></div>'+
      (pode?'<button class="btn primary" id="demNova">+ Nova demanda</button>':'')+'</div>';
-  h+='<div class="agbarra"><span class="fl">Filtros</span>'+
-     '<div class="agvsel">'+[['abertas','Abertas'],['concluidas','Conclu\u00eddas'],['todas','Todas']].map(function(f){
-       return '<button data-df="'+f[0]+'"'+(DEM.filtro===f[0]?' class="on"':'')+'>'+f[1]+'</button>';}).join('')+'</div>'+
-     '<label class="agmeus"><input type="checkbox" id="demMinhas"'+(DEM.soMinhas?' checked':'')+'> S\u00f3 as minhas</label></div>';
+  h+=demBarraHTML();
 
-  var titulos={atrasadas:['Atrasadas','late'],hoje:['Para hoje','today'],proximas:['Pr\u00f3ximas',''],
-    semprazo:['Sem prazo',''],concluidas:['Conclu\u00eddas','pv']};
-  var tem=false;
-  ['atrasadas','hoje','proximas','semprazo','concluidas'].forEach(function(k){
-    if(!g[k].length)return;
-    tem=true;
-    h+='<div class="aggrp '+titulos[k][1]+'"><h4>'+titulos[k][0]+' <span>'+g[k].length+'</span></h4>';
-    g[k].forEach(function(d){
-      var rs=demResps(d),p=DEM.prog[d.id];
-      h+='<div class="demrow'+(d.status==='concluida'?' done':'')+'" data-d="'+d.id+'">'+
-        (pode?'<button class="demchk'+(d.status==='concluida'?' on':'')+'" data-tog="'+d.id+'" title="'+(d.status==='concluida'?'Reabrir':'Concluir')+'">'+(d.status==='concluida'?'\u2713':'')+'</button>':'')+
-        '<div class="demn"><b>'+esc(d.titulo)+'</b><span class="agr">'+
-          (rs.length?esc(rs.join(' \u00b7 ')):'sem respons\u00e1vel')+
-          (d.origem==='ata_ia'?' \u00b7 <span class="revtag">da ata</span>':'')+
-          (d.prazo_inferido&&d.status!=='concluida'?' \u00b7 <span class="revtag">prazo sugerido</span>':'')+
-          '</span></div>'+
-        (p&&p.t?'<button class="demprog'+(p.f>=p.t?' full':'')+'" data-lista="'+d.id+'" title="Abrir lista">'+
-          '<span class="dpb"><i style="width:'+Math.round(p.f*100/p.t)+'%"></i></span>'+p.f+'/'+p.t+'</button>':'')+
-        '<div class="demp pri-'+esc(d.prioridade||'media')+'">'+esc((ATAPRIO.find(function(p2){return p2[0]===d.prioridade;})||['','M\u00e9dia'])[1])+'</div>'+
-        '<div class="agd">'+(d.prazo?brDate(d.prazo):'\u2014')+'</div>'+
-      '</div>';
+  if(DEM.vista==='kanban'){
+    h+='<div class="demkan">';
+    DEMSTATUS.forEach(function(s){
+      var its=base.filter(function(d){return demStatusCol(d)===s[0];});
+      h+='<div class="dcol" data-col="'+s[0]+'" style="--cc:'+s[2]+'">'+
+        '<div class="dcolh"><span class="ddot"></span><h3>'+s[1]+'</h3><b>'+its.length+'</b></div>'+
+        '<div class="dcards">'+
+          (its.length?its.map(function(d){return demCardHTML(d,hoje,pode);}).join(''):'<div class="empty">Nada aqui</div>')+
+        '</div></div>';
     });
     h+='</div>';
-  });
-  if(!tem)h+='<div class="empty">Nenhuma demanda neste filtro.</div>';
-  h+='</div></div>';
+  }else{
+    h+='<div class="atawrap">';
+    var g={atrasadas:[],hoje:[],proximas:[],semprazo:[],concluidas:[]};
+    base.forEach(function(d){g[demGrupo(d,hoje)].push(d);});
+    var titulos={atrasadas:['Atrasadas','late'],hoje:['Para hoje','today'],proximas:['Pr\u00f3ximas',''],
+      semprazo:['Sem prazo',''],concluidas:['Conclu\u00eddas e canceladas','pv']};
+    var tem=false;
+    ['atrasadas','hoje','proximas','semprazo','concluidas'].forEach(function(k){
+      if(!g[k].length)return;
+      tem=true;
+      h+='<div class="aggrp '+titulos[k][1]+'"><h4>'+titulos[k][0]+' <span>'+g[k].length+'</span></h4>';
+      g[k].forEach(function(d){
+        var rs=demResps(d),p=DEM.prog[d.id];
+        h+='<div class="demrow'+(d.status==='concluida'?' done':'')+'" data-d="'+d.id+'">'+
+          (pode?'<button class="demchk'+(d.status==='concluida'?' on':'')+'" data-tog="'+d.id+'" title="'+(d.status==='concluida'?'Reabrir':'Concluir')+'">'+(d.status==='concluida'?'\u2713':'')+'</button>':'')+
+          '<div class="demn"><b>'+esc(d.titulo)+'</b><span class="agr">'+
+            (rs.length?esc(rs.join(' \u00b7 ')):'sem respons\u00e1vel')+
+            (d.origem==='ata_ia'?' \u00b7 <span class="revtag">da ata</span>':'')+
+            (d.prazo_inferido&&d.status!=='concluida'?' \u00b7 <span class="revtag">prazo sugerido</span>':'')+
+            '</span></div>'+
+          (p&&p.t?'<button class="demprog'+(p.f>=p.t?' full':'')+'" data-lista="'+d.id+'" title="Abrir lista">'+
+            '<span class="dpb"><i style="width:'+Math.round(p.f*100/p.t)+'%"></i></span>'+p.f+'/'+p.t+'</button>':'')+
+          '<div class="demp pri-'+esc(d.prioridade||'media')+'">'+esc((ATAPRIO.find(function(p2){return p2[0]===d.prioridade;})||['','M\u00e9dia'])[1])+'</div>'+
+          '<div class="agd">'+(d.prazo?brDate(d.prazo):'\u2014')+'</div>'+
+        '</div>';
+      });
+      h+='</div>';
+    });
+    if(!tem)h+='<div class="empty">'+(demTemFiltro()?'Nenhuma demanda com esses filtros.':'Nenhuma demanda cadastrada.')+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
   $('board').innerHTML=h;
 
   var b=$('demNova');if(b)b.onclick=function(){demAbrir(null);};
-  document.querySelectorAll('[data-df]').forEach(function(el){
-    el.onclick=function(){DEM.filtro=el.dataset.df;renderDemandas();};
-  });
-  var m=$('demMinhas');if(m)m.onchange=function(){DEM.soMinhas=m.checked;renderDemandas();};
+  demLigarBarra();
   document.querySelectorAll('[data-tog]').forEach(function(el){
     el.onclick=function(e){e.stopPropagation();demToggle(el.dataset.tog);};
   });
@@ -8518,6 +8675,43 @@ function renderDemandas(){
   document.querySelectorAll('.demrow').forEach(function(el){
     el.onclick=function(){demAbrir(el.dataset.d);};
   });
+  document.querySelectorAll('[data-mv]').forEach(function(el){
+    el.onclick=function(e){
+      e.stopPropagation();
+      var p=el.dataset.mv.split('|');
+      demSetStatus(p[0],p[1]);
+    };
+  });
+  document.querySelectorAll('.dcard').forEach(function(el){
+    el.onclick=function(){demAbrir(el.dataset.d);};
+    el.addEventListener('dragstart',function(e){
+      DEMDRAG=el.dataset.d;el.classList.add('dragging');
+      try{e.dataTransfer.setData('text/plain',el.dataset.d);e.dataTransfer.effectAllowed='move';}catch(_){}
+    });
+    el.addEventListener('dragend',function(){el.classList.remove('dragging');DEMDRAG=null;});
+  });
+  document.querySelectorAll('.dcol').forEach(function(col){
+    col.addEventListener('dragover',function(e){e.preventDefault();col.classList.add('drop');});
+    col.addEventListener('dragleave',function(){col.classList.remove('drop');});
+    col.addEventListener('drop',function(e){
+      e.preventDefault();col.classList.remove('drop');
+      if(DEMDRAG)demSetStatus(DEMDRAG,col.dataset.col);
+    });
+  });
+}
+
+async function demSetStatus(id,novo){
+  var d=DEM.lista.find(function(x){return x.id===id;});
+  if(!d||!podeEditar('tarefas')||(d.status||'pendente')===novo)return;
+  var b={status:novo};
+  if(novo==='concluida'){b.concluida_em=new Date().toISOString();b.concluida_por=currentUser;}
+  else{b.concluida_em=null;b.concluida_por=null;}
+  var antes=d.status;
+  Object.assign(d,b);
+  renderDemandas();
+  try{await api('/crm_demandas?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify(b)});}
+  catch(e){d.status=antes;renderDemandas();toast('Erro ao mover: '+e.message);return;}
+  loadDemBadge();
 }
 
 async function demToggle(id){
