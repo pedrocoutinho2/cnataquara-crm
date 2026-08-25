@@ -1807,7 +1807,8 @@ const CFG={
       {k:'idade',l:'Idade do aluno',t:'number'},
       {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
       {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return hojeISO();}},
-      {k:'ultimo_contato',l:'Último contato',t:'date',def:function(){return hojeISO();}},
+      /* nasce vazio de proposito: quem preenche e o registro de contato no historico */
+      {k:'ultimo_contato',l:'Último contato',t:'date'},
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
       {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
       {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Sem turma disponível','Sem turma disponível'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
@@ -3177,13 +3178,18 @@ $('save').onclick=async function(){
       const res=await api('/'+cfg.table,{method:'POST',body:JSON.stringify(body)});
       if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';
         if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');
+        /* o banco agenda o primeiro contato do lead novo; traz para a ficha
+           e para a barra de agendamento sem precisar reabrir o cadastro */
+        syncMsub(res[0]);syncAgbar();
+        const _ag=tab==='leads'?agLabel(res[0].proximo_atendimento,res[0].proximo_atendimento_hora):'';
         /* leva o consultor direto para o historico: e o que evita o relato do
            contato ir parar no campo Observacoes */
         setTimeout(function(){
           const p=$('ints');if(!p)return;
           p.scrollIntoView({behavior:'smooth',block:'start'});
           const r=$('iresumo');if(r)r.focus();
-          toast('Cadastro salvo. Registre agora o que aconteceu no contato.');
+          toast(_ag?('Cadastro salvo. Primeiro contato agendado para '+_ag+'.')
+                   :'Cadastro salvo. Registre agora o que aconteceu no contato.');
         },250);}
     }
     if(tab==='leads'&&editing){
