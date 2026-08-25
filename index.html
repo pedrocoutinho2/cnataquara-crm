@@ -957,6 +957,46 @@ input[type=date].dvazio{color:#C9C9CE}
   animation:skel 1.2s ease infinite;border-radius:var(--r-lg);height:150px;margin-bottom:14px}
 @keyframes skel{0%{background-position:100% 50%}100%{background-position:0 50%}}
 
+/* ===== Relatorios v5: central, listas roladas, construtor ===== */
+.rhsub{font-size:12px;color:var(--gray)}
+.rback{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:6px 14px;
+  font-family:'Poppins';font-weight:600;font-size:12px;color:var(--blue);white-space:nowrap}
+.rback:hover{background:var(--surface)}
+.rgsec{margin:0 0 18px}
+.rgsec h2{font-family:'Poppins';font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;margin:0 0 9px}
+.rhub{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px}
+.rhcard{text-align:left;background:var(--white);border:1px solid var(--line);border-left:4px solid var(--red);
+  border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow-1);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.rhcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
+.rhcard b{display:block;font-family:'Poppins';font-size:14px;color:var(--ink);margin-bottom:5px}
+.rhcard span{display:block;font-size:12px;line-height:1.5;color:var(--gray)}
+.rlist{max-height:360px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.lrow{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer}
+.lrow:last-child{border-bottom:none}
+.lrow:hover{background:var(--surface)}
+.lrow .ln{font-weight:600;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.lrow .lsub{display:block;font-weight:400;color:var(--gray);font-size:11px;margin-top:2px}
+.lrow .ld{color:var(--redDark);font-weight:600;white-space:nowrap;font-size:11.5px}
+.lrow .wa{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;border-radius:var(--r-sm);text-decoration:none}
+.lrow .esair{padding:4px 8px;font-size:11px}
+@media(max-width:520px){
+  .lrow{grid-template-columns:1fr auto auto}
+  .lrow .esair{grid-column:1/-1;justify-self:start;margin-top:4px}
+}
+.rtab tr.hlrow td{background:var(--dangerBg)}
+.rtab td.bd{color:var(--redDark);font-weight:700}
+.minibar{display:inline-block;width:52px;height:7px;border-radius:var(--r-pill);background:var(--surface);
+  border:1px solid var(--line);overflow:hidden;vertical-align:middle;margin-right:7px}
+.minibar i{display:block;height:100%;background:var(--blue)}
+.minibar i.hit{background:var(--ok)}
+.cbuild .cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:11px}
+.cbuild .cf{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--gray)}
+.cbuild .cf span{font-weight:600;text-transform:uppercase;letter-spacing:.3px;font-size:10px}
+.cbuild .cf select,.cbuild .cf input{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 9px;
+  font-family:'Inter';font-size:12.5px;color:var(--ink);background:var(--white);width:100%}
+.cbuild .cbtns{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+
 /* ===== Tela inicial (painel do dia) ===== */
 .snav>a{border-bottom:1px solid var(--line);padding-top:11px;padding-bottom:11px}
 .ihead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
@@ -1765,10 +1805,11 @@ const CFG={
       {k:'ultimo_contato',l:'Último contato',t:'date',def:function(){return hojeISO();}},
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
       {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
-      {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
+      {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Sem turma disponível','Sem turma disponível'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
+      {k:'turno_desejado',l:'Turno que o aluno pode',t:'select',opts:[['','—'],['Manhã','Manhã'],['Tarde','Tarde'],['Noite','Noite'],['Sábado','Sábado'],['Indiferente','Indiferente']]},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','nome_aluno','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
+    csv:['nome','nome_aluno','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','turno_desejado','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
   }
 };
 
@@ -2481,6 +2522,7 @@ function openModal(id){
     }
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
+    if(f.k==='turno_desejado')d.id='fTurno';
     if(f.k==='acao_id')d.id='fAcao';
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
@@ -2500,6 +2542,8 @@ function openModal(id){
   });
   const selEt=form.querySelector('[data-k=etapa]');
   if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();});
+  const selMp=form.querySelector('[data-k=motivo_perda]');
+  if(selMp)selMp.addEventListener('change',syncPerda);
   syncPerda();
   const inpId=form.querySelector('[data-k=idade]');
   if(inpId){
@@ -2799,6 +2843,14 @@ function syncPerda(){
   w.style.display=perdido?'':'none';
   const mp=w.querySelector('[data-k=motivo_perda]');
   if(mp&&!perdido)mp.value='';
+  /* turno pedido so importa quando a perda foi por falta de turma: e o que monta a fila de espera */
+  const t=$('fTurno');
+  if(t){
+    const semTurma=perdido&&!!mp&&mp.value==='Sem turma disponível';
+    t.style.display=semTurma?'':'none';
+    const st=t.querySelector('[data-k=turno_desejado]');
+    if(st&&!semTurma&&!st.value)st.value='';
+  }
 }
 
 /* Lista de turmas do mapa, agrupada por nivel, para o campo Turma da ficha do lead */
@@ -3779,7 +3831,7 @@ function setTab(t){
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
   if(t==='inicio'){openInicio();return;}
-  if(t==='relatorios'){openReports();return;}
+  if(t==='relatorios'){RVIEW=RGO||relHome();RGO=null;openReports();return;}
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
   if(t==='faq'){openFaq();return;}
@@ -4387,7 +4439,7 @@ function veTodaEquipe(){return pode('rel_meudia','total');}
 function tabLiberada(t){
   var m=NAVMOD[t];
   if(!m)return true;
-  if(t==='relatorios')return podeVer('rel_meudia')||podeVer('rel_funil');
+  if(t==='relatorios')return podeVer('rel_meudia')||podeVer('rel_funil')||podeVer('rel_unidade');
   return podeVer(m);
 }
 function primeiraTabPermitida(){
@@ -4758,7 +4810,7 @@ function corIdx(i){return GPAL[i%GPAL.length];}
 /* ================= Dados dos relatorios: sempre frescos ================= */
 const REL={leads:null,etapas:null,b2c:null,b2b:null,ts:0,carregando:false};
 const REL_TTL=45000;
-const RELCOLS='id,nome,whatsapp,responsavel,origem,curso,etapa,motivo_perda,data_entrada,data_fechamento,ultimo_contato';
+const RELCOLS='id,nome,whatsapp,responsavel,origem,curso,nivel,etapa,motivo_perda,data_entrada,data_fechamento,ultimo_contato,sem_turma,turno_desejado,espera_desde,observacoes';
 async function relLoad(force){
   if(REL.carregando||(!force&&REL.leads&&REL.ts&&Date.now()-REL.ts<REL_TTL))return REL;
   REL.carregando=true;
@@ -4811,32 +4863,41 @@ let CANDATA=null;
 
 let RVIEW='dia';
 function subnav(){
-  return '<div class="rsub" id="rsub">'+
-    '<button data-v="dia"'+(RVIEW==='dia'?' class="on"':'')+'>Meu dia</button>'+
-    '<button data-v="funil"'+(RVIEW==='funil'?' class="on"':'')+'>Funil B2C</button>'+
-    '<button data-v="canais"'+(RVIEW==='canais'?' class="on"':'')+'>Canais</button>'+
-  '</div>';
+  if(relHome()==='hub')
+    return RVIEW==='hub'?'':'<button class="rback" data-v="hub">\u2190 Todos os relat\u00f3rios</button>';
+  var l=relDisponiveis();
+  if(l.length<2)return '';
+  return '<div class="rsub" id="rsub">'+l.map(function(r){
+    return '<button data-v="'+r.id+'"'+(RVIEW===r.id?' class="on"':'')+'>'+esc(r.nome)+'</button>';
+  }).join('')+'</div>';
 }
 function bindSubnav(){
-  document.querySelectorAll('#rsub button').forEach(function(b){
+  document.querySelectorAll('#board [data-v]').forEach(function(b){
     b.onclick=function(){RVIEW=b.dataset.v;openReports();};
   });
 }
 
-async function openReports(){
+async function openReports(force){
+  if(RVIEW!=='hub'){
+    var d=relDef(RVIEW);
+    if(!d||!podeVer(d.mod))RVIEW=relHome();
+  }
+  if(RVIEW==='hub'){await openHub(force);return;}
   if(RVIEW==='dia'){await openMeuDia();return;}
-  if(RVIEW==='canais'){await openCanais();return;}
-  await openFunil();
+  if(RVIEW==='canais'){await openCanais(force);return;}
+  if(RVIEW==='gargalo'){await openGargalo(force);return;}
+  if(RVIEW==='espera'){await openEspera(force);return;}
+  if(RVIEW==='equipe'){await openEquipe(force);return;}
+  if(RVIEW==='followup'){await openFollow(force);return;}
+  if(RVIEW==='custom'){await openCustom(force);return;}
+  await openFunil(force);
 }
 
 /* enquanto a tela de relatorios estiver aberta, os numeros se refazem sozinhos */
 setInterval(function(){
   if(!currentUser||document.hidden||tab!=='relatorios')return;
   if(RVIEW==='dia'){openMeuDia(true);return;}
-  relLoad(true).then(function(){
-    if(tab!=='relatorios')return;
-    if(RVIEW==='canais')renderCanais();else renderReports();
-  }).catch(function(){});
+  openReports(true);
 },60000);
 
 /* ao voltar para a aba do navegador, busca dado novo se o que esta na tela ja envelheceu */
@@ -4846,10 +4907,7 @@ document.addEventListener('visibilitychange',function(){
   if(tab!=='relatorios')return;
   if(RVIEW==='dia'){openMeuDia(true);return;}
   if(Date.now()-REL.ts<REL_TTL)return;
-  relLoad(true).then(function(){
-    if(tab!=='relatorios')return;
-    if(RVIEW==='canais')renderCanais();else renderReports();
-  }).catch(function(){});
+  openReports(true);
 });
 
 /* Compatibilidade: as interacoes agora vem do carregador unico relLoad(). */
@@ -4860,7 +4918,7 @@ async function loadInteracoes(){
 
 function relEsqueleto(titulo){
   return '<div class="rscreen"><div class="rwrap">'+
-    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'</div>'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+'</div>'+
     '<div class="rfresh loading" style="margin-bottom:10px"><i class="dot"></i>'+esc(titulo)+'</div>'+
     '<div class="rskel"></div><div class="rgrid"><div class="rskel" style="height:230px"></div>'+
     '<div class="rskel" style="height:230px"></div></div></div></div>';
@@ -4904,7 +4962,7 @@ function maxIdx(s,histMap){
 function renderReports(){
   resetCharts();
   const board=$('board');
-  const all=REL.leads||[];
+  const all=relLeads();
   const meses={};
   all.forEach(function(s){if(s.data_entrada)meses[s.data_entrada.slice(0,7)]=1;});
   const listaMeses=Object.keys(meses).sort().reverse();
@@ -5044,13 +5102,14 @@ function renderReports(){
   }).sort(function(a,b){return (b.d==null?9999:b.d)-(a.d==null?9999:a.d);});
   let alerta='';
   if(esq.length){
-    alerta='<div class="rcard"><h3>⚠️ Precisam de follow-up · sem contato há mais de 7 dias</h3>'+esq.slice(0,15).map(function(x){
+    alerta='<div class="rcard"><h3>⚠️ Precisam de follow-up · sem contato há mais de 7 dias</h3>'+'<div class="rlist">'+esq.slice(0,8).map(function(x){
       const wa=waLink(x.s.whatsapp);
       return '<div class="alert"><span class="an">'+esc(x.s.nome)+' <span class="tag">'+esc(x.s.responsavel||'—')+'</span></span>'+
         '<span class="ad">'+(x.d==null?'nunca contatado':x.d+' dias')+'</span>'+
         (wa?'<a class="wa" aria-label="WhatsApp" style="display:inline-flex;align-items:center;border-radius:8px;padding:6px 9px;text-decoration:none" target="_blank" rel="noopener" href="'+wa+'">'+WAICO+'</a>':'<span></span>')+
       '</div>';
-    }).join('')+(esq.length>15?'<div class="empty">+ '+(esq.length-15)+' outros — use o kanban pra ver todos</div>':'')+'</div>';
+    }).join('')+'</div>'+(esq.length>8?'<div class="rnote">+ '+(esq.length-8)+' leads na mesma situação.</div>':'')+
+      (podeVer('rel_meudia')?'<button class="dbtn" data-v="followup" style="margin-top:11px">Abrir a fila completa</button>':'')+'</div>';
   }
 
   // comparativo com o mes anterior (so quando um mes esta selecionado)
@@ -5071,14 +5130,14 @@ function renderReports(){
   }
 
   // interacoes B2C do periodo, ja sem as notas internas
-  const interB2C=((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).filter(function(i){
+  const interB2C=relB2C().filter(function(i){
     if(i.tipo==='nota')return false;
     return !per||String(i.data||'').slice(0,7)===per;
   });
 
   // tempo ate o primeiro contato
   const primeiro={};
-  ((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).forEach(function(i){
+  relB2C().forEach(function(i){
     if(!i.lead_id||!i.data||i.tipo==='nota')return;
     const dd=String(i.data).slice(0,10);
     if(!primeiro[i.lead_id]||dd<primeiro[i.lead_id])primeiro[i.lead_id]=dd;
@@ -5125,7 +5184,7 @@ function renderReports(){
     return {label:k,value:g.f,color:corIdx(i),right:g.f+' mat. · '+pct(g.f,g.n),
       tip:g.n+' leads · '+g.ct+' contatos · '+g.f+' matrículas · '+pct(g.f,g.n)+' de conversão'};
   })):'';
-  const cardRank=rkKeys.length?'<div class="rcard"><h3>Ranking de consultores</h3>'+rankBars+
+  const cardRank=(rkKeys.length&&!relSoMeus())?'<div class="rcard"><h3>Ranking de consultores</h3>'+rankBars+
     '<div style="height:14px"></div><div class="rtabw"><table class="rtab">'+
     '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
     rkKeys.map(function(k){
@@ -5214,7 +5273,7 @@ function renderReports(){
 
   $('stats').innerHTML='';
   board.innerHTML='<div class="rscreen"><div class="rwrap">'+
-    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer" style="flex:1"></div>'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+'<div class="spacer" style="flex:1"></div>'+
       freshTag(REL.ts)+relBotao()+
       '<select id="rperiodo" class="btn" style="font-weight:600;color:var(--blue)">'+
         '<option value="">Todos os períodos</option>'+
@@ -5361,10 +5420,10 @@ function renderCanais(){
   const desde=per?diasAtrasISO(parseInt(per,10)):'';
 
   const rows=[];
-  if(escopo!=='b2b')((CANDATA&&CANDATA.b2c)?CANDATA.b2c:[]).forEach(function(i){
+  if(escopo!=='b2b')relB2C().forEach(function(i){
     rows.push({d:String(i.data||'').slice(0,10),autor:i.autor||'—',tipo:i.tipo||'',ef:i.efetivo!==false,mot:i.motivo_nao_efetivo,lead:i.lead_id});
   });
-  if(escopo!=='b2c')((CANDATA&&CANDATA.b2b)?CANDATA.b2b:[]).forEach(function(i){
+  if(escopo!=='b2c')relB2B().forEach(function(i){
     rows.push({d:String(i.data||'').slice(0,10),autor:i.autor||'—',tipo:i.tipo||'',ef:i.efetivo!==false,mot:i.motivo_nao_efetivo,lead:null});
   });
 
@@ -5543,7 +5602,7 @@ function renderCanais(){
     '</div></div>';
 
   $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
-    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer" style="flex:1"></div>'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+'<div class="spacer" style="flex:1"></div>'+
       freshTag(REL.ts)+relBotao()+'</div>'+
     kpis+
     '<div class="rgrid">'+
@@ -5746,7 +5805,7 @@ function renderMeuDia(){
   const btn='<button class="dbtn" id="dfechar"'+(d>hoje?' disabled':'')+'>'+(snap?'Refazer fechamento':'Fechar o dia')+'</button>';
 
   $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
-    '<div class="rtitle"><h1>Relatórios</h1>'+subnav()+'<div class="spacer" style="flex:1"></div>'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+'<div class="spacer" style="flex:1"></div>'+
       freshTag(DIA.ts)+relBotao()+selCons+
       '<input type="date" id="ddata" class="dctl" value="'+esc(d)+'" max="'+hoje+'">'+btn+'</div>'+
     '<div class="dstat"><b style="color:var(--blue)">'+esc(c)+'</b> · jornada '+ini+' às '+fim+
@@ -5805,6 +5864,917 @@ function renderMeuDia(){
   };
 }
 
+/* ================= Central de relatorios (v5) =================
+   Consultor enxerga so a propria carteira. Gestao entra por uma central
+   com um relatorio por tela, em vez de uma pagina unica gigante. */
+var RGO=null;
+function relSoMeus(){return !podeVer('rel_funil')&&!podeVer('rel_unidade');}
+function relLeads(){
+  var a=REL.leads||[];
+  return relSoMeus()?a.filter(function(s){return s.responsavel===currentUser;}):a;
+}
+function relB2C(){
+  var a=(CANDATA&&CANDATA.b2c)?CANDATA.b2c:[];
+  return relSoMeus()?a.filter(function(i){return i.autor===currentUser;}):a;
+}
+function relB2B(){
+  var a=(CANDATA&&CANDATA.b2b)?CANDATA.b2b:[];
+  return relSoMeus()?a.filter(function(i){return i.autor===currentUser;}):a;
+}
+var RELDEF=[
+  {id:'dia',mod:'rel_meudia',grupo:'Rotina',nome:'Dia a dia',
+   res:'O que está agendado, o que já foi feito e a meta de contatos efetivos do dia.'},
+  {id:'followup',mod:'rel_meudia',grupo:'Rotina',nome:'Follow-up atrasado',
+   res:'Leads ativos sem contato há mais de 7 dias e negociações paradas, do mais frio para o mais recente.'},
+  {id:'funil',mod:'rel_funil',grupo:'Comercial',nome:'Funil B2C',
+   res:'Até onde os leads chegam, conversão mês a mês, origens e cursos procurados.'},
+  {id:'gargalo',mod:'rel_unidade',grupo:'Comercial',nome:'Gargalos e perdas',
+   res:'Onde o funil trava, quantas matrículas cada degrau custa e por quais motivos os leads são perdidos.'},
+  {id:'espera',mod:'rel_unidade',grupo:'Operação',nome:'Fila de espera · sem turma',
+   res:'Quem ficou de fora por falta de turma, por curso e turno, cruzado com as turmas que hoje têm vaga.'},
+  {id:'equipe',mod:'rel_unidade',grupo:'Equipe',nome:'Desempenho da equipe',
+   res:'Leads, contatos, efetividade, matrículas e conversão de cada consultor no período.'},
+  {id:'canais',mod:'rel_funil',grupo:'Equipe',nome:'Canais de contato',
+   res:'Por onde a equipe fala com o cliente e qual canal traz mais resposta.'},
+  {id:'custom',mod:'rel_unidade',grupo:'Sob medida',nome:'Relatório personalizado',
+   res:'Monte o recorte que quiser: filtre, agrupe, veja o gráfico e exporte em CSV.'}
+];
+function relDef(id){for(var i=0;i<RELDEF.length;i++){if(RELDEF[i].id===id)return RELDEF[i];}return null;}
+function relDisponiveis(){return RELDEF.filter(function(r){return podeVer(r.mod);});}
+function relHome(){return (podeVer('rel_funil')||podeVer('rel_unidade'))?'hub':'dia';}
+function relTitulo(){var d=relDef(RVIEW);return d?d.nome:'Relatórios';}
+
+function baixaCSV(nome,head,rows){
+  var csv='\uFEFF'+head.join(';')+'\n'+rows.map(function(r){
+    return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(';');
+  }).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=nome+'.csv';a.click();
+}
+function relVaiPara(id){RVIEW=id;openReports();}
+
+/* ---------- central (hub) ---------- */
+async function openHub(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Carregando o resumo da unidade...');
+  try{await relLoad(!!force);}catch(e){}
+  renderHub();
+}
+function renderHub(){
+  resetCharts();
+  var l=relDisponiveis();
+  var ordem=[],map={};
+  l.forEach(function(r){if(!map[r.grupo]){map[r.grupo]=[];ordem.push(r.grupo);}map[r.grupo].push(r);});
+
+  var all=relLeads(),hoje=new Date();
+  var ym=hojeISO().slice(0,7);
+  var lm=all.filter(function(s){return (s.data_entrada||'').slice(0,7)===ym;});
+  var fm=all.filter(function(s){return s.etapa==='fechado'&&(s.data_fechamento||'').slice(0,7)===ym;});
+  var ativos=all.filter(function(s){return s.etapa!=='fechado'&&s.etapa!=='perdido';});
+  var esq=ativos.filter(function(s){
+    if(!s.ultimo_contato)return true;
+    return (hoje-new Date(s.ultimo_contato))/86400000>7;
+  });
+  var espera=all.filter(function(s){return s.sem_turma&&s.etapa!=='fechado';});
+  var resumo='<div class="rkpis">'+
+    '<div class="rkpi"><b>'+lm.length+'</b><span>Leads no mês</span></div>'+
+    '<div class="rkpi ok"><b>'+fm.length+'</b><span>Matrículas no mês</span></div>'+
+    '<div class="rkpi"><b>'+pct(fm.length,lm.length)+'</b><span>Conversão do mês</span></div>'+
+    '<div class="rkpi"><b>'+ativos.length+'</b><span>Leads ativos</span></div>'+
+    '<div class="rkpi'+(esq.length?' bad':'')+'"><b>'+esq.length+'</b><span>Sem contato há +7 dias</span></div>'+
+    '<div class="rkpi'+(espera.length?' bad':'')+'"><b>'+espera.length+'</b><span>Na fila por falta de turma</span></div>'+
+  '</div>';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle"><h1>Relatórios</h1>'+
+      '<span class="rhsub">Escolha o relatório que quer abrir</span>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+'</div>'+
+    resumo+
+    ordem.map(function(g){
+      return '<div class="rgsec"><h2>'+esc(g)+'</h2><div class="rhub">'+map[g].map(function(r){
+        return '<button class="rhcard" data-v="'+r.id+'"><b>'+esc(r.nome)+'</b><span>'+esc(r.res)+'</span></button>';
+      }).join('')+'</div></div>';
+    }).join('')+
+  '</div></div>';
+  bindSubnav();
+  bindRel(renderHub);
+}
+
+/* ---------- follow-up atrasado ---------- */
+async function openFollow(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Carregando a fila de follow-up...');
+  try{await relLoad(!!force);}catch(e){
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados.</div>';return;}
+  }
+  renderFollow();
+}
+function diasSem(s,hoje){
+  if(!s.ultimo_contato)return null;
+  return Math.floor((hoje-new Date(s.ultimo_contato))/86400000);
+}
+function linhaLead(s,dir){
+  var wa=waLink(s.whatsapp);
+  return '<div class="lrow" data-lead="'+esc(s.id)+'">'+
+    '<span class="ln">'+esc(s.nome||'')+'<span class="lsub">'+esc([s.responsavel||'sem responsável',s.curso||'',s.origem||''].filter(Boolean).join(' · '))+'</span></span>'+
+    '<span class="ld">'+esc(dir)+'</span>'+
+    (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
+  '</div>';
+}
+function blocoLeads(titulo,lista,nota,vazio){
+  if(!lista.length)return '<div class="rcard"><h3>'+titulo+'</h3><div class="rempty">'+vazio+'</div></div>';
+  return '<div class="rcard"><h3>'+titulo+' ('+lista.length+')</h3>'+
+    '<div class="rlist">'+lista.map(function(x){return linhaLead(x.s,x.d);}).join('')+'</div>'+
+    (nota?'<div class="rnote">'+nota+'</div>':'')+'</div>';
+}
+function bindLeadRows(){
+  document.querySelectorAll('#board [data-lead]').forEach(function(el){
+    el.onclick=function(e){
+      if(e.target.tagName==='A'||e.target.closest('a'))return;
+      goToAlert('leads',el.dataset.lead);
+    };
+  });
+}
+function renderFollow(){
+  resetCharts();
+  var hoje=new Date(),all=relLeads();
+  var ativos=all.filter(function(s){return s.etapa!=='fechado'&&s.etapa!=='perdido';});
+  var nunca=[],frios=[],mornos=[],recentes=[],neg=[];
+  ativos.forEach(function(s){
+    var d=diasSem(s,hoje);
+    var it={s:s,d:d==null?'nunca contatado':d+' dias sem contato'};
+    if(s.etapa==='negociacao'&&(d==null||d>5))neg.push({s:s,d:d==null?'nunca contatado':d+' dias parado'});
+    if(d==null)nunca.push(it);
+    else if(d>30)frios.push(it);
+    else if(d>14)mornos.push(it);
+    else if(d>7)recentes.push(it);
+  });
+  function ord(a,b){
+    var x=parseInt(a.d,10),y=parseInt(b.d,10);
+    return (isNaN(y)?99999:y)-(isNaN(x)?99999:x);
+  }
+  frios.sort(ord);mornos.sort(ord);recentes.sort(ord);neg.sort(ord);
+  var total=nunca.length+frios.length+mornos.length+recentes.length;
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
+      '<button class="dctl" id="fexp">↓ CSV</button></div>'+
+    '<div class="rkpis">'+
+      '<div class="rkpi'+(total?' bad':' ok')+'"><b>'+total+'</b><span>Precisam de contato</span></div>'+
+      '<div class="rkpi'+(nunca.length?' bad':'')+'"><b>'+nunca.length+'</b><span>Nunca contatados</span></div>'+
+      '<div class="rkpi"><b>'+frios.length+'</b><span>Parados há +30 dias</span></div>'+
+      '<div class="rkpi'+(neg.length?' bad':'')+'"><b>'+neg.length+'</b><span>Negociações paradas</span></div>'+
+      '<div class="rkpi"><b>'+ativos.length+'</b><span>Leads ativos</span></div>'+
+    '</div>'+
+    '<div class="rgrid">'+
+      blocoLeads('🔴 Nunca receberam contato',nunca,'Lead sem primeiro toque é dinheiro parado. Comece por aqui.','Nenhum lead sem primeiro contato. Ótimo sinal.')+
+      blocoLeads('🔥 Negociações paradas',neg,'Os mais quentes da base, esfriando há mais de 5 dias.','Nenhuma negociação parada.')+
+      blocoLeads('❄️ Parados há mais de 30 dias',frios,'Base fria. Vale uma abordagem diferente da primeira.','Nada parado há mais de 30 dias.')+
+      blocoLeads('🟠 Entre 15 e 30 dias',mornos,'','Nada nessa faixa.')+
+      blocoLeads('🟡 Entre 8 e 14 dias',recentes,'Ainda dá para recuperar com um toque rápido.','Nada nessa faixa.')+
+    '</div>'+
+  '</div></div>';
+  bindSubnav();bindRel(renderFollow);bindLeadRows();
+  var b=$('fexp');
+  if(b)b.onclick=function(){
+    var linhas=[];
+    [['Nunca contatado',nunca],['Negociação parada',neg],['+30 dias',frios],['15 a 30 dias',mornos],['8 a 14 dias',recentes]].forEach(function(g){
+      g[1].forEach(function(x){
+        linhas.push([g[0],x.s.nome,x.s.whatsapp,x.s.responsavel,x.s.curso,x.s.origem,x.s.etapa,x.s.ultimo_contato||'',x.d]);
+      });
+    });
+    baixaCSV('cna-followup-'+hojeISO(),['Faixa','Nome','WhatsApp','Responsável','Curso','Origem','Etapa','Último contato','Situação'],linhas);
+  };
+}
+
+/* ---------- gargalos e perdas ---------- */
+var GPER='';
+async function openGargalo(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Calculando os gargalos do funil...');
+  try{await relLoad(!!force);}catch(e){
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados.</div>';return;}
+  }
+  renderGargalo();
+}
+var ACAO_MOTIVO={
+  'Sem retorno':'Cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.',
+  'Preço':'Ancorar valor antes do número: material incluso, professor formado na UniCNA, CNA Net e turma pequena.',
+  'Contato inválido':'O problema é de captação. Conferir o formulário do anúncio e a digitação do WhatsApp no cadastro.',
+  'Fora da região':'Apertar a segmentação geográfica dos anúncios para Taquara e bairros vizinhos.',
+  'Só robótica':'Registrar o interesse e oferecer o idioma como segunda porta de entrada.',
+  'Sem turma disponível':'Esses leads vão para a fila de espera. Abrir turma ou realocar horário resolve matrícula pronta.',
+  'Outro':'Motivo genérico demais para virar ação. Vale detalhar melhor no momento do registro.'
+};
+function tempoPorEtapa(){
+  var ev={};
+  (ETAPAS_HIST||[]).forEach(function(e){
+    if(!e.lead_id||!e.data)return;
+    (ev[e.lead_id]=ev[e.lead_id]||[]).push({e:e.etapa,d:new Date(e.data)});
+  });
+  var acc={};
+  Object.keys(ev).forEach(function(id){
+    var l=ev[id].sort(function(a,b){return a.d-b.d;});
+    for(var i=0;i<l.length-1;i++){
+      var k=l[i].e;
+      if(FIDX[k]==null)continue;
+      var dd=(l[i+1].d-l[i].d)/86400000;
+      if(dd<0||dd>365)continue;
+      if(!acc[k])acc[k]={n:0,s:0};
+      acc[k].n++;acc[k].s+=dd;
+    }
+  });
+  return acc;
+}
+function renderGargalo(){
+  resetCharts();
+  var all=relLeads();
+  var meses={};
+  all.forEach(function(s){if(s.data_entrada)meses[s.data_entrada.slice(0,7)]=1;});
+  var listaMeses=Object.keys(meses).sort().reverse();
+  var per=GPER;
+  var leads=all.filter(function(s){return !per||(s.data_entrada||'').slice(0,7)===per;});
+
+  var histMap={};
+  (ETAPAS_HIST||[]).forEach(function(e){(histMap[e.lead_id]=histMap[e.lead_id]||[]).push(e.etapa);});
+
+  var perd=leads.filter(function(s){return s.etapa==='perdido';});
+  var fech=leads.filter(function(s){return s.etapa==='fechado';});
+  var reached=FUNIL.map(function(f,i){
+    return leads.filter(function(s){return maxIdx(s,histMap)>=i;}).length;
+  });
+  /* taxa de fechamento a partir de cada etapa: quanto vale um lead que chega ali */
+  var valor=FUNIL.map(function(f,i){
+    var chegou=leads.filter(function(s){return maxIdx(s,histMap)>=i;});
+    var f2=chegou.filter(function(s){return s.etapa==='fechado';}).length;
+    return chegou.length?f2/chegou.length:0;
+  });
+  var tp=tempoPorEtapa();
+
+  var degraus=[];
+  for(var i=0;i<FUNIL.length-1;i++){
+    var de=reached[i],para=reached[i+1];
+    if(!de)continue;
+    var caiu=de-para;
+    degraus.push({
+      i:i,de:FUNIL[i].n,para:FUNIL[i+1].n,
+      qde:de,qpara:para,caiu:caiu,
+      taxa:de?para/de:0,
+      perdaPct:de?Math.round(100*caiu/de):0,
+      custo:Math.round(caiu*valor[i+1]),
+      tmed:tp[FUNIL[i].id]?(tp[FUNIL[i].id].s/tp[FUNIL[i].id].n):null,
+      perdidosAqui:perd.filter(function(s){return maxIdx(s,histMap)===i;}).length
+    });
+  }
+  var pior=degraus.slice().sort(function(a,b){return b.custo-a.custo||b.caiu-a.caiu;})[0]||null;
+
+  var heroGargalo=pior?'<div class="acard"><h3>Maior gargalo do período</h3>'+
+    '<div class="asub">Onde a unidade mais deixa matrícula na mesa</div>'+
+    '<div class="rbig">'+esc(pior.de)+' → '+esc(pior.para)+
+      '<small>'+pior.caiu+' leads não avançaram ('+pior.perdaPct+'% dos que chegaram nessa etapa). '+
+      'Pelo aproveitamento histórico de quem passa desse ponto, isso equivale a cerca de <b>'+pior.custo+' matrícula'+(pior.custo===1?'':'s')+'</b> perdidas.</small></div>'+
+    '<ul><li class="neg">Passagem atual: <i>'+pct(pior.qpara,pior.qde)+'</i> avançam.</li>'+
+    (pior.tmed!=null?'<li>Tempo médio parado nessa etapa: <i>'+pior.tmed.toFixed(1).replace('.',',')+' dias</i>.</li>':'')+
+    '<li>'+(pior.i>=3?'Etapa de fechamento: o problema costuma ser argumento de valor, condição de pagamento ou horário de turma.':'Etapa de topo: o problema costuma ser velocidade da primeira resposta e qualidade da abordagem de abertura.')+'</li>'+
+    '</ul></div>':'';
+
+  var tabDegraus='<div class="rcard wide"><h3>Passagem etapa a etapa</h3><div class="rtabw"><table class="rtab">'+
+    '<tr class="hd"><th>Degrau</th><th class="num">Chegaram</th><th class="num">Avançaram</th><th class="num">Passagem</th><th class="num">Tempo médio</th><th class="num">Matrículas perdidas</th></tr>'+
+    degraus.map(function(d){
+      return '<tr'+(pior&&d.i===pior.i?' class="hlrow"':'')+'><td>'+esc(d.de)+' → '+esc(d.para)+'</td>'+
+        '<td class="num" data-l="Chegaram">'+d.qde+'</td>'+
+        '<td class="num" data-l="Avançaram">'+d.qpara+'</td>'+
+        '<td class="num'+(d.taxa<0.5?' bd':'')+'" data-l="Passagem">'+pct(d.qpara,d.qde)+'</td>'+
+        '<td class="num" data-l="Tempo médio">'+(d.tmed!=null?d.tmed.toFixed(1).replace('.',',')+'d':'—')+'</td>'+
+        '<td class="num'+(d.custo?' bd':'')+'" data-l="Matrículas perdidas">'+d.custo+'</td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="rnote">"Matrículas perdidas" estima quanto cada degrau custou: leads que travaram ali multiplicados pelo aproveitamento histórico de quem passou desse ponto.</div></div>';
+
+  /* motivos de perda */
+  var gm={},gmEtapa={};
+  perd.forEach(function(s){
+    var k=s.motivo_perda||'Não informado';
+    gm[k]=(gm[k]||0)+1;
+    var e=FUNIL[maxIdx(s,histMap)]?FUNIL[maxIdx(s,histMap)].n:'—';
+    if(!gmEtapa[k])gmEtapa[k]={};
+    gmEtapa[k][e]=(gmEtapa[k][e]||0)+1;
+  });
+  var km=Object.keys(gm).sort(function(a,b){return gm[b]-gm[a];});
+  var cardMot=km.length?'<div class="rcard"><h3>Por que perdemos</h3>'+
+    chartBox(donutChart({items:km.map(function(k,i){return {label:k,value:gm[k],color:corIdx(i+1)};}),
+      center:String(perd.length),centerSub:'perdidos'}),195)+
+    chLegend(km.map(function(k,i){return {label:k,value:gm[k],color:corIdx(i+1)};}),perd.length)+
+    '<div class="rnote">Só entram leads marcados como perdidos. Motivo em branco vira "Não informado" e cega a análise.</div></div>':'';
+
+  var cardAcao=km.length?'<div class="rcard"><h3>Motivo, etapa e o que fazer</h3><div class="rtabw"><table class="rtab">'+
+    '<tr class="hd"><th>Motivo</th><th class="num">Perdas</th><th class="num">%</th><th>Trava mais em</th></tr>'+
+    km.map(function(k){
+      var et=Object.keys(gmEtapa[k]).sort(function(a,b){return gmEtapa[k][b]-gmEtapa[k][a];})[0]||'—';
+      return '<tr><td>'+esc(k)+(ACAO_MOTIVO[k]?'<span class="sub">'+esc(ACAO_MOTIVO[k])+'</span>':'')+'</td>'+
+        '<td class="num" data-l="Perdas">'+gm[k]+'</td>'+
+        '<td class="num" data-l="%">'+pct(gm[k],perd.length)+'</td>'+
+        '<td data-l="Trava mais em">'+esc(et)+'</td></tr>';
+    }).join('')+'</table></div></div>':'';
+
+  /* perdas por origem, curso e responsavel */
+  function perdaPor(campo,titulo,nota){
+    var g={};
+    leads.forEach(function(s){
+      var k=s[campo]||'—';
+      if(!g[k])g[k]={n:0,p:0,f:0};
+      g[k].n++;
+      if(s.etapa==='perdido')g[k].p++;
+      if(s.etapa==='fechado')g[k].f++;
+    });
+    var ks=Object.keys(g).filter(function(k){return g[k].n>=3;}).sort(function(a,b){return (g[b].p/g[b].n)-(g[a].p/g[a].n);}).slice(0,10);
+    if(!ks.length)return '';
+    return '<div class="rcard"><h3>'+titulo+'</h3>'+
+      hbars(ks.map(function(k,i){
+        return {label:k,value:g[k].p,color:corIdx(i+1),
+          right:g[k].p+' de '+g[k].n,
+          tip:g[k].n+' leads · '+g[k].p+' perdidos · '+g[k].f+' matrículas · '+pct(g[k].p,g[k].n)+' de perda'};
+      }))+'<div class="rnote">'+nota+'</div></div>';
+  }
+
+  /* sem turma: atalho para a fila de espera */
+  var semTurma=all.filter(function(s){return s.sem_turma&&s.etapa!=='fechado';});
+  var cardEspera=semTurma.length?'<div class="rcard"><h3>Perdas por falta de turma</h3>'+
+    '<div class="rbig">'+semTurma.length+'<small>leads ficaram de fora porque não havia turma para alocar. Eles estão na fila de espera e podem ser retomados assim que abrir horário.</small></div>'+
+    '<button class="dbtn" data-v="espera">Abrir a fila de espera</button></div>':'';
+
+  var nInf=gm['Não informado']||0;
+  var alerta=nInf?'<div class="ibox warn"><div class="itx"><b>'+nInf+' perda'+(nInf>1?'s':'')+' sem motivo registrado</b>'+
+    '<p>Sem motivo o relatório não consegue apontar o que corrigir. Combine com a equipe que mover para "Perdido" exige escolher o motivo na ficha.</p></div></div>':'';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
+      '<select id="gper" class="btn" style="font-weight:600;color:var(--blue)">'+
+        '<option value="">Todos os períodos</option>'+
+        listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
+      '</select></div>'+
+    alerta+
+    '<div class="rkpis">'+
+      '<div class="rkpi"><b>'+leads.length+'</b><span>Leads no recorte</span></div>'+
+      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span></div>'+
+      '<div class="rkpi bad"><b>'+perd.length+'</b><span>Perdidos</span></div>'+
+      '<div class="rkpi"><b>'+pct(perd.length,leads.length)+'</b><span>Taxa de perda</span></div>'+
+      '<div class="rkpi bad"><b>'+(pior?pior.custo:0)+'</b><span>Matrículas presas no gargalo</span></div>'+
+      '<div class="rkpi"><b>'+semTurma.length+'</b><span>Na fila por falta de turma</span></div>'+
+    '</div>'+
+    '<div class="rgrid">'+
+      heroGargalo+
+      tabDegraus+
+      cardMot+
+      cardAcao+
+      cardEspera+
+      perdaPor('origem','Perda por origem','Origem com perda muito acima da média é público errado ou script errado para aquele público.')+
+      perdaPor('curso','Perda por curso procurado','Curso com perda alta costuma ser falta de turma no horário pedido. Cruze com a fila de espera.')+
+      (relSoMeus()?'':perdaPor('responsavel','Perda por consultor','Comparar sempre com o volume: quem tem mais lead perde mais em número absoluto.'))+
+    '</div>'+
+  '</div></div>';
+  drawCharts();
+  bindSubnav();bindRel(renderGargalo);
+  var sel=$('gper');
+  if(sel)sel.onchange=function(){GPER=sel.value;renderGargalo();};
+}
+
+/* ---------- fila de espera: leads sem turma ---------- */
+var ESP={turmas:null};
+function turnoDe(hor){
+  var h=parseInt(String(hor||'').slice(0,2),10);
+  if(isNaN(h))return '';
+  if(h<12)return 'Manhã';
+  if(h<18)return 'Tarde';
+  return 'Noite';
+}
+async function openEspera(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Montando a fila de espera...');
+  try{
+    await relLoad(!!force);
+    if(!ESP.turmas||force)ESP.turmas=await api('/crm_turmas?select=codigo,curso,dias,horario,sala,professor,alunos,capacidade,sem_vaga,semestre&ativa=eq.true&order=curso.asc,horario.asc');
+  }catch(e){
+    if(!ESP.turmas)ESP.turmas=[];
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar a fila de espera.</div>';return;}
+  }
+  renderEspera();
+}
+function renderEspera(){
+  resetCharts();
+  var hoje=new Date();
+  var fila=(relLeads()).filter(function(s){
+    return s.sem_turma&&s.etapa!=='fechado';
+  });
+  var turmas=(ESP.turmas||[]).filter(function(t){
+    var cap=t.capacidade||0,al=t.alunos||0;
+    return !t.sem_vaga&&(cap===0||al<cap);
+  });
+
+  /* agrupa por curso + turno pedido */
+  var g={};
+  fila.forEach(function(s){
+    var k=(s.curso||'Sem curso')+' · '+(s.turno_desejado||'Turno não informado');
+    if(!g[k])g[k]={curso:s.curso||'',turno:s.turno_desejado||'',itens:[]};
+    g[k].itens.push(s);
+  });
+  var gks=Object.keys(g).sort(function(a,b){return g[b].itens.length-g[a].itens.length;});
+
+  function turmasQueAtendem(curso,turno){
+    return turmas.filter(function(t){
+      var okc=!curso||String(t.curso||'').toLowerCase().indexOf(String(curso).toLowerCase().slice(0,3))>-1;
+      var okt=!turno||turno==='Indiferente'||turnoDe(t.horario)===turno;
+      return okc&&okt;
+    });
+  }
+  var comSaida=0;
+  gks.forEach(function(k){if(turmasQueAtendem(g[k].curso,g[k].turno).length)comSaida+=g[k].itens.length;});
+
+  var esperaMedia='—';
+  var ds=fila.filter(function(s){return s.espera_desde;}).map(function(s){
+    return Math.max(0,(hoje-new Date(s.espera_desde))/86400000);
+  });
+  if(ds.length)esperaMedia=Math.round(ds.reduce(function(a,b){return a+b;},0)/ds.length)+' dias';
+
+  var blocos=gks.map(function(k){
+    var b=g[k],ts=turmasQueAtendem(b.curso,b.turno);
+    return '<div class="rcard"><h3>'+esc(k)+' ('+b.itens.length+')</h3>'+
+      (ts.length
+        ? '<div class="ibox ok" style="margin-bottom:10px"><div class="itx"><b>'+ts.length+' turma'+(ts.length>1?'s':'')+' com vaga hoje</b>'+
+          '<p>'+ts.slice(0,4).map(function(t){
+            return esc((t.curso||'')+' · '+(t.dias||'')+' '+(t.horario||'')+(t.sala?' · '+t.sala:'')+
+              ((t.capacidade||0)?' · '+((t.capacidade||0)-(t.alunos||0))+' vaga(s)':''));
+          }).join('<br>')+'</p></div></div>'
+        : '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Nenhuma turma com vaga nesse recorte</b>'+
+          '<p>Se juntar gente suficiente aqui, é uma turma nova esperando para ser aberta.</p></div></div>')+
+      '<div class="rlist">'+b.itens.sort(function(x,y){
+        return String(x.espera_desde||'').localeCompare(String(y.espera_desde||''));
+      }).map(function(s){
+        var d=s.espera_desde?Math.floor((hoje-new Date(s.espera_desde))/86400000)+' dias na fila':'na fila';
+        return '<div class="lrow" data-lead="'+esc(s.id)+'">'+
+          '<span class="ln">'+esc(s.nome||'')+'<span class="lsub">'+esc([s.nivel||'',s.responsavel||'',s.whatsapp||''].filter(Boolean).join(' · '))+'</span></span>'+
+          '<span class="ld">'+esc(d)+'</span>'+
+          (waLink(s.whatsapp)?'<a class="wa" target="_blank" rel="noopener" href="'+waLink(s.whatsapp)+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
+          '<button class="dctl esair" data-sair="'+esc(s.id)+'" title="Tirar da fila de espera">Sair da fila</button>'+
+        '</div>';
+      }).join('')+'</div></div>';
+  }).join('');
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
+      '<button class="dctl" id="eexp">↓ CSV</button></div>'+
+    '<div class="rkpis">'+
+      '<div class="rkpi'+(fila.length?' bad':' ok')+'"><b>'+fila.length+'</b><span>Na fila de espera</span></div>'+
+      '<div class="rkpi ok"><b>'+comSaida+'</b><span>Já têm turma com vaga</span></div>'+
+      '<div class="rkpi"><b>'+gks.length+'</b><span>Combinações curso + turno</span></div>'+
+      '<div class="rkpi"><b>'+esperaMedia+'</b><span>Tempo médio na fila</span></div>'+
+      '<div class="rkpi"><b>'+turmas.length+'</b><span>Turmas com vaga</span></div>'+
+    '</div>'+
+    (fila.length?'':'<div class="ibox ok"><div class="itx"><b>Ninguém na fila por falta de turma</b>'+
+      '<p>A fila enche sozinha: ao marcar um lead como perdido com o motivo "Sem turma disponível", ele entra aqui com o turno que pediu.</p></div></div>')+
+    '<div class="rgrid">'+blocos+'</div>'+
+  '</div></div>';
+  bindSubnav();bindRel(renderEspera);bindLeadRows();
+  document.querySelectorAll('#board [data-sair]').forEach(function(b){
+    b.onclick=async function(e){
+      e.stopPropagation();
+      b.disabled=true;
+      try{
+        await api('/crm_leads?id=eq.'+b.dataset.sair,{method:'PATCH',body:JSON.stringify({sem_turma:false,updated_at:new Date().toISOString()})});
+        var s=(REL.leads||[]).find(function(x){return x.id===b.dataset.sair;});
+        if(s)s.sem_turma=false;
+        var d=(DATA.leads||[]).find(function(x){return x.id===b.dataset.sair;});
+        if(d)d.sem_turma=false;
+        toast('Lead retirado da fila de espera.');
+        renderEspera();
+      }catch(err){b.disabled=false;toast('Não foi possível atualizar agora.');}
+    };
+  });
+  var be=$('eexp');
+  if(be)be.onclick=function(){
+    baixaCSV('cna-fila-espera-'+hojeISO(),
+      ['Nome','WhatsApp','Curso','Nível','Turno pedido','Responsável','Na fila desde','Etapa','Observações'],
+      fila.map(function(s){return [s.nome,s.whatsapp,s.curso,s.nivel,s.turno_desejado,s.responsavel,s.espera_desde,s.etapa,s.observacoes];}));
+  };
+}
+
+/* ---------- desempenho da equipe ---------- */
+var EPER='30';
+async function openEquipe(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Carregando o desempenho da equipe...');
+  try{await relLoad(!!force);}catch(e){
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados.</div>';return;}
+  }
+  renderEquipe();
+}
+function renderEquipe(){
+  resetCharts();
+  var desde=EPER?diasAtrasISO(parseInt(EPER,10)):'';
+  var all=REL.leads||[];
+  var leads=all.filter(function(s){return !desde||(s.data_entrada||'')>=desde;});
+  var inter=relB2C().filter(function(i){
+    return i.tipo!=='nota'&&(!desde||String(i.data||'').slice(0,10)>=desde);
+  });
+  var interB2B=relB2B().filter(function(i){
+    return i.tipo!=='nota'&&(!desde||String(i.data||'').slice(0,10)>=desde);
+  });
+
+  var rk={};
+  function get(k){if(!rk[k])rk[k]={n:0,f:0,p:0,ct:0,ef:0,b2b:0,dias:[]};return rk[k];}
+  leads.forEach(function(s){
+    var g=get(s.responsavel||'— sem responsável —');
+    g.n++;
+    if(s.etapa==='fechado'){
+      g.f++;
+      if(s.data_entrada&&s.data_fechamento)g.dias.push((new Date(s.data_fechamento)-new Date(s.data_entrada))/86400000);
+    }
+    if(s.etapa==='perdido')g.p++;
+  });
+  inter.forEach(function(i){var g=get(i.autor||'—');g.ct++;if(i.efetivo!==false)g.ef++;});
+  interB2B.forEach(function(i){var g=get(i.autor||'—');g.b2b++;});
+
+  var ks=Object.keys(rk).sort(function(a,b){return rk[b].f-rk[a].f||rk[b].n-rk[a].n;});
+  var totF=ks.reduce(function(a,k){return a+rk[k].f;},0);
+  var totN=ks.reduce(function(a,k){return a+rk[k].n;},0);
+  var totC=ks.reduce(function(a,k){return a+rk[k].ct;},0);
+  var totE=ks.reduce(function(a,k){return a+rk[k].ef;},0);
+
+  var tab='<div class="rcard wide"><h3>Números por consultor</h3><div class="rtabw"><table class="rtab">'+
+    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th>'+
+    '<th class="num">Matrículas</th><th class="num">Conversão</th><th class="num">Tempo até matrícula</th></tr>'+
+    ks.map(function(k){
+      var g=rk[k];
+      var tm=g.dias.length?Math.round(g.dias.reduce(function(a,b){return a+b;},0)/g.dias.length)+'d':'—';
+      return '<tr><td>'+esc(k)+(g.p?'<span class="sub">'+g.p+' perdidos'+(g.b2b?' · '+g.b2b+' contatos B2B':'')+'</span>':(g.b2b?'<span class="sub">'+g.b2b+' contatos B2B</span>':''))+'</td>'+
+        '<td class="num" data-l="Leads">'+g.n+'</td>'+
+        '<td class="num" data-l="Contatos">'+g.ct+'</td>'+
+        '<td class="num" data-l="Efetividade">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
+        '<td class="num'+(g.f?' hl':'')+'" data-l="Matrículas">'+g.f+'</td>'+
+        '<td class="num" data-l="Conversão">'+pct(g.f,g.n)+'</td>'+
+        '<td class="num" data-l="Tempo até matrícula">'+tm+'</td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="rnote">Leads e matrículas contam quem está como responsável pelo lead. Contatos e efetividade contam as interações registradas por cada um no período.</div></div>';
+
+  var cMat='<div class="rcard"><h3>Matrículas por consultor</h3>'+
+    hbars(ks.map(function(k,i){return {label:k,value:rk[k].f,color:corIdx(i),right:rk[k].f+' · '+pct(rk[k].f,rk[k].n),
+      tip:rk[k].n+' leads · '+rk[k].f+' matrículas · '+pct(rk[k].f,rk[k].n)+' de conversão'};}))+
+    '<div class="rnote">Volume absoluto. A conversão ao lado evita premiar só quem recebeu mais lead.</div></div>';
+
+  var cEf='<div class="rcard"><h3>Contatos e efetividade</h3>'+
+    hbars(ks.filter(function(k){return rk[k].ct;}).map(function(k,i){
+      return {label:k,value:rk[k].ct,color:corIdx(i+2),right:rk[k].ct+' · '+pct(rk[k].ef,rk[k].ct)+' efetivo',
+        tip:rk[k].ct+' contatos · '+rk[k].ef+' efetivos'};
+    }))+'<div class="rnote">Média da equipe no período: '+pct(totE,totC)+' de contatos efetivos.</div></div>';
+
+  var filtros='<div class="rcard wide" style="padding:12px 16px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">'+
+    '<div class="rfil" id="eper">'+[['7','7 dias'],['30','30 dias'],['90','90 dias'],['','Tudo']].map(function(o){
+      return '<button data-p="'+o[0]+'"'+(EPER===o[0]?' class="on"':'')+'>'+o[1]+'</button>';
+    }).join('')+'</div></div>';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
+      '<button class="dctl" id="qexp">↓ CSV</button></div>'+
+    '<div class="rkpis">'+
+      '<div class="rkpi"><b>'+ks.length+'</b><span>Pessoas com movimento</span></div>'+
+      '<div class="rkpi"><b>'+totN+'</b><span>Leads no período</span></div>'+
+      '<div class="rkpi ok"><b>'+totF+'</b><span>Matrículas</span></div>'+
+      '<div class="rkpi"><b>'+pct(totF,totN)+'</b><span>Conversão da equipe</span></div>'+
+      '<div class="rkpi"><b>'+totC+'</b><span>Contatos registrados</span></div>'+
+      '<div class="rkpi"><b>'+pct(totE,totC)+'</b><span>Efetividade média</span></div>'+
+    '</div>'+
+    '<div class="rgrid">'+filtros+tab+cMat+cEf+'</div>'+
+  '</div></div>';
+  bindSubnav();bindRel(renderEquipe);
+  document.querySelectorAll('#eper button').forEach(function(b){
+    b.onclick=function(){EPER=b.dataset.p;renderEquipe();};
+  });
+  var q=$('qexp');
+  if(q)q.onclick=function(){
+    baixaCSV('cna-equipe-'+hojeISO(),['Consultor','Leads','Contatos','Efetivos','Matrículas','Perdidos','Conversão'],
+      ks.map(function(k){return [k,rk[k].n,rk[k].ct,rk[k].ef,rk[k].f,rk[k].p,pct(rk[k].f,rk[k].n)];}));
+  };
+}
+
+/* ---------- relatorio personalizado ---------- */
+var CUS={campoData:'data_entrada',de:'',ate:'',etapa:'',resp:'',origem:'',curso:'',motivo:'',fila:'',
+         grupo:'responsavel',metrica:'leads',feito:false};
+var CUSGRUPOS=[['responsavel','Consultor responsável'],['origem','Origem do lead'],['curso','Curso de interesse'],
+  ['etapa','Etapa do funil'],['motivo_perda','Motivo da perda'],['nivel','Nível'],['turno_desejado','Turno pedido'],
+  ['mes_entrada','Mês de entrada'],['mes_fechamento','Mês de fechamento']];
+var CUSMETRICAS=[['leads','Quantidade de leads'],['matriculas','Matrículas'],['perdidos','Perdidos'],['conversao','Conversão %']];
+function cusValor(s,campo){
+  if(campo==='mes_entrada')return (s.data_entrada||'').slice(0,7)||'—';
+  if(campo==='mes_fechamento')return (s.data_fechamento||'').slice(0,7)||'—';
+  return s[campo]||'—';
+}
+function cusOpcoes(campo){
+  var v={};
+  relLeads().forEach(function(s){if(s[campo])v[s[campo]]=1;});
+  return Object.keys(v).sort();
+}
+async function openCustom(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Preparando o construtor de relatório...');
+  try{await relLoad(!!force);}catch(e){
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar os dados.</div>';return;}
+  }
+  renderCustom();
+}
+function cusFiltra(){
+  var campo=CUS.campoData;
+  return (relLeads()).filter(function(s){
+    var d=s[campo]||'';
+    if(CUS.de&&(!d||d<CUS.de))return false;
+    if(CUS.ate&&(!d||d>CUS.ate))return false;
+    if(CUS.etapa&&s.etapa!==CUS.etapa)return false;
+    if(CUS.resp&&s.responsavel!==CUS.resp)return false;
+    if(CUS.origem&&s.origem!==CUS.origem)return false;
+    if(CUS.curso&&s.curso!==CUS.curso)return false;
+    if(CUS.motivo&&s.motivo_perda!==CUS.motivo)return false;
+    if(CUS.fila==='1'&&!s.sem_turma)return false;
+    if(CUS.fila==='0'&&s.sem_turma)return false;
+    return true;
+  });
+}
+function renderCustom(){
+  resetCharts();
+  function sel(id,label,opts,val,vazio){
+    return '<label class="cf"><span>'+esc(label)+'</span><select id="'+id+'">'+
+      (vazio===''?'':'<option value="">'+esc(vazio||'Todos')+'</option>')+
+      opts.map(function(o){
+        var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;
+        return '<option value="'+esc(v)+'"'+(String(val)===String(v)?' selected':'')+'>'+esc(t)+'</option>';
+      }).join('')+'</select></label>';
+  }
+  var etapas=(CFG.leads.stages||[]).map(function(x){return [x.id,x.n];});
+  var form='<div class="rcard wide cbuild"><h3>Monte o recorte</h3>'+
+    '<div class="cgrid">'+
+      sel('cdcampo','Data de referência',[['data_entrada','Data de entrada do lead'],['data_fechamento','Data de fechamento (matrícula ou perda)'],['ultimo_contato','Último contato']],CUS.campoData,'')+
+      '<label class="cf"><span>De</span><input type="date" id="cde" value="'+esc(CUS.de)+'"></label>'+
+      '<label class="cf"><span>Até</span><input type="date" id="cate" value="'+esc(CUS.ate)+'"></label>'+
+      sel('cetapa','Etapa',etapas,CUS.etapa)+
+      (relSoMeus()?'':sel('cresp','Responsável',cusOpcoes('responsavel'),CUS.resp))+
+      sel('corigem','Origem',cusOpcoes('origem'),CUS.origem)+
+      sel('ccurso','Curso',cusOpcoes('curso'),CUS.curso)+
+      sel('cmotivo','Motivo da perda',cusOpcoes('motivo_perda'),CUS.motivo)+
+      sel('cfila','Fila de espera',[['1','Só quem está na fila'],['0','Fora da fila']],CUS.fila)+
+      sel('cgrupo','Agrupar por',CUSGRUPOS,CUS.grupo,'')+
+      sel('cmet','Ordenar pela métrica',CUSMETRICAS,CUS.metrica,'')+
+    '</div>'+
+    '<div class="cbtns"><button class="dbtn" id="cgera">Gerar relatório</button>'+
+      '<button class="dctl" id="climpa">Limpar filtros</button>'+
+      (CUS.feito?'<button class="dctl" id="ccsv">↓ Exportar CSV</button>':'')+'</div>'+
+    '<div class="rnote">O recorte vale só para esta tela. Nada é alterado no funil.</div></div>';
+
+  var corpo='';
+  if(CUS.feito){
+    var base=cusFiltra();
+    var g={};
+    base.forEach(function(s){
+      var k=cusValor(s,CUS.grupo);
+      if(!g[k])g[k]={n:0,f:0,p:0,dias:[]};
+      g[k].n++;
+      if(s.etapa==='fechado'){
+        g[k].f++;
+        if(s.data_entrada&&s.data_fechamento)g[k].dias.push((new Date(s.data_fechamento)-new Date(s.data_entrada))/86400000);
+      }
+      if(s.etapa==='perdido')g[k].p++;
+    });
+    var ks=Object.keys(g);
+    var met=CUS.metrica;
+    ks.sort(function(a,b){
+      if(met==='conversao')return (g[b].f/(g[b].n||1))-(g[a].f/(g[a].n||1));
+      if(met==='matriculas')return g[b].f-g[a].f;
+      if(met==='perdidos')return g[b].p-g[a].p;
+      return g[b].n-g[a].n;
+    });
+    var tot={n:base.length,f:base.filter(function(s){return s.etapa==='fechado';}).length,
+             p:base.filter(function(s){return s.etapa==='perdido';}).length};
+    var gLabel=(CUSGRUPOS.find(function(x){return x[0]===CUS.grupo;})||['','Grupo'])[1];
+
+    if(!ks.length){
+      corpo='<div class="rcard wide"><h3>Resultado</h3><div class="rempty">Nenhum lead bate com esse recorte. Afrouxe um filtro.</div></div>';
+    }else{
+      corpo='<div class="rkpis">'+
+        '<div class="rkpi"><b>'+tot.n+'</b><span>Leads no recorte</span></div>'+
+        '<div class="rkpi ok"><b>'+tot.f+'</b><span>Matrículas</span></div>'+
+        '<div class="rkpi bad"><b>'+tot.p+'</b><span>Perdidos</span></div>'+
+        '<div class="rkpi"><b>'+pct(tot.f,tot.n)+'</b><span>Conversão</span></div>'+
+        '<div class="rkpi"><b>'+ks.length+'</b><span>Grupos</span></div>'+
+      '</div>'+
+      '<div class="rgrid">'+
+        '<div class="rcard wide"><h3>Resultado por '+esc(gLabel.toLowerCase())+'</h3><div class="rtabw"><table class="rtab">'+
+        '<tr class="hd"><th>'+esc(gLabel)+'</th><th class="num">Leads</th><th class="num">Matrículas</th><th class="num">Perdidos</th><th class="num">Conversão</th><th class="num">Tempo médio</th></tr>'+
+        ks.map(function(k){
+          var x=g[k];
+          var tm=x.dias.length?Math.round(x.dias.reduce(function(a,b){return a+b;},0)/x.dias.length)+'d':'—';
+          return '<tr><td>'+esc(k)+'</td><td class="num" data-l="Leads">'+x.n+'</td>'+
+            '<td class="num'+(x.f?' hl':'')+'" data-l="Matrículas">'+x.f+'</td>'+
+            '<td class="num" data-l="Perdidos">'+x.p+'</td>'+
+            '<td class="num" data-l="Conversão">'+pct(x.f,x.n)+'</td>'+
+            '<td class="num" data-l="Tempo médio">'+tm+'</td></tr>';
+        }).join('')+'</table></div></div>'+
+        '<div class="rcard wide"><h3>Visual</h3>'+
+          hbars(ks.slice(0,14).map(function(k,i){
+            var x=g[k];
+            var v=met==='matriculas'?x.f:(met==='perdidos'?x.p:(met==='conversao'?Math.round(1000*x.f/(x.n||1))/10:x.n));
+            return {label:k,value:v,color:corIdx(i),
+              right:met==='conversao'?String(v).replace('.',',')+'%':String(v),
+              tip:x.n+' leads · '+x.f+' matrículas · '+x.p+' perdidos · '+pct(x.f,x.n)+' de conversão'};
+          }))+
+        '<div class="rnote">Mostrando os 14 primeiros grupos pela métrica escolhida. O CSV traz a tabela inteira.</div></div>'+
+      '</div>';
+    }
+    window._cusg=g;window._cusk=ks;window._cusl=gLabel;
+  }
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+'</div>'+
+    form+corpo+
+  '</div></div>';
+  bindSubnav();bindRel(renderCustom);
+
+  function le(id){var e=$(id);return e?e.value:'';}
+  var bg=$('cgera');
+  if(bg)bg.onclick=function(){
+    CUS.campoData=le('cdcampo')||'data_entrada';
+    CUS.de=le('cde');CUS.ate=le('cate');CUS.etapa=le('cetapa');
+    CUS.resp=le('cresp');CUS.origem=le('corigem');CUS.curso=le('ccurso');
+    CUS.motivo=le('cmotivo');CUS.fila=le('cfila');
+    CUS.grupo=le('cgrupo')||'responsavel';CUS.metrica=le('cmet')||'leads';
+    CUS.feito=true;renderCustom();
+  };
+  var bl=$('climpa');
+  if(bl)bl.onclick=function(){
+    CUS={campoData:'data_entrada',de:'',ate:'',etapa:'',resp:'',origem:'',curso:'',motivo:'',fila:'',
+         grupo:'responsavel',metrica:'leads',feito:false};
+    renderCustom();
+  };
+  var bc=$('ccsv');
+  if(bc)bc.onclick=function(){
+    var g=window._cusg||{},ks=window._cusk||[];
+    baixaCSV('cna-relatorio-'+CUS.grupo+'-'+hojeISO(),
+      [window._cusl||'Grupo','Leads','Matrículas','Perdidos','Conversão'],
+      ks.map(function(k){return [k,g[k].n,g[k].f,g[k].p,pct(g[k].f,g[k].n)];}));
+  };
+}
+
+/* ================= Painel da unidade (visão de gestão) ================= */
+var UNI={dados:null,ts:0,erro:''};
+function iniVista(){
+  if(!veTodaEquipe())return 'meu';
+  return safeGet('crmIniVista')==='meu'?'meu':'unidade';
+}
+async function openUnidade(silencioso){
+  $('stats').innerHTML='';
+  if(!silencioso&&!UNI.dados)$('board').innerHTML='<div class="loading">Montando o painel da unidade...</div>';
+  UNI.erro='';
+  try{
+    var r=await Promise.all([
+      api('/rpc/crm_painel_equipe',{method:'POST',body:JSON.stringify({p_data:hojeISO()})}),
+      relLoad().catch(function(){return null;})
+    ]);
+    UNI.dados=r[0]||{};UNI.ts=Date.now();
+  }catch(e){
+    UNI.erro=(e&&e.message)?e.message:'';
+    if(!UNI.dados)UNI.dados={};
+  }
+  renderUnidade();
+}
+function iniToggle(){
+  return '<div class="rsub" id="ivista">'+
+    '<button data-iv="unidade"'+(iniVista()==='unidade'?' class="on"':'')+'>Unidade</button>'+
+    '<button data-iv="meu"'+(iniVista()==='meu'?' class="on"':'')+'>Meu dia</button>'+
+  '</div>';
+}
+function bindIniToggle(){
+  document.querySelectorAll('#ivista button').forEach(function(b){
+    b.onclick=function(){
+      try{localStorage.setItem('crmIniVista',b.dataset.iv);}catch(e){}
+      openInicio();
+    };
+  });
+}
+function renderUnidade(){
+  resetCharts();
+  var d=UNI.dados||{},u=d.unidade||{},cs=d.consultores||[],hoje=hojeISO();
+  var all=REL.leads||[];
+  var ym=hoje.slice(0,7);
+  var pv=new Date(new Date(hoje+'T12:00:00').getFullYear(),new Date(hoje+'T12:00:00').getMonth()-1,1);
+  var ymPrev=pv.getFullYear()+'-'+String(pv.getMonth()+1).padStart(2,'0');
+  var fPrev=all.filter(function(s){return s.etapa==='fechado'&&(s.data_fechamento||'').slice(0,7)===ymPrev;}).length;
+  var lPrev=all.filter(function(s){return (s.data_entrada||'').slice(0,7)===ymPrev;}).length;
+
+  var efTot=cs.reduce(function(a,c){return a+((c.kpis&&c.kpis.efetivos)||0);},0);
+  var agTot=cs.reduce(function(a,c){return a+((c.kpis&&c.kpis.agendados)||0);},0);
+  var peTot=cs.reduce(function(a,c){return a+((c.kpis&&c.kpis.pendentes)||0);},0);
+  var metaEquipe=META_EF*Math.max(1,cs.length);
+
+  var avisos='';
+  if(UNI.erro){
+    avisos+='<div class="ibox warn"><div class="itx"><b>Não foi possível carregar os números da unidade</b>'+
+      '<p>'+esc(UNI.erro)+'</p></div><button class="dbtn" id="urec">Recarregar</button></div>';
+  }
+  function aviso(cls,titulo,texto,btn,alvo){
+    avisos+='<div class="ibox '+cls+'"><div class="itx"><b>'+titulo+'</b><p>'+texto+'</p></div>'+
+      (btn?'<button class="dbtn" data-uv="'+alvo+'">'+btn+'</button>':'')+'</div>';
+  }
+  if(u.nunca_contatados)aviso('bad',u.nunca_contatados+' leads nunca receberam contato',
+    'Lead sem primeiro toque é dinheiro parado no funil. Distribua hoje.','Ver lista','followup');
+  if(u.negociacao_parados)aviso('bad',u.negociacao_parados+' negociações paradas',
+    'Sem contato há mais de 5 dias. São os leads mais quentes da base esfriando.','Ver lista','followup');
+  if(u.esquecidos)aviso('warn',u.esquecidos+' leads ativos sem contato há mais de 7 dias',
+    'Fila fria acumulada. Antes de pedir mais lead novo, essa fila precisa girar.','Abrir follow-up','followup');
+  if(u.sem_responsavel)aviso('warn',u.sem_responsavel+' leads sem responsável',
+    'Ninguém está com esses leads na mão. Distribua entre os consultores.','','');
+  if(u.espera_turma)aviso('warn',u.espera_turma+' na fila por falta de turma',
+    'Interesse confirmado, sem horário para alocar. Vale conferir se já abriu vaga.','Abrir fila','espera');
+  if(u.dias_nao_fechados)aviso('warn',u.dias_nao_fechados+' consultor(es) ainda não fecharam o dia',
+    'Sem fechamento os números do dia não entram no histórico da unidade.','','');
+  if(!avisos)avisos='<div class="ibox ok"><div class="itx"><b>Unidade em dia</b>'+
+    '<p>Nenhuma fila crítica acumulada. Bom momento para puxar prospecção nova.</p></div></div>';
+
+  var kpis='<div class="rkpis">'+
+    '<div class="rkpi"><b>'+(u.leads_hoje||0)+'</b><span>Leads novos hoje</span></div>'+
+    '<div class="rkpi ok"><b>'+(u.matriculas_hoje||0)+'</b><span>Matrículas hoje</span></div>'+
+    '<div class="rkpi"><b>'+efTot+'</b><span>Contatos efetivos da equipe</span></div>'+
+    '<div class="rkpi'+(peTot?' bad':'')+'"><b>'+peTot+'</b><span>Agendamentos em aberto</span></div>'+
+    '<div class="rkpi ok"><b>'+(u.matriculas_mes||0)+'</b><span>Matrículas no mês</span>'+kd(u.matriculas_mes||0,fPrev,'vs. mês passado')+'</div>'+
+    '<div class="rkpi"><b>'+(u.leads_mes||0)+'</b><span>Leads no mês</span>'+kd(u.leads_mes||0,lPrev,'vs. mês passado')+'</div>'+
+    '<div class="rkpi"><b>'+pct(u.matriculas_mes||0,u.leads_mes||0)+'</b><span>Conversão do mês</span></div>'+
+    '<div class="rkpi"><b>'+(u.ativos||0)+'</b><span>Leads ativos</span></div>'+
+  '</div>';
+
+  var linhas=cs.map(function(c){
+    var k=c.kpis||{};
+    var ef=k.efetivos||0,pcm=Math.min(100,Math.round(100*ef/META_EF));
+    return '<tr><td>'+esc(c.nome)+
+        '<span class="sub">'+(c.fechado_por?'dia fechado'+(c.fechado_por==='automático'?' pelo automático':' por '+esc(c.fechado_por)):'dia em aberto')+'</span></td>'+
+      '<td class="num" data-l="Efetivos"><span class="minibar"><i class="'+(ef>=META_EF?'hit':'')+'" style="width:'+pcm+'%"></i></span>'+ef+'/'+META_EF+'</td>'+
+      '<td class="num" data-l="Agendados">'+(k.agendados||0)+'</td>'+
+      '<td class="num'+((k.pendentes||0)?' bd':'')+'" data-l="Em aberto">'+(k.pendentes||0)+'</td>'+
+      '<td class="num" data-l="Cumprimento">'+String(k.cumprimento==null?0:k.cumprimento).replace('.',',')+'%</td>'+
+      '<td class="num'+((k.matriculas||0)?' hl':'')+'" data-l="Matrículas">'+(k.matriculas||0)+'</td>'+
+      '<td class="num" data-l="Leads novos">'+(k.leads_novos||0)+'</td></tr>';
+  }).join('');
+  var cardEquipe='<div class="rcard wide"><h3>Equipe hoje</h3>'+
+    (cs.length?'<div class="rtabw"><table class="rtab">'+
+      '<tr class="hd"><th>Consultor</th><th class="num">Efetivos</th><th class="num">Agendados</th><th class="num">Em aberto</th><th class="num">Cumprimento</th><th class="num">Matrículas</th><th class="num">Leads novos</th></tr>'+
+      linhas+'</table></div>':'<div class="rempty">Nenhum consultor ativo cadastrado.</div>')+
+    '<div class="rnote">Meta individual de '+META_EF+' contatos efetivos por dia. Meta da equipe hoje: '+efTot+' de '+metaEquipe+'.</div></div>';
+
+  /* matriculas mes a mes, ultimos 8 meses */
+  var mm={};
+  all.forEach(function(s){
+    if(s.etapa==='fechado'&&s.data_fechamento)mm[s.data_fechamento.slice(0,7)]=(mm[s.data_fechamento.slice(0,7)]||0)+1;
+    var e=(s.data_entrada||'').slice(0,7);
+    if(e){mm[e]=mm[e]||0;}
+  });
+  var mks=Object.keys(mm).sort().slice(-8);
+  var cardMes=mks.length?'<div class="rcard wide"><h3>Matrículas mês a mês</h3>'+
+    chartBox(barChart({labels:mks.map(mesCurto),
+      series:[{name:'Matrículas',color:'#1B7A3D',values:mks.map(function(m){
+        return all.filter(function(s){return s.etapa==='fechado'&&(s.data_fechamento||'').slice(0,7)===m;}).length;
+      })}]}),200)+
+    '<div class="rnote">Conta pela data de fechamento da matrícula.</div></div>':'';
+
+  /* onde estamos perdendo, resumo */
+  var perdMes=all.filter(function(s){return s.etapa==='perdido'&&(s.data_fechamento||'').slice(0,7)===ym;});
+  var gm={};
+  perdMes.forEach(function(s){var k=s.motivo_perda||'Não informado';gm[k]=(gm[k]||0)+1;});
+  var kms=Object.keys(gm).sort(function(a,b){return gm[b]-gm[a];}).slice(0,5);
+  var cardPerda=kms.length?'<div class="rcard"><h3>Onde estamos perdendo neste mês</h3>'+
+    hbars(kms.map(function(k,i){return {label:k,value:gm[k],color:corIdx(i+1),right:gm[k]+' · '+pct(gm[k],perdMes.length)};}))+
+    '<button class="dbtn" data-uv="gargalo" style="margin-top:12px">Abrir análise de gargalos</button></div>':'';
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap" id="uniwrap">'+
+    '<div class="ihead"><h1>'+saudacao()+', '+esc(currentUser||'')+'</h1>'+
+      '<span class="isub">'+diaSemana(hoje)+', '+brDate(hoje)+' · visão da unidade</span>'+
+      '<span class="ibtn" style="margin-left:auto;display:inline-flex;gap:9px;align-items:center;flex-wrap:wrap">'+
+        iniToggle()+freshTag(UNI.ts,'ufresh')+'<button class="dctl" id="unirec">↻ Atualizar</button></span></div>'+
+    avisos+kpis+
+    '<div class="rgrid">'+cardEquipe+cardMes+cardPerda+'</div>'+
+  '</div></div>';
+  drawCharts();
+  bindIniToggle();
+  document.querySelectorAll('#uniwrap [data-uv]').forEach(function(b){
+    b.onclick=function(){RGO=b.dataset.uv;setTab('relatorios');};
+  });
+  var br=$('unirec');
+  if(br)br.onclick=function(){
+    var f=$('ufresh');if(f)f.className='rfresh loading';
+    REL.ts=0;openUnidade(true);
+  };
+  var bx=$('urec');
+  if(bx)bx.onclick=function(){openUnidade();};
+}
+
 /* ================= Tela inicial (painel do dia) ================= */
 const META_EF=30;                                  /* meta diaria de contatos efetivos por consultor */
 const AGPRESENCIAL={teste_nivel:1,experimental:1,visita:1,reuniao:1};
@@ -5821,6 +6791,7 @@ function diaAnteriorUtil(iso){
 }
 
 async function openInicio(silencioso){
+  if(veTodaEquipe()&&iniVista()==='unidade'){await openUnidade(silencioso);return;}
   $('stats').innerHTML='';
   if(!silencioso)$('board').innerHTML='<div class="loading">Montando o painel do dia...</div>';
   const hoje=hojeISO();
@@ -5843,6 +6814,7 @@ async function openInicio(silencioso){
 /* re-desenha sozinho quando a fila de alertas muda, sem piscar a tela a cada 15s */
 function iniSync(){
   if(tab!=='inicio')return;
+  if(veTodaEquipe()&&iniVista()==='unidade')return;
   const sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length].join('/');
   if(sig===INI.sig)return;
   renderInicio();
@@ -6018,12 +6990,14 @@ function renderInicio(){
   $('board').innerHTML='<div class="rscreen"><div class="rwrap" id="iniwrap">'+
     '<div class="ihead"><h1>'+saudacao()+', '+esc(currentUser||'')+'</h1>'+
       '<span class="isub">'+diaSemana(hoje)+', '+brDate(hoje)+' · jornada '+jini+' às '+jfim+'</span>'+
-      '<span class="ibtn" style="margin-left:auto;display:inline-flex;gap:9px;align-items:center">'+
+      '<span class="ibtn" style="margin-left:auto;display:inline-flex;gap:9px;align-items:center;flex-wrap:wrap">'+
+        (veTodaEquipe()?iniToggle():'')+
         freshTag(INI.ts,'ifresh')+'<button class="dctl" id="inirec" title="Atualizar os números">↻ Atualizar</button></span></div>'+
     avisos+meta+kpis+
     '<div class="rgrid">'+cardAtras+cardHoje+cardEvo+cardPres+cardAg+cardPv+'</div>'+
   '</div></div>';
   drawCharts();
+  bindIniToggle();
 
   document.querySelectorAll('#iniwrap .drow.clik').forEach(function(el){
     el.onclick=function(e){
@@ -6033,7 +7007,7 @@ function renderInicio(){
   });
   document.querySelectorAll('#iniwrap [data-ifecha]').forEach(function(b){
     b.onclick=function(){
-      window._ddata=b.dataset.ifecha;window._dcons=currentUser;RVIEW='dia';
+      window._ddata=b.dataset.ifecha;window._dcons=currentUser;RGO='dia';
       setTab('relatorios');
     };
   });
