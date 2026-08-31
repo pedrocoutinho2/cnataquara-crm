@@ -1,0 +1,10 @@
+# Estado local do Supabase CLI. supabase/.temp/pooler-url carrega credencial.
+supabase/.temp/
+
+.env
+*.pfx
+*.p12
+*.pem
+*.key
+node_modules/
+.DS_Store

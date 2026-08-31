@@ -307,16 +307,33 @@ nunca entra em commit, log ou chat.
 
 ## Edge Functions
 
-Devem ficar versionadas em `supabase/functions/`. **Ainda não estão**: as
-quatro rodam no projeto e não existem em repositório nenhum. Baixe com o
-Supabase CLI (`supabase functions download <nome>`) antes de mexer em qualquer
-uma. As quatro ativas:
+Versionadas em `supabase/functions/<nome>/index.ts`, mesmo padrão do repo
+`cnataquara-ponto`. Baixadas em 31/08/2026 com
+`supabase functions download <nome> --project-ref gpnwmsnayrqjcmhqrtpx`.
 
-- `wa-webhook` — recebe da Meta Cloud API. **Não pode ser renomeada**: a URL
-  está registrada na Meta e renomear derruba o webhook em produção.
-- `wa-send` — envio de mensagem (chamada em 3682 e 3815)
-- `wa-media` — resolve mídia de mensagem (3702)
-- `ata-analisar` — análise da ata de reunião (9270)
+| função | `verify_jwt` | quem chama |
+|---|---|---|
+| `wa-webhook` | **false** | Meta Cloud API |
+| `wa-send` | true | front, 3682 e 3815 |
+| `wa-media` | true | front, 3702 |
+| `ata-analisar` | **false** | front, 9270 |
+
+`wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
+API e renomear derruba o webhook do WhatsApp em produção. Ela valida
+`x-hub-signature-256` por HMAC com `WA_APP_SECRET`, mas **passa direto se o
+secret não estiver setado** (`if (!APP_SECRET) return true`), para não travar o
+setup inicial. Em produção o secret precisa estar setado.
+
+Nenhum segredo está no código: tudo sai de `Deno.env.get()`. Os secrets em uso
+são `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WA_TOKEN`,
+`WA_GRAPH_VERSION`, `WA_VERIFY_TOKEN`, `WA_APP_SECRET`, `ANTHROPIC_API_KEY` e
+`ATA_MODELO`. Eles vivem nos secrets do projeto, nunca aqui.
+
+`supabase/.temp/` está no `.gitignore`: o `pooler-url` que o CLI grava ali
+carrega credencial.
+
+Existe uma quinta função ativa no projeto, `avaliar-respostas`, que **não** é
+deste repo: está versionada em `cnataquara-testedenivel`.
 
 ## Dívida de segurança nº 1
 
@@ -327,6 +344,21 @@ front. Login e senha estão protegidos por bcrypt dentro de RPC; o resto não.
 
 Toda permissão descrita acima é **conveniência de interface, não fronteira de
 segurança**. Não trate como controle de acesso.
+
+## Dívida de segurança nº 2
+
+`ata-analisar` está publicada com `verify_jwt: false`, CORS `*` e **nenhuma
+checagem de autorização no handler**: aceita qualquer POST com um
+`reuniao_id`. Por dentro ela lê e escreve `crm_reunioes` com a
+`SUPABASE_SERVICE_ROLE_KEY`, que ignora RLS, e chama a API da Anthropic na
+chave do projeto.
+
+Ou seja: quem descobrir a URL dispara custo de IA e escrita com privilégio de
+service role, sem credencial nenhuma. `wa-webhook` também é `verify_jwt: false`,
+mas essa tem motivo (a Meta chama de fora) e valida assinatura HMAC.
+
+Não corrigido: mexer nisso é mudança de comportamento em produção, decisão do
+Pedro.
 
 ## Deploy
 
