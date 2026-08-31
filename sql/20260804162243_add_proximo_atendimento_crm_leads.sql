@@ -1,0 +1,1 @@
+alter table crm_leads add column if not exists proximo_atendimento date;
