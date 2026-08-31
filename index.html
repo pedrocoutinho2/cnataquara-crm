@@ -832,6 +832,9 @@ input[type=date].dvazio{color:#C9C9CE}
 .agt.done{background:#E9F5EE;color:var(--ok)}
 /* A09: etiqueta de pendencia no card. Cobranca, nao bloqueio */
 .agt.pend{background:var(--warnBg);color:var(--warn)}
+/* A52: tentativas sem retorno acumuladas desde o ultimo contato efetivo */
+.agt.tent{background:var(--surface);color:var(--gray);border:1px solid var(--line)}
+.agt.tent.alta{background:var(--pastelRed);color:var(--redDark);border-color:var(--pastelRed)}
 .nechips{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 4px}
 .nechips button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:6px 12px;font-size:12px;color:var(--gray);cursor:pointer}
 .nechips button.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
@@ -1133,6 +1136,10 @@ input[type=date].dvazio{color:#C9C9CE}
 .agevb .eh{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);font-size:11.5px}
 .agevb .et{display:block;font-weight:600;word-break:break-word}
 .agevb .ep{display:block;color:var(--gray);font-size:11.5px;margin-top:1px}
+/* arrastar evento para outro dia */
+.agev[draggable=true],.agevb[draggable=true]{cursor:grab}
+.agev.dragging,.agevb.dragging{opacity:.4;cursor:grabbing}
+.agcell.drop,.agcol.drop{outline:2px dashed var(--blue);outline-offset:-2px;background:var(--pastelBlue)}
 .agev.op,.agevb.op{opacity:.42}
 .agev.op:hover,.agevb.op:hover{opacity:.75}
 .agvazio{font-size:12px;color:var(--gray);padding:4px 2px}
@@ -2184,6 +2191,11 @@ function cardEl(s,st,showStage){
     var _pend=pendenciasLead(s);
     if(_pv&&_pv.txt==='Definir in\u00edcio das aulas')_pend=_pend.filter(function(x){return x!=='in\u00edcio das aulas';});
     if(_pend.length)pdTag='<span class="agt pend" title="Salvar grava assim mesmo. Complete quando tiver o dado.">&#9888; falta '+esc(_pend.join(', '))+'</span>';
+    /* A52: tentativas sem retorno. A partir de 3 o card avisa em vermelho \u2014
+       e o sinal de que a cadencia nao esta funcionando nesse lead. */
+    var _t=tentativasLead(s);
+    if(_t)pdTag+='<span class="agt tent'+(_t>=3?' alta':'')+'" title="Tentativas sem sucesso desde o \u00faltimo contato efetivo'
+              +(s.ultima_tentativa?'. \u00daltima em '+brDate(s.ultima_tentativa):'')+'">&#8635; '+_t+'x sem retorno</span>';
   }
   c.className='card'+(_pd&&_pd<_hj?' late':'');
   c.draggable=true;
@@ -2350,6 +2362,15 @@ async function cancelPosVenda(lead){
    leem esta mesma lista, entao nunca discordam. Salvar SEMPRE salva: o que falta
    vira cobranca visivel, nao bloqueio. Continuam bloqueando so o nome vazio
    (identidade do registro) e a idade fora de 1-120 (valor invalido, nao ausencia). */
+/* A52: tentativas sem sucesso acumuladas desde o ultimo contato efetivo.
+   Mantido pelo banco; aqui so' se le. Serve para responder "quantas tentativas
+   sao necessarias ate o lead dar retorno" sem depender de relatorio. */
+function tentativasLead(lead){
+  if(!lead)return 0;
+  const n=parseInt(lead.tentativas_sem_retorno,10);
+  return isNaN(n)||n<0?0:n;
+}
+
 function pendenciasLead(lead){
   const p=[];
   if(!lead)return p;
@@ -2529,6 +2550,10 @@ function syncMsub(s){
   if(s){
     const pa=agLabel(s[nf],s[nf+'_hora']);
     if(pa)txt+=' · \u23F0 Próximo contato: '+pa+(s.proximo_canal?' · '+canalNome(s.proximo_canal):'');
+    /* A52: quantas tentativas sem retorno desde o ultimo contato efetivo */
+    const t=tentativasLead(s);
+    if(t)txt+=' · \u21bb '+t+' tentativa'+(t>1?'s':'')+' sem retorno'
+              +(s.ultima_tentativa?' (a última em '+brDate(s.ultima_tentativa)+')':'');
   }
   $('msub').textContent=txt;
 }
@@ -3053,23 +3078,29 @@ function refletirCarimbo(row){
 }
 
 /* Depois de qualquer contato registrado: grava agendamento no registro e atualiza tela */
+/* A52: o front NAO escreve mais `ultimo_contato`. Quem escreve e' o trigger
+   `crm_interacao_atualiza_contato_tg`, no INSERT da interacao:
+     - contato EFETIVO  -> ultimo_contato = data, tentativas_sem_retorno = 0
+     - tentativa SEM SUCESSO -> ultima_tentativa = data, tentativas_sem_retorno += 1
+   Como o trigger ja rodou quando este PATCH sai, a resposta traz os tres campos
+   com o valor final e a ficha reflete o banco em vez de supor (regra 4). */
 async function afterContato(id,prox,proxh,pcanal){
   const cfg=CFG[tab];
   const nf=NF(cfg);
   const hf=nf+'_hora';
-  const hoje=hojeISO();
   const patch={updated_at:new Date().toISOString()};
   patch[nf]=prox||null;
   patch[hf]=prox?(proxh||null):null;
   patch.proximo_canal=prox?(pcanal||null):null;
-  if(tab==='leads')patch.ultimo_contato=hoje;
   try{
-    await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(patch)});
+    const res=await api('/'+cfg.table+'?id=eq.'+id,{method:'PATCH',body:JSON.stringify(patch)});
     const s=(DATA[tab]||[]).find(function(x){return x.id===id;});
-    if(s){s[nf]=prox||null;s[hf]=patch[hf];s.proximo_canal=patch.proximo_canal;if(tab==='leads')s.ultimo_contato=hoje;syncMsub(s);}
-    /* A21: o campo continuava com a classe dvazio (cinza de campo em branco)
-       mesmo depois de receber a data de hoje */
-    if(tab==='leads'){const i2=document.querySelector('#form [data-k=ultimo_contato]');if(i2){i2.value=hoje;i2.classList.remove('dvazio');}syncPend();}
+    if(s){
+      if(res&&res[0])Object.keys(res[0]).forEach(function(k){s[k]=res[0][k];});
+      else{s[nf]=prox||null;s[hf]=patch[hf];s.proximo_canal=patch.proximo_canal;}
+      if(editing===id&&tab==='leads')refletirCarimbo(s);
+      else syncMsub(s);
+    }
     render();
   }catch(e){}
   loadAlerts();
@@ -8812,7 +8843,7 @@ function agdGridMes(){
     h+='<div class="agcell'+(iso===hoje?' hoje':'')+(adm?' clik':'')+'" data-d="'+iso+'"><span class="agdn">'+d+'</span>';
     (by[iso]||[]).forEach(function(ev){
       var c=agdCat(ev.categoria_id),meu=agdConvidado(ev,currentUser);
-      h+='<div class="agev'+(meu?'':' op')+'" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'" title="'+esc(ev.titulo+(ev.responsavel?' · '+ev.responsavel:''))+'">'+
+      h+='<div class="agev'+(meu?'':' op')+'" data-ev="'+ev.id+'" data-de="'+esc(iso)+'"'+(adm?' draggable="true"':'')+' style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'" title="'+esc(ev.titulo+(ev.responsavel?' · '+ev.responsavel:'')+(adm?' · arraste para outro dia para remarcar':''))+'">'+
          (ev.hora_inicio?'<b>'+agdH(ev.hora_inicio)+'</b> ':'')+esc(ev.titulo)+
          (ev.responsavel?' <span class="agr">· '+esc(ev.responsavel)+'</span>':'')+'</div>';
     });
@@ -8835,7 +8866,7 @@ function agdColunas(){
     if(!evs.length)h+='<div class="agvazio">Nada marcado</div>';
     evs.forEach(function(ev){
       var c=agdCat(ev.categoria_id),meu=agdConvidado(ev,currentUser),ps=agdParts(ev);
-      h+='<div class="agevb'+(meu?'':' op')+'" data-ev="'+ev.id+'" style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'">'+
+      h+='<div class="agevb'+(meu?'':' op')+'" data-ev="'+ev.id+'" data-de="'+esc(iso)+'"'+(adm?' draggable="true"':'')+' style="border-left-color:'+esc(c?c.cor:'#5A5A5A')+'"'+(adm?' title="Arraste para outro dia para remarcar"':'')+'>'+
          '<span class="eh">'+(ev.hora_inicio?agdH(ev.hora_inicio)+(ev.hora_fim?' às '+agdH(ev.hora_fim):''):'Dia todo')+'</span>'+
          '<span class="et">'+esc(ev.titulo)+'</span>'+
          (ps.length?'<span class="ep">'+esc(ps.slice(0,3).join(', '))+(ps.length>3?' +'+(ps.length-3):'')+'</span>':'')+
@@ -9011,6 +9042,68 @@ function agdWire(){
   if(adm)document.querySelectorAll('.agcell.clik,.agcol.clik').forEach(function(el){
     el.onclick=function(){agdOpenEvento({data:el.dataset.d});};
   });
+  if(adm)agdLigarArrasto();
+}
+
+/* Arrastar evento de um dia para outro. Espelha o kanban de leads: o card
+   guarda a data de origem em data-de, a celula do dia e' o alvo, e nada e'
+   gravado quando a data nao muda. Quem nao pode editar o calendario nao
+   recebe draggable, entao nao ha caminho de arrasto sem permissao. */
+var AGDRAG=null;
+function agdLigarArrasto(){
+  document.querySelectorAll('.agev[draggable=true],.agevb[draggable=true]').forEach(function(el){
+    el.addEventListener('dragstart',function(e){
+      AGDRAG={id:el.dataset.ev,de:el.dataset.de};
+      el.classList.add('dragging');
+      try{e.dataTransfer.setData('text/plain',el.dataset.ev);e.dataTransfer.effectAllowed='move';}catch(_){}
+    });
+    el.addEventListener('dragend',function(){el.classList.remove('dragging');AGDRAG=null;});
+  });
+  document.querySelectorAll('.agcell[data-d],.agcol[data-d]').forEach(function(col){
+    col.addEventListener('dragover',function(e){
+      if(!AGDRAG)return;
+      e.preventDefault();
+      col.classList.add('drop');
+    });
+    col.addEventListener('dragleave',function(){col.classList.remove('drop');});
+    col.addEventListener('drop',function(e){
+      e.preventDefault();
+      col.classList.remove('drop');
+      if(!AGDRAG)return;
+      var alvo=col.dataset.d,id=AGDRAG.id,de=AGDRAG.de;
+      AGDRAG=null;
+      if(!alvo||alvo===de)return;
+      agdRemarcar(id,alvo);
+    });
+  });
+}
+
+async function agdRemarcar(id,novaData){
+  if(!podeEditar('calendario'))return;
+  var ev=AGD.eventos.find(function(x){return x.id===id;});
+  if(!ev)return;
+  var antes=ev.data;
+  /* pinta na hora e desfaz se o banco recusar: arrastar tem que parecer imediato */
+  ev.data=novaData;
+  renderCalendario();
+  var salvo=null;
+  try{
+    var r=await api('/crm_agenda_eventos?id=eq.'+id,{method:'PATCH',
+      body:JSON.stringify({data:novaData,atualizado_em:new Date().toISOString(),gcal_sync:'pendente'})});
+    salvo=r&&r[0];
+    if(salvo)Object.keys(salvo).forEach(function(k){ev[k]=salvo[k];});
+  }catch(e){
+    ev.data=antes;
+    renderCalendario();
+    toast('Não foi possível remarcar o evento. Nada mudou.');
+    return;
+  }
+  renderCalendario();
+  toast('\u201c'+ev.titulo+'\u201d remarcado para '+brDate(novaData)+'.');
+  loadAlerts();
+  /* regra 14: falha de sincronizacao com o Google nunca desfaz o que ja foi
+     gravado no CRM. agdSyncEvento avisa e marca gcal_sync='erro' por dentro. */
+  if(salvo)agdSyncEvento(salvo,'upsert');
 }
 
 async function agdSalvar(){
