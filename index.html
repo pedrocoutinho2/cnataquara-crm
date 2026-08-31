@@ -1699,6 +1699,45 @@ const MOTIVOS_NE={nao_atendeu:'Não atendeu',caixa_postal:'Caixa postal',numero_
 const CANAIS={whatsapp:'WhatsApp',ligacao:'Ligação',email:'E-mail',visita:'Visita',reuniao:'Reunião',teste_nivel:'Teste de nível',experimental:'Aula experimental'};
 function canalNome(c){return CANAIS[c]||'';}
 
+/* ===== A15 - fonte unica das metricas de contato =====
+   Antes cada relatorio contava do seu jeito, e os tres jeitos estavam errados
+   do mesmo modo. As regras, agora num lugar so:
+
+   1. `nota` NAO e' contato. E' anotacao interna, entao nao entra em tentativa
+      nem em contato efetivo.
+   2. Efetivo e' `=== true`. O `!==false` antigo transformava nulo em efetivo.
+   3. A taxa de resposta e' guardada POR CANAL e nunca deve ser exibida como um
+      numero unico por pessoa: na base da unidade o WhatsApp responde ~86% e a
+      ligacao ~6%, entao a taxa agregada mede o canal escolhido, nao a
+      capacidade de quem ligou. */
+var TIPO_NAO_CONTATO={nota:1};
+function ehContato(i){return !!i&&!TIPO_NAO_CONTATO[i.tipo||''];}
+function statsContato(lista){
+  var out={n:0,ef:0,notas:0,porCanal:{}};
+  (lista||[]).forEach(function(i){
+    if(!ehContato(i)){out.notas++;return;}
+    var k=i.tipo||'—';
+    var c=out.porCanal[k]||(out.porCanal[k]={n:0,ef:0});
+    out.n++;c.n++;
+    if(i.efetivo===true){out.ef++;c.ef++;}
+  });
+  return out;
+}
+/* "WhatsApp 50% · Ligação 6%" - o formato que impede a leitura injusta */
+function respostaCanais(st,max){
+  var ks=Object.keys(st.porCanal).sort(function(a,b){return st.porCanal[b].n-st.porCanal[a].n;});
+  if(!ks.length)return '—';
+  return ks.slice(0,max||3).map(function(k){
+    var c=st.porCanal[k];
+    return (canalNome(k)||k)+' '+pct(c.ef,c.n)+' <i>('+c.n+')</i>';
+  }).join(' · ');
+}
+var NOTA_A15='A <b>resposta</b> é quanto do que se tenta volta, e depende muito mais do canal '
+  +'do que de quem tentou: na base da unidade o WhatsApp responde perto de 86% e a ligação perto de 6%. '
+  +'Por isso ela aparece <b>por canal</b>, e nunca como uma nota única da pessoa. '
+  +'Anotação interna (“nota”) não conta como tentativa. '
+  +'Leads e matrículas contam quem está como responsável pelo lead.';
+
 const CFG={
   escolas:{
     table:'crm_escolas',fk:'escola_id',one:'escola',plural:'Escolas',addLabel:'+ Nova escola',addShort:'+ Escola',
@@ -2013,6 +2052,9 @@ async function loadTab(force){
   try{
     DATA[tab]=await api('/'+cfg.table+'?select=*&order=nome.asc');
     if(tab==='leads')await loadTarefas();
+    /* A18: o painel de filtro e' montado antes do load, quando a base ainda esta
+       vazia. Sem este redesenho a lista de responsaveis nunca ve quem saiu. */
+    buildChips();
     render();
   }catch(e){
     $('board').innerHTML='<div class="loading">Não foi possível carregar os dados. Verifique a conexão e toque em ↻ para tentar de novo.<br><small>'+esc(e.message).slice(0,180)+'</small></div>';
@@ -3425,12 +3467,32 @@ function selGroup(label,key,opts){
     opts.map(function(o){return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+
     '</select></div>';
 }
+/* A18: donos que existem NOS DADOS, nao so' no cadastro de usuarios ativos.
+   Quem nao esta mais na equipe entra no fim da lista, marcado, para o lead
+   orfao poder ser encontrado e reatribuido. */
+function responsaveisDaBase(){
+  const cfg=CFG[tab];
+  const naBase={};
+  (DATA[tab]||[]).forEach(function(s){
+    const r=(s.responsavel||'').trim();
+    if(r)naBase[r]=(naBase[r]||0)+1;
+  });
+  const ativos=RESP.slice();
+  const fora=Object.keys(naBase).filter(function(r){return ativos.indexOf(r)<0;})
+    .sort(function(a,b){return naBase[b]-naBase[a];});
+  return ativos.map(function(r){return [r,r+(naBase[r]?' ('+naBase[r]+')':'')];})
+    .concat(fora.map(function(r){return [r,r+' — fora da equipe ('+naBase[r]+')'];}));
+}
+
 function buildChips(){
   const cfg=CFG[tab];
   var html='';
   html+=selGroup(cfg.prioLabel||'Prioridade','prio',cfg.prios);
   html+=selGroup(cfg.tipoLabel||'Tipo','tipo',cfg.tipos);
-  html+=selGroup('Responsável','resp',RESP.map(function(r){return [r,r];}));
+  /* A18: o filtro listava so' usuario ativo, entao lead que ficou com quem saiu
+     nao era filtravel e sumia da tela em vez de aparecer como problema. Agora a
+     lista sai da BASE, e quem nao esta no cadastro ativo vem marcado. */
+  html+=selGroup('Responsável','resp',responsaveisDaBase());
   html+=selGroup('Agenda','ag',[['atrasado','Atrasados'],['hoje','Para hoje'],['semana','Próximos 7 dias'],['sem','Sem agendamento']]);
   if(tab==='leads'){
     html+=dateGroup('Data de cadastro','entradaDe','entradaAte');
@@ -3522,6 +3584,8 @@ window.addEventListener('resize',function(){
 });
 
 $('fbtn').onclick=function(){
+  /* remonta ao abrir: a lista de responsaveis vem da base e a base muda */
+  if(!$('fpanel').classList.contains('open'))buildChips();
   $('fpanel').classList.toggle('open');
   updateFBtn();
 };
@@ -5362,9 +5426,18 @@ function renderReports(){
     if(s.etapa==='fechado')g.f++;
     if(s.etapa==='perdido')g.p++;
   });
+  /* A15: nota nao e' contato, e efetivo e' === true. Guarda tambem o canal. */
+  const rkStats={};
+  const rkPorAutor={};
   interB2C.forEach(function(i){
-    const g=rkGet(i.autor||'—');
-    g.ct++;if(i.efetivo!==false)g.ef++;
+    const k=i.autor||'—';
+    (rkPorAutor[k]=rkPorAutor[k]||[]).push(i);
+  });
+  Object.keys(rkPorAutor).forEach(function(k){
+    const st=statsContato(rkPorAutor[k]);
+    rkStats[k]=st;
+    const g=rkGet(k);
+    g.ct=st.n;g.ef=st.ef;
   });
   const rkKeys=Object.keys(rk).sort(function(a,b){
     if(rk[b].f!==rk[a].f)return rk[b].f-rk[a].f;
@@ -5377,16 +5450,19 @@ function renderReports(){
   })):'';
   const cardRank=(rkKeys.length&&!relSoMeus())?'<div class="rcard"><h3>Ranking de consultores</h3>'+rankBars+
     '<div style="height:14px"></div><div class="rtabw"><table class="rtab">'+
-    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
+    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Tentativas</th><th class="num">Falaram</th><th>Resposta por canal</th><th class="num">Matrículas</th><th class="num">Conversão</th></tr>'+
     rkKeys.map(function(k){
       const g=rk[k];
+      const st=rkStats[k]||{n:0,ef:0,porCanal:{}};
       return '<tr><td>'+esc(k)+(g.p?'<span class="sub">'+g.p+' perdidos</span>':'')+'</td>'+
-        '<td class="num" data-l="Leads">'+g.n+'</td><td class="num" data-l="Contatos">'+g.ct+'</td>'+
-        '<td class="num" data-l="Efetividade">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
+        '<td class="num" data-l="Leads">'+g.n+'</td>'+
+        '<td class="num" data-l="Tentativas">'+g.ct+'</td>'+
+        '<td class="num" data-l="Falaram">'+g.ef+'</td>'+
+        '<td data-l="Resposta por canal">'+(g.ct?respostaCanais(st):'—')+'</td>'+
         '<td class="num'+(g.f?' hl':'')+'" data-l="Matrículas">'+g.f+'</td>'+
         '<td class="num" data-l="Conversão">'+pct(g.f,g.n)+'</td></tr>';
     }).join('')+'</table></div>'+
-    '<div class="rnote">Contatos e efetividade contam as interações registradas por cada um no período. Leads e matrículas contam quem está como responsável.</div></div>':'';
+    '<div class="rnote">'+NOTA_A15+'</div></div>':'';
 
   // ---------- contexto para as sugestoes ----------
   function topoDe(obj,minN){
@@ -6585,7 +6661,15 @@ function renderEquipe(){
     }
     if(s.etapa==='perdido')g.p++;
   });
-  inter.forEach(function(i){var g=get(i.autor||'—');g.ct++;if(i.efetivo!==false)g.ef++;});
+  /* A15: mesma fonte unica do funil - nota fora, efetivo === true, canal guardado */
+  var eqStats={},eqPorAutor={};
+  inter.forEach(function(i){var k=i.autor||'—';(eqPorAutor[k]=eqPorAutor[k]||[]).push(i);});
+  Object.keys(eqPorAutor).forEach(function(k){
+    var st=statsContato(eqPorAutor[k]);
+    eqStats[k]=st;
+    var g=get(k);g.ct=st.n;g.ef=st.ef;
+  });
+  var eqUnidade=statsContato(inter);
   interB2B.forEach(function(i){var g=get(i.autor||'—');g.b2b++;});
 
   var ks=Object.keys(rk).sort(function(a,b){return rk[b].f-rk[a].f||rk[b].n-rk[a].n;});
@@ -6595,31 +6679,44 @@ function renderEquipe(){
   var totE=ks.reduce(function(a,k){return a+rk[k].ef;},0);
 
   var tab='<div class="rcard wide"><h3>Números por consultor</h3><div class="rtabw"><table class="rtab">'+
-    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Contatos</th><th class="num">Efetividade</th>'+
-    '<th class="num">Matrículas</th><th class="num">Conversão</th><th class="num">Tempo até matrícula</th></tr>'+
+    '<tr class="hd"><th>Consultor</th><th class="num">Leads</th><th class="num">Tentativas</th><th class="num">Falaram</th>'+
+    '<th>Resposta por canal</th><th class="num">Matrículas</th><th class="num">Conversão</th><th class="num">Tempo até matrícula</th></tr>'+
     ks.map(function(k){
       var g=rk[k];
+      var st=eqStats[k]||{n:0,ef:0,porCanal:{}};
       var tm=g.dias.length?Math.round(g.dias.reduce(function(a,b){return a+b;},0)/g.dias.length)+'d':'—';
       return '<tr><td>'+esc(k)+(g.p?'<span class="sub">'+g.p+' perdidos'+(g.b2b?' · '+g.b2b+' contatos B2B':'')+'</span>':(g.b2b?'<span class="sub">'+g.b2b+' contatos B2B</span>':''))+'</td>'+
         '<td class="num" data-l="Leads">'+g.n+'</td>'+
-        '<td class="num" data-l="Contatos">'+g.ct+'</td>'+
-        '<td class="num" data-l="Efetividade">'+(g.ct?pct(g.ef,g.ct):'—')+'</td>'+
+        '<td class="num" data-l="Tentativas">'+g.ct+'</td>'+
+        '<td class="num" data-l="Falaram">'+g.ef+'</td>'+
+        '<td data-l="Resposta por canal">'+(g.ct?respostaCanais(st):'—')+'</td>'+
         '<td class="num'+(g.f?' hl':'')+'" data-l="Matrículas">'+g.f+'</td>'+
         '<td class="num" data-l="Conversão">'+pct(g.f,g.n)+'</td>'+
         '<td class="num" data-l="Tempo até matrícula">'+tm+'</td></tr>';
     }).join('')+'</table></div>'+
-    '<div class="rnote">Leads e matrículas contam quem está como responsável pelo lead. Contatos e efetividade contam as interações registradas por cada um no período.</div></div>';
+    '<div class="rnote">'+NOTA_A15+'</div></div>';
 
   var cMat='<div class="rcard"><h3>Matrículas por consultor</h3>'+
     hbars(ks.map(function(k,i){return {label:k,value:rk[k].f,color:corIdx(i),right:rk[k].f+' · '+pct(rk[k].f,rk[k].n),
       tip:rk[k].n+' leads · '+rk[k].f+' matrículas · '+pct(rk[k].f,rk[k].n)+' de conversão'};}))+
     '<div class="rnote">Volume absoluto. A conversão ao lado evita premiar só quem recebeu mais lead.</div></div>';
 
-  var cEf='<div class="rcard"><h3>Contatos e efetividade</h3>'+
+  /* A15: o grafico passa a comparar VOLUME DE TENTATIVA, que e' o que a pessoa
+     controla. A taxa fica ao lado como leitura, com o canal explicito. */
+  var canaisUn=Object.keys(eqUnidade.porCanal).sort(function(a,b){return eqUnidade.porCanal[b].n-eqUnidade.porCanal[a].n;});
+  var baseUn=canaisUn.map(function(k){
+    var c=eqUnidade.porCanal[k];
+    return (canalNome(k)||k)+' '+pct(c.ef,c.n);
+  }).join(' · ');
+  var cEf='<div class="rcard"><h3>Tentativas de contato</h3>'+
     hbars(ks.filter(function(k){return rk[k].ct;}).map(function(k,i){
-      return {label:k,value:rk[k].ct,color:corIdx(i+2),right:rk[k].ct+' · '+pct(rk[k].ef,rk[k].ct)+' efetivo',
-        tip:rk[k].ct+' contatos · '+rk[k].ef+' efetivos'};
-    }))+'<div class="rnote">Média da equipe no período: '+pct(totE,totC)+' de contatos efetivos.</div></div>';
+      var st=eqStats[k]||{porCanal:{}};
+      var mix=Object.keys(st.porCanal).sort(function(a,b){return st.porCanal[b].n-st.porCanal[a].n;})
+        .map(function(c){return (canalNome(c)||c)+' '+st.porCanal[c].n;}).join(' · ');
+      return {label:k,value:rk[k].ct,color:corIdx(i+2),right:rk[k].ct+' · '+rk[k].ef+' falaram',
+        tip:rk[k].ct+' tentativas · '+rk[k].ef+' conversas\n'+mix};
+    }))+'<div class="rnote">Volume de tentativa é o que a pessoa controla; a resposta depende do canal. '
+    +'Taxa da unidade no período: '+esc(baseUn||'sem contato registrado')+'.</div></div>';
 
   var filtros='<div class="rcard wide" style="padding:12px 16px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">'+
     '<div class="rfil" id="eper">'+[['7','7 dias'],['30','30 dias'],['90','90 dias'],['','Tudo']].map(function(o){
@@ -6635,8 +6732,8 @@ function renderEquipe(){
       '<div class="rkpi"><b>'+totN+'</b><span>Leads no período</span></div>'+
       '<div class="rkpi ok"><b>'+totF+'</b><span>Matrículas</span></div>'+
       '<div class="rkpi"><b>'+pct(totF,totN)+'</b><span>Conversão da equipe</span></div>'+
-      '<div class="rkpi"><b>'+totC+'</b><span>Contatos registrados</span></div>'+
-      '<div class="rkpi"><b>'+pct(totE,totC)+'</b><span>Efetividade média</span></div>'+
+      '<div class="rkpi"><b>'+totC+'</b><span>Tentativas de contato</span></div>'+
+      '<div class="rkpi"><b>'+totE+'</b><span>Conversas de fato</span></div>'+
     '</div>'+
     '<div class="rgrid">'+filtros+tab+cMat+cEf+'</div>'+
   '</div></div>';
@@ -6646,8 +6743,13 @@ function renderEquipe(){
   });
   var q=$('qexp');
   if(q)q.onclick=function(){
-    baixaCSV('cna-equipe-'+hojeISO(),['Consultor','Leads','Contatos','Efetivos','Matrículas','Perdidos','Conversão'],
-      ks.map(function(k){return [k,rk[k].n,rk[k].ct,rk[k].ef,rk[k].f,rk[k].p,pct(rk[k].f,rk[k].n)];}));
+    baixaCSV('cna-equipe-'+hojeISO(),['Consultor','Leads','Tentativas','Falaram','Resposta por canal','Matrículas','Perdidos','Conversão'],
+      ks.map(function(k){
+        var st=eqStats[k]||{porCanal:{}};
+        var mix=Object.keys(st.porCanal).sort(function(a,b){return st.porCanal[b].n-st.porCanal[a].n;})
+          .map(function(c){return (canalNome(c)||c)+' '+pct(st.porCanal[c].ef,st.porCanal[c].n)+' ('+st.porCanal[c].n+')';}).join(' | ');
+        return [k,rk[k].n,rk[k].ct,rk[k].ef,mix,rk[k].f,rk[k].p,pct(rk[k].f,rk[k].n)];
+      }));
   };
 }
 
