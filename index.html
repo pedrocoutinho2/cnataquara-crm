@@ -3492,8 +3492,10 @@ $('persel').onchange=function(){
   buildChips();render();
 };
 
+/* Roda do mouse vira rolagem horizontal SOMENTE no quadro. Fora dele, deixa o
+   navegador rolar a pagina: era isso que travava a tela de Inicio. */
 $('board').addEventListener('wheel',function(e){
-  if(tab==='relatorios'||tab==='equipe'||tab==='mural'||tab==='faq'||tab==='calc'||tab==='turmas')return;
+  if(!telaKanban())return;
   if(e.target.closest('.cards'))return;
   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
     $('board').scrollLeft+=e.deltaY;
@@ -4008,7 +4010,8 @@ function setTab(t){
   document.querySelectorAll('.sgroup').forEach(function(g){g.classList.toggle('hasOn',!!g.querySelector('a.on'));});
   if($('ptitle'))$('ptitle').textContent=NAVTIT[t]||'';
   syncSideUser();
-  const outro=(t==='inicio'||t==='relatorios'||t==='equipe'||t==='mural'||t==='faq'||t==='calc'||t==='turmas'||t==='conversas'||t==='calendario'||t==='atas'||t==='demandas'||t==='acoes');
+  /* mesma fonte da guarda da roda do mouse: ou e' quadro, ou e' tela comum */
+  const outro=!telaKanban(t);
   document.querySelector('.toolbar').style.display=outro?'none':'';
   if(outro){$('stagenav').innerHTML='';$('stagenav').style.display='none';}
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
@@ -4584,6 +4587,12 @@ var PERMNIVEIS=[['nenhum','Sem acesso'],['ver','Ver'],['editar','Editar'],['tota
 var NIVORD={nenhum:0,ver:1,editar:2,total:3};
 var MODULOS=[];
 var PAPELPERM={};
+/* As UNICAS abas em quadro (colunas que rolam na horizontal). Todo o resto e'
+   tela comum e rola na vertical. Aba nova entra aqui SO se for kanban - e' o
+   que impede a rolagem de quebrar de novo a cada tela nova. */
+var KANBAN={leads:1,escolas:1,empresas:1};
+function telaKanban(t){return !!KANBAN[t||tab];}
+
 var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',acoes:'acoes',conversas:'conversas',
   calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
   relatorios:'rel_meudia',equipe:'equipe'};
