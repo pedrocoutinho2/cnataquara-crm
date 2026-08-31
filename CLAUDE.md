@@ -1,7 +1,7 @@
 # CLAUDE.md · cnataquara-crm
 
 Instruções permanentes para sessões do Claude neste repo.
-Última verificação contra o código: 31/08/2026.
+Última verificação contra o `index.html` e contra `sql/`: 31/08/2026.
 
 ## O que é
 
@@ -28,9 +28,7 @@ Monólito de arquivo único. `index.html` com **10.880 linhas e 570 KB**,
 **um único bloco `<script>`** (linhas 1661 a 10878) e **um único bloco
 `<style>`** (linhas 9 a 1376). HTML, CSS e JS vanilla inline.
 
-Arquivos do repo hoje: `CLAUDE.md`, `CNAME` e `index.html`. As pastas `sql/` e
-`supabase/functions/` são a convenção acordada e ainda estão pendentes de
-criação (ver as duas seções no fim deste arquivo).
+Arquivos do repo: `CLAUDE.md`, `CNAME`, `index.html` e `sql/` (46 migrations).
 
 Acesso a dados via REST direto no PostgREST, sem `supabase-js`:
 
@@ -122,8 +120,26 @@ Todas com prefixo `crm_`. As 35 que o `index.html` consulta hoje:
 **Sistema** — `crm_usuarios`, `crm_modulos`, `crm_papel_permissoes`,
 `crm_configs`, `crm_relatorio_diario`
 
-Não existem tabelas `crm_atas` nem `crm_metas`. Ata de reunião mora em
-`crm_reunioes` e nas duas tabelas irmãs. Metas não estão modeladas.
+Não existe tabela `crm_atas`: ata de reunião mora em `crm_reunioes` e nas duas
+tabelas irmãs.
+
+### Backend sem consumo no front
+
+`crm_metas` **existe no banco** e não aparece na lista acima porque o
+`index.html` não a consulta. Não é tabela morta: é backend pronto cuja onda de
+front se perdeu em 28/08.
+
+Criada em `sql/20260827151755_create_crm_metas.sql`: 9 colunas, uma linha por
+`competencia` + `escopo`, com `escopo` em `unidade` ou `consultor`, unique index
+em `(competencia, escopo, coalesce(consultor,''))` e RLS com as policies
+`anon all crm_metas` e `auth all crm_metas`. Tem uma linha semente da
+competência corrente com `obs = 'definir'`. Alimenta o painel Cockpit Taquara.
+
+Consumida pela RPC `crm_painel()`
+(`sql/20260827152258_create_crm_painel_rpc.sql`), que também não é chamada pelo
+front. Não confundir com `crm_painel_equipe()`, essa sim em uso (6657).
+
+Antes de "criar metas do zero", leia essas duas migrations: o modelo já está de pé.
 
 ### RPCs chamadas pelo front
 
@@ -144,12 +160,34 @@ Definida em `stages` (1782) com `side:true`, cor `#0E7490`. Não é perda
 (`off`) nem fechamento (`ok`): o lead segue contando como ativo e continua
 entrando na fila de alertas. Não entra na progressão por seta.
 
-Ao cair nessa etapa o **banco** carimba `proximo_atendimento` em 01/10/2026,
-pelo trigger `crm_leads_aguarda_271_tg`, que dispara em
-`BEFORE INSERT OR UPDATE`. O front não escreve essa data.
+O agendamento é carimbado pelo **banco**, não pelo front, via trigger
+`crm_leads_aguarda_271_tg` em `BEFORE INSERT OR UPDATE ON crm_leads`.
 
-**Qualquer UPDATE em massa em `crm_leads` precisa excluir essa etapa no WHERE**,
-senão o trigger reescreve o agendamento de todo mundo.
+A função foi refeita em 27/08 (`sql/20260827181315_a12_...`). A versão antiga
+carimbava 01/10 09:00 por cima de qualquer coisa e deixava o carimbo residual
+quando o lead saía da etapa. **A versão em produção é seletiva**, e é ela que
+vale:
+
+- **INSERT** já na etapa — carimba sempre. É obrigatório, porque
+  `crm_leads_agenda_novo_tg` roda antes (ordem alfabetica de trigger) e já
+  preencheu `proximo_atendimento` com agora + 10 minutos.
+- **UPDATE entrando** na etapa — só carimba se **não houver agendamento útil**,
+  isto é, campo nulo ou data no passado. Compromisso futuro já combinado com o
+  lead vence a data padrão do semestre.
+- **UPDATE saindo** da etapa — se o agendamento ainda for exatamente o carimbo
+  do trigger (01/10 às 09:00), devolve o lead para a fila com agora + 10
+  minutos. Se a pessoa remarcou, respeita.
+
+Entrar na etapa também zera `data_fechamento` e `motivo_perda`, e preenche
+`proximo_canal` com `whatsapp` quando nulo.
+
+Para mudar a data do semestre seguinte, altere `v_data` e `v_hora` na função.
+Estão hardcoded, de propósito e com comentário.
+
+**Cuidado em UPDATE em massa que mexa em `etapa`.** Quem não toca em `etapa`
+não dispara nada, porque as duas guardas exigem mudança de etapa. Mas um lote
+que jogue leads para dentro ou para fora da 27.1 vai reescrever agendamento
+linha a linha.
 
 ### Nível do aluno
 
@@ -189,15 +227,30 @@ Existem **três** normalizações diferentes no arquivo e elas não concordam:
 - `waFmtNum()` (3404) — `replace(/\D/g,'')` **e** `replace(/^55/,'')`
 
 Consequência real: um lead salvo com DDI 55 não colide com o mesmo número
-salvo sem DDI, porque a checagem de duplicidade não remove o 55. Antes de
-escrever uma quarta variante, unifique as três. No banco a chave canônica é
-`crm_wa_chave()` (DDD + últimos 8 dígitos).
+salvo sem DDI, porque a checagem de duplicidade não remove o 55.
+
+**O banco já resolveu isso e o front ignora.** `crm_wa_chave()`
+(`sql/20260811194815_...`) colapsa `5521982288009`, `21982288009`,
+`552182288009` e `2182288009` na mesma chave (DDD + últimos 8 dígitos), e
+`crm_leads` tem a coluna **gerada e indexada**:
+
+```sql
+wa_chave text generated always as (crm_wa_chave(whatsapp)) stored
+```
+
+O conserto certo da duplicidade não é uma quarta função em JS: é consultar
+`/crm_leads?wa_chave=eq.<chave>`, que usa `idx_crm_leads_wa_chave` e vale para
+a base inteira. O `dig()` de hoje só compara contra `DATA.leads`, o que já está
+carregado em memória. Antes de escrever qualquer normalização nova, use a coluna.
 
 ### Data
 
 `CURRENT_DATE` no Supabase vira o dia às 21h de Brasília, porque o servidor
 está em UTC. Isso quebra o turno que vai até 22h. Em query sensível a data use
-`crm_hoje_br()`.
+`crm_hoje_br()` (`sql/20260811214654_...`), que é
+`(now() at time zone 'America/Sao_Paulo')::date`.
+
+Já é o default de `crm_leads.data_entrada` e de `crm_leads_interacoes.data`.
 
 ### Snapshot vs consulta ao vivo
 
@@ -207,10 +260,15 @@ diário sai de `crm_relatorio_diario`, nunca de recontagem ao vivo.
 
 ### RLS
 
-Padrão atual é policy permissiva `anon_all`
-(`for all to anon using (true) with check (true)`). Tabela nova precisa de
-`enable row level security` + policy explícita. RPC nova precisa de
-`grant execute ... to anon` e `notify pgrst, 'reload schema'`.
+Padrão atual é policy permissiva para `anon`
+(`for all to anon using (true) with check (true)`). O nome **não é uniforme**:
+em `sql/` há 17 `create policy anon_all`, 11 com nome entre aspas no formato
+`"anon all <tabela>"`, e casos avulsos (`anon_sel`, `anon_ins`, `wa_media_anon`,
+`demandas_anon`). Não presuma o nome ao escrever `drop policy if exists`;
+confira na migration que criou a tabela.
+
+Tabela nova precisa de `enable row level security` + policy explícita. RPC nova
+precisa de `grant execute ... to anon` e `notify pgrst, 'reload schema'`.
 
 **UPDATE exige SELECT no RLS.** Se `anon` não tem SELECT na tabela, o UPDATE
 falha em silêncio: retorna sucesso e não altera linha nenhuma. A saída é RPC
@@ -238,10 +296,11 @@ Versionar faz parte do "done"; não é etapa separada para depois.
 Nome do arquivo: `<version>_<name>.sql`, com a version completa do Supabase
 (`YYYYMMDDHHMMSS`), igual à linha em `supabase_migrations.schema_migrations`.
 
-A pasta `sql/` ainda não existe: em 31/08/2026 havia 46 migrations aplicadas no
-projeto e nenhuma versionada.
+`sql/` tem as 46 migrations aplicadas até 31/08/2026, de `20260730162750` a
+`20260827181315`. Cobrem os três sistemas que gravam neste banco, porque a
+convenção é versionar o SQL deles aqui: CRM, Escape Room e Teste de Nível.
 
-Para extrair o que já está aplicado, use `../extrair-migrations.sh`, que
+Para reextrair ou conferir, use `../extrair-migrations.sh`, que
 confere o md5 de cada arquivo contra o banco e aborta o lote se algum divergir.
 A connection string mora em `~/.config/cna/pguri.env`, fora do repositório, e
 nunca entra em commit, log ou chat.
