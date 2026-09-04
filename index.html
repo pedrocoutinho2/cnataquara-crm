@@ -5065,7 +5065,7 @@ function corIdx(i){return GPAL[i%GPAL.length];}
 /* ================= Dados dos relatorios: sempre frescos ================= */
 const REL={leads:null,etapas:null,b2c:null,b2b:null,ts:0,carregando:false};
 const REL_TTL=45000;
-const RELCOLS='id,nome,whatsapp,responsavel,origem,curso,nivel,etapa,motivo_perda,data_entrada,data_fechamento,ultimo_contato,sem_turma,turno_desejado,espera_desde,observacoes';
+const RELCOLS='id,nome,whatsapp,responsavel,origem,curso,nivel,etapa,motivo_perda,data_entrada,data_fechamento,ultimo_contato,sem_turma,turno_desejado,espera_desde,observacoes,turma,idade';
 async function relLoad(force){
   if(REL.carregando||(!force&&REL.leads&&REL.ts&&Date.now()-REL.ts<REL_TTL))return REL;
   REL.carregando=true;
@@ -5142,6 +5142,7 @@ async function openReports(force){
   if(RVIEW==='canais'){await openCanais(force);return;}
   if(RVIEW==='gargalo'){await openGargalo(force);return;}
   if(RVIEW==='espera'){await openEspera(force);return;}
+  if(RVIEW==='demanda'){await openDemanda(force);return;}
   if(RVIEW==='equipe'){await openEquipe(force);return;}
   if(RVIEW==='followup'){await openFollow(force);return;}
   if(RVIEW==='custom'){await openCustom(force);return;}
@@ -6159,6 +6160,8 @@ var RELDEF=[
    res:'Onde o funil trava, quantas matrículas cada degrau custa e por quais motivos os leads são perdidos.'},
   {id:'espera',mod:'rel_unidade',grupo:'Operação',nome:'Fila de espera · sem turma',
    res:'Quem ficou de fora por falta de turma, por curso e turno, cruzado com as turmas que hoje têm vaga.'},
+  {id:'demanda',mod:'rel_unidade',grupo:'Operação',nome:'Demanda por faixa',
+   res:'Em que faixa (Garden, Fun, Kids, Teen, Adulto) está a demanda que ainda não virou matrícula, cruzada com as turmas que têm vaga.'},
   {id:'equipe',mod:'rel_unidade',grupo:'Equipe',nome:'Desempenho da equipe',
    res:'Leads, contatos, efetividade, matrículas e conversão de cada consultor no período.'},
   {id:'canais',mod:'rel_funil',grupo:'Equipe',nome:'Canais de contato',
@@ -6517,6 +6520,206 @@ function turnoDe(hor){
   if(h<18)return 'Tarde';
   return 'Noite';
 }
+/* ================= Relatório: Demanda por faixa =================
+   Responde "em que faixa estamos deixando aluno na mesa".
+   Universo: tudo que não fechou (perdido, aguardando 27.1 e ativos).
+   O nível quase nunca está preenchido, então a faixa é resolvida por
+   cascata sobre todos os campos do card, guardando de onde veio. */
+var DEM={faixa:'todas',turmas:null,notas:null};
+var DEM_FAIXAS=['Garden','Fun','Kids','Teen','Adulto/Jovem'];
+
+function demNorm(t){
+  return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+/* "INDICAÇÃO MIGUEL DO TEEN UP 3" fala do nível de quem indicou, não do lead */
+function demLimpa(t){return demNorm(t).replace(/indicacao[^.;\n]*/g,' ');}
+
+function demFaixaDeTexto(t){
+  var s=' '+String(t||'')+' ';
+  if(/garden|pre-?school/.test(s))return 'Garden';
+  if(/young kids|\bfun\b/.test(s))return 'Fun';
+  if(/\bkids\b/.test(s))return 'Kids';
+  if(/teen ?up|\bteens? on\b/.test(s))return 'Teen';
+  if(/\bfly\b|\ba1\b|a1\.|quest|\ba2\b|a2\.|\binter\b|p-?adv|\bpadv\b|\bb1\b|\badv\b|master|\bacc\b|\bcac\b|en ?contacto|progression|expansion/.test(s))return 'Adulto/Jovem';
+  return '';
+}
+function demFaixaDeIdade(i){
+  i=parseInt(i,10);
+  if(isNaN(i)||i<2||i>99)return '';
+  if(i<=5)return 'Garden';
+  if(i<=8)return 'Fun';
+  if(i<=11)return 'Kids';
+  if(i<=17)return 'Teen';
+  return 'Adulto/Jovem';
+}
+/* cascata: cadastro -> observações -> interações -> idade */
+function demClassifica(l,notas){
+  var f=demFaixaDeTexto(demNorm((l.nivel||'')+' '+(l.turma||'')));
+  if(f)return {faixa:f,origem:'Nível/turma no cadastro',firme:true};
+  f=demFaixaDeTexto(demLimpa(l.observacoes));
+  if(f)return {faixa:f,origem:'Observações do card',firme:true};
+  f=demFaixaDeTexto(demLimpa((notas&&notas[l.id])||''));
+  if(f)return {faixa:f,origem:'Histórico de interações',firme:true};
+  f=demFaixaDeIdade(l.idade);
+  if(f)return {faixa:f,origem:'Inferido pela idade ('+l.idade+' anos)',firme:false};
+  return {faixa:'',origem:'',firme:false};
+}
+function demEtapaRotulo(e){
+  if(e==='perdido')return 'Perdido';
+  if(e==='aguardando_271')return 'Aguardando 27.1';
+  return 'Ativo no funil';
+}
+
+async function openDemanda(force){
+  $('stats').innerHTML='';
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Varrendo os cards para descobrir a faixa...');
+  try{
+    await relLoad(!!force);
+    if(!DEM.turmas||force)DEM.turmas=await api('/crm_turmas?select=codigo,curso,dias,horario,sala,professor,alunos,capacidade,sem_vaga,semestre&ativa=eq.true&order=curso.asc,horario.asc');
+    if(!DEM.notas||force){
+      var ns=await api('/crm_leads_interacoes?select=lead_id,nota&order=data.desc&limit=8000');
+      var idx={};
+      (ns||[]).forEach(function(n){
+        if(!n.nota)return;
+        idx[n.lead_id]=(idx[n.lead_id]||'')+' '+n.nota;
+      });
+      DEM.notas=idx;
+    }
+  }catch(e){
+    if(!DEM.turmas)DEM.turmas=[];
+    if(!DEM.notas)DEM.notas={};
+    if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar a demanda agora.</div>';return;}
+  }
+  renderDemanda();
+}
+
+function renderDemanda(){
+  resetCharts();
+  var base=(relLeads()).filter(function(l){return l.etapa!=='fechado';});
+  base.forEach(function(l){l._dem=demClassifica(l,DEM.notas);});
+
+  var turmas=(DEM.turmas||[]).filter(function(t){
+    var cap=t.capacidade||0,al=t.alunos||0;
+    return !t.sem_vaga&&(cap===0||al<cap);
+  });
+  function turmasDaFaixa(f){
+    return turmas.filter(function(t){return demFaixaDeTexto(demNorm(t.curso))===f;});
+  }
+
+  var grupos={};DEM_FAIXAS.forEach(function(f){grupos[f]=[];});
+  var semFaixa=[];
+  base.forEach(function(l){
+    if(l._dem.faixa)grupos[l._dem.faixa].push(l);else semFaixa.push(l);
+  });
+
+  var identificados=base.length-semFaixa.length;
+  var cobertura=base.length?Math.round(identificados*100/base.length):0;
+  var lider='—',ln=0;
+  DEM_FAIXAS.forEach(function(f){if(grupos[f].length>ln){ln=grupos[f].length;lider=f;}});
+
+  /* filtro de faixa */
+  var opts=[{k:'todas',r:'Todas ('+base.length+')'}]
+    .concat(DEM_FAIXAS.map(function(f){return {k:f,r:f+' ('+grupos[f].length+')'};}))
+    .concat([{k:'nao',r:'Sem faixa ('+semFaixa.length+')'}]);
+  var filtro='<div class="rfil" style="margin-bottom:14px">'+opts.map(function(o){
+    return '<button data-demf="'+esc(o.k)+'"'+(DEM.faixa===o.k?' class="on"':'')+'>'+esc(o.r)+'</button>';
+  }).join('')+'</div>';
+
+  function linha(l){
+    var d=l._dem;
+    return '<div class="lrow" data-lead="'+esc(l.id)+'">'+
+      '<span class="ln">'+esc(l.nome||'')+
+        '<span class="lsub">'+esc([demEtapaRotulo(l.etapa),l.motivo_perda||'',l.responsavel||'',
+          (d.origem?(d.firme?'':'~ ')+d.origem:'sem pista de faixa')].filter(Boolean).join(' · '))+'</span></span>'+
+      '<span class="ld">'+esc(l.curso||'')+'</span>'+
+      (waLink(l.whatsapp)?'<a class="wa" target="_blank" rel="noopener" href="'+waLink(l.whatsapp)+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
+      '<span></span>'+
+    '</div>';
+  }
+
+  function cardFaixa(f){
+    var itens=grupos[f];
+    if(!itens.length)return '';
+    var perd=itens.filter(function(l){return l.etapa==='perdido';}).length;
+    var ag=itens.filter(function(l){return l.etapa==='aguardando_271';}).length;
+    var atv=itens.length-perd-ag;
+    var fracos=itens.filter(function(l){return !l._dem.firme;}).length;
+    var mot={};
+    itens.forEach(function(l){if(l.etapa==='perdido')mot[l.motivo_perda||'Sem motivo']=(mot[l.motivo_perda||'Sem motivo']||0)+1;});
+    var tops=Object.keys(mot).sort(function(a,b){return mot[b]-mot[a];}).slice(0,3);
+    var ts=turmasDaFaixa(f);
+    return '<div class="rcard"><h3>'+esc(f)+' ('+itens.length+')</h3>'+
+      '<div class="rkpis" style="margin-bottom:10px">'+
+        '<div class="rkpi bad"><b>'+perd+'</b><span>Perdidos</span></div>'+
+        '<div class="rkpi"><b>'+ag+'</b><span>Aguardando 27.1</span></div>'+
+        '<div class="rkpi ok"><b>'+atv+'</b><span>Ainda no funil</span></div>'+
+      '</div>'+
+      (ts.length
+        ? '<div class="ibox ok" style="margin-bottom:10px"><div class="itx"><b>'+ts.length+' turma'+(ts.length>1?'s':'')+' com vaga nesta faixa</b>'+
+          '<p>'+ts.slice(0,4).map(function(t){
+            return esc((t.curso||'')+' · '+(t.dias||'')+' '+(t.horario||'')+((t.capacidade||0)?' · '+((t.capacidade||0)-(t.alunos||0))+' vaga(s)':''));
+          }).join('<br>')+'</p></div></div>'
+        : '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Nenhuma turma com vaga nesta faixa</b>'+
+          '<p>Demanda represada aqui é candidata a turma nova em 27.1.</p></div></div>')+
+      (tops.length?'<div class="rhcard" style="margin-bottom:8px"><b>Motivos da perda</b><span>'+
+        tops.map(function(m){return esc(m)+': '+mot[m];}).join(' · ')+'</span></div>':'')+
+      (fracos?'<div class="rhcard" style="margin-bottom:8px"><b>'+fracos+' classificado(s) só pela idade</b>'+
+        '<span>Marcados com ~ na lista. É estimativa, não dado confirmado.</span></div>':'')+
+      '<div class="rlist">'+itens.sort(function(a,b){
+        return String(b.data_entrada||'').localeCompare(String(a.data_entrada||''));
+      }).map(linha).join('')+'</div></div>';
+  }
+
+  var corpo='';
+  if(DEM.faixa==='nao'){
+    corpo='<div class="rcard"><h3>Sem faixa identificada ('+semFaixa.length+')</h3>'+
+      '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Estes leads não dizem em que faixa entrariam</b>'+
+      '<p>Nível vazio, turma vazia, nada nas observações nem nas interações e sem idade. '+
+      'Abrir a ficha e preencher nível ou idade é o que faz este relatório virar decisão de abertura de turma.</p></div></div>'+
+      '<div class="rlist">'+semFaixa.map(linha).join('')+'</div></div>';
+  }else if(DEM.faixa==='todas'){
+    corpo=DEM_FAIXAS.map(cardFaixa).join('');
+    if(!corpo)corpo='<div class="ibox warn"><div class="itx"><b>Nenhuma faixa identificada na base</b><p>Preencha nível ou idade nas fichas.</p></div></div>';
+  }else{
+    corpo=cardFaixa(DEM.faixa)||'<div class="ibox"><div class="itx"><b>Ninguém nesta faixa</b><p>Nenhum lead em aberto foi classificado como '+esc(DEM.faixa)+'.</p></div></div>';
+  }
+
+  $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
+    '<div class="rtitle">'+subnav()+'<h1>'+relTitulo()+'</h1>'+
+      '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
+      '<button class="dctl" id="dexp">↓ CSV</button></div>'+
+    '<div class="rkpis">'+
+      '<div class="rkpi"><b>'+base.length+'</b><span>Leads em aberto</span></div>'+
+      '<div class="rkpi ok"><b>'+identificados+'</b><span>Com faixa identificada</span></div>'+
+      '<div class="rkpi'+(cobertura<50?' bad':'')+'"><b>'+cobertura+'%</b><span>Cobertura do dado</span></div>'+
+      '<div class="rkpi"><b>'+esc(lider)+'</b><span>Maior demanda</span></div>'+
+      '<div class="rkpi"><b>'+turmas.length+'</b><span>Turmas com vaga</span></div>'+
+    '</div>'+
+    (cobertura<50?'<div class="ibox warn"><div class="itx"><b>'+semFaixa.length+' leads em aberto sem nenhuma pista de faixa</b>'+
+      '<p>A varredura passa por nível, turma, observações, histórico de interações e idade. '+
+      'Enquanto o campo Nível não for preenchido no atendimento, este relatório enxerga só '+cobertura+'% da demanda.</p></div></div>':'')+
+    filtro+
+    '<div class="rgrid">'+corpo+'</div>'+
+  '</div></div>';
+
+  bindSubnav();bindRel(renderDemanda);bindLeadRows();
+  document.querySelectorAll('#board [data-demf]').forEach(function(b){
+    b.onclick=function(){DEM.faixa=b.dataset.demf;renderDemanda();};
+  });
+  var bd=$('dexp');
+  if(bd)bd.onclick=function(){
+    var lista=DEM.faixa==='nao'?semFaixa:(DEM.faixa==='todas'?base:grupos[DEM.faixa]||[]);
+    baixaCSV('cna-demanda-faixa-'+hojeISO(),
+      ['Nome','WhatsApp','Curso','Faixa','Origem da faixa','Confiança','Etapa','Motivo da perda','Nível','Idade','Responsável','Origem do lead','Entrada'],
+      lista.map(function(l){
+        return [l.nome||'',l.whatsapp||'',l.curso||'',l._dem.faixa||'Não identificada',
+          l._dem.origem||'—',l._dem.firme?'Confirmada':(l._dem.origem?'Estimada':'—'),
+          demEtapaRotulo(l.etapa),l.motivo_perda||'',l.nivel||'',l.idade||'',
+          l.responsavel||'',l.origem||'',l.data_entrada||''];
+      }));
+  };
+}
+
 async function openEspera(force){
   $('stats').innerHTML='';
   if(!REL.leads)$('board').innerHTML=relEsqueleto('Montando a fila de espera...');
