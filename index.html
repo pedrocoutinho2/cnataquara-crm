@@ -11825,7 +11825,10 @@ function renderTestes(){
   var add=$('tnAddGrade');if(add)add.onclick=function(){tnFormGrade(null);};
   var addA=$('tnAddAvulso');if(addA)addA.onclick=function(){tnFormAvulso(null);};
   $('board').querySelectorAll('[data-eg]').forEach(function(b){
-    b.onclick=function(){tnFormGrade(TN.grade.find(function(x){return x.id===b.dataset.eg;}));};
+    b.onclick=function(){
+      var gr=tnGrupos().find(function(x){return x.chave===b.dataset.eg;});
+      if(gr)tnFormGrade(gr);
+    };
   });
   $('board').querySelectorAll('[data-ea]').forEach(function(b){
     b.onclick=function(){tnFormAvulso(TN.avulsos.find(function(x){return x.id===b.dataset.ea;}));};
@@ -11863,17 +11866,35 @@ function tnViewGrade(adm){
   var h='<div class="rcard"><div class="paneh"><h3>Grade semanal</h3>'+
     (adm?'<button class="btn primary" id="tnAddGrade">+ Nova faixa</button>':'')+'</div>'+
     '<div class="rnote">A faixa se repete toda semana e \u00e9 fatiada em hor\u00e1rios da dura\u00e7\u00e3o escolhida. '+
-    'Para tirar um dia espec\u00edfico, use um bloqueio em Avulsos.</div>';
+    'Uma faixa pode valer para v\u00e1rios dias de uma vez. Para tirar um dia espec\u00edfico, use um bloqueio em Avulsos.</div>';
   if(!TN.grade.length)return h+'<div class="tnvazio">Nenhuma faixa publicada. Enquanto isso, o comercial n\u00e3o consegue marcar teste.</div></div>';
-  h+=TN.grade.map(function(g){
+  h+=tnGrupos().map(function(gr){
+    var g=gr.base;
+    var dias=gr.dias.map(function(d){return TNDOWS[d.dia_semana].slice(0,3);}).join(', ');
     return '<div class="tnlin"><div>'+
-      '<div class="t">'+TNDOWS[g.dia_semana]+' \u00b7 '+tnHM(g.hora_inicio)+' \u00e0s '+tnHM(g.hora_fim)+'</div>'+
+      '<div class="t">'+esc(dias)+' \u00b7 '+tnHM(g.hora_inicio)+' \u00e0s '+tnHM(g.hora_fim)+'</div>'+
       '<div class="s">'+esc(g.aplicador)+' \u00b7 '+tnMod(g.modalidade)+' \u00b7 '+g.duracao_min+' min'+
         (g.vigencia_fim?' \u00b7 at\u00e9 '+brDate(g.vigencia_fim):'')+
         (g.ativo?'':' \u00b7 inativa')+'</div></div>'+
-      '<div class="tnacts">'+(adm?'<button class="btn" data-eg="'+g.id+'">Editar</button>':'')+'</div></div>';
+      '<div class="tnacts">'+(adm?'<button class="btn" data-eg="'+esc(gr.chave)+'">Editar</button>':'')+'</div></div>';
   }).join('');
   return h+'</div>';
+}
+/* Faixas identicas em tudo menos o dia viram uma linha so. O banco continua
+   com uma linha por dia da semana, que e' o que crm_tn_disponibilidade espera. */
+function tnChaveGrade(g){
+  return [tnHM(g.hora_inicio),tnHM(g.hora_fim),g.duracao_min,g.modalidade,g.aplicador,
+          g.vigencia_inicio||'',g.vigencia_fim||'',g.ativo?'1':'0'].join('|');
+}
+function tnGrupos(){
+  var mapa={},ordem=[];
+  (TN.grade||[]).forEach(function(g){
+    var k=tnChaveGrade(g);
+    if(!mapa[k]){mapa[k]={chave:k,base:g,dias:[]};ordem.push(k);}
+    mapa[k].dias.push(g);
+  });
+  ordem.forEach(function(k){mapa[k].dias.sort(function(a,b){return a.dia_semana-b.dia_semana;});});
+  return ordem.map(function(k){return mapa[k];});
 }
 function tnViewAvulsos(adm){
   var h='<div class="rcard"><div class="paneh"><h3>Avulsos e bloqueios</h3>'+
@@ -11892,52 +11913,87 @@ function tnViewAvulsos(adm){
   return h+'</div>';
 }
 
-function tnFormGrade(g){
-  g=g||{};
+function tnFormGrade(gr){
+  var g=(gr&&gr.base)||{};
+  var sel={};
+  if(gr)gr.dias.forEach(function(d){sel[d.dia_semana]=d.id;});
   var aps=tnAplicadores();
   var body='<div class="agform">'+
-    '<div><label>Dia da semana</label><select id="tg_dia">'+
-      TNDOWS.map(function(d,i){return '<option value="'+i+'"'+(g.dia_semana===i?' selected':'')+'>'+d+'</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Dias da semana</label><div class="tnbar" id="tg_dias">'+
+      TNDOWS.map(function(d,i){
+        return '<button class="tnchip'+(sel[i]!==undefined?' on':'')+'" data-dia="'+i+'">'+d+'</button>';
+      }).join('')+'</div></div>'+
     '<div><label>Aplicadora</label><select id="tg_ap">'+
       aps.map(function(a){return '<option'+(g.aplicador===a?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'</select></div>'+
-    '<div><label>In\u00edcio</label><input id="tg_hi" type="time" value="'+tnHM(g.hora_inicio)+'"></div>'+
-    '<div><label>Fim</label><input id="tg_hf" type="time" value="'+tnHM(g.hora_fim)+'"></div>'+
     '<div><label>Dura\u00e7\u00e3o de cada teste</label><select id="tg_dur">'+
       [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((g.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
-    '<div><label>Modalidade</label><select id="tg_mod">'+
+    '<div><label>In\u00edcio</label><input id="tg_hi" type="time" value="'+tnHM(g.hora_inicio)+'"></div>'+
+    '<div><label>Fim</label><input id="tg_hf" type="time" value="'+tnHM(g.hora_fim)+'"></div>'+
+    '<div class="full"><label>Modalidade</label><select id="tg_mod">'+
       '<option value="presencial"'+(g.modalidade==='presencial'?' selected':'')+'>S\u00f3 presencial</option>'+
       '<option value="online"'+(g.modalidade==='online'?' selected':'')+'>S\u00f3 online (com Meet)</option>'+
       '<option value="ambas"'+((g.modalidade||'ambas')==='ambas'?' selected':'')+'>Presencial ou online</option></select></div>'+
     '<div><label>Vale a partir de</label><input id="tg_vi" type="date" value="'+esc(g.vigencia_inicio||hojeISO())+'"></div>'+
     '<div><label>At\u00e9 (opcional)</label><input id="tg_vf" type="date" value="'+esc(g.vigencia_fim||'')+'"></div>'+
     '<div class="full"><label style="text-transform:none;font-size:12px"><input type="checkbox" id="tg_at"'+(g.ativo===false?'':' checked')+'> faixa ativa</label></div>'+
+    (gr?'<div class="full rnote">Desmarcar um dia apaga a faixa daquele dia. Marcar um dia novo cria. '+
+        'Agendamento j\u00e1 marcado n\u00e3o \u00e9 afetado: ele j\u00e1 tem data e hora pr\u00f3prias.</div>':'')+
     '</div>';
-  uiModal(g.id?'Editar faixa da grade':'Nova faixa da grade','Toda semana, no mesmo dia',body,
+  uiModal(gr?'Editar faixa da grade':'Nova faixa da grade',
+    gr?'Vale para os dias marcados, toda semana':'Marque todos os dias que t\u00eam esse mesmo hor\u00e1rio',body,
     '<button class="btn primary" id="tg_save">Salvar</button><button class="btn" id="tg_cancel">Cancelar</button>'+
-    (g.id?'<div class="spacer"></div><button class="btn" id="tg_del" style="color:var(--red)">Excluir</button>':''));
+    (gr?'<div class="spacer"></div><button class="btn" id="tg_del" style="color:var(--red)">Excluir</button>':''));
+
+  $('tg_dias').querySelectorAll('.tnchip').forEach(function(b){
+    b.onclick=function(){b.classList.toggle('on');};
+  });
   $('tg_cancel').onclick=uiModalClose;
+
   $('tg_save').onclick=async function(){
+    var btn=$('tg_save');
+    if(btn.disabled)return;
+    var dias=[];
+    $('tg_dias').querySelectorAll('.tnchip.on').forEach(function(b){dias.push(+b.dataset.dia);});
+    if(!dias.length){toast('Marque pelo menos um dia da semana.');return;}
     var hi=$('tg_hi').value,hf=$('tg_hf').value;
     if(!hi||!hf){toast('Informe in\u00edcio e fim da faixa.');return;}
     if(hf<=hi){toast('O fim precisa ser depois do in\u00edcio.');return;}
-    var b={dia_semana:+$('tg_dia').value,aplicador:$('tg_ap').value,hora_inicio:hi,hora_fim:hf,
+    var b={aplicador:$('tg_ap').value,hora_inicio:hi,hora_fim:hf,
       duracao_min:+$('tg_dur').value,modalidade:$('tg_mod').value,
       vigencia_inicio:$('tg_vi').value||hojeISO(),vigencia_fim:$('tg_vf').value||null,
       ativo:$('tg_at').checked,atualizado_em:new Date().toISOString()};
+    btn.disabled=true;
     try{
-      if(g.id)await api('/crm_tn_grade?id=eq.'+g.id,{method:'PATCH',body:JSON.stringify(b)});
-      else{b.criado_por=currentUser;await api('/crm_tn_grade',{method:'POST',body:JSON.stringify(b)});}
-    }catch(e){toast(tnErro(e));return;}
+      var novos=[];
+      for(var i=0;i<dias.length;i++){
+        var d=dias[i];
+        if(sel[d]!==undefined){
+          await api('/crm_tn_grade?id=eq.'+sel[d],{method:'PATCH',body:JSON.stringify(b)});
+        }else{
+          var nv=JSON.parse(JSON.stringify(b));
+          nv.dia_semana=d;nv.criado_por=currentUser;
+          novos.push(nv);
+        }
+      }
+      if(novos.length)await api('/crm_tn_grade',{method:'POST',body:JSON.stringify(novos)});
+      /* dia desmarcado sai da grade */
+      var fora=Object.keys(sel).filter(function(d){return dias.indexOf(+d)<0;}).map(function(d){return sel[d];});
+      if(fora.length)await api('/crm_tn_grade?id=in.('+fora.join(',')+')',{method:'DELETE'});
+    }catch(e){toast(tnErro(e));btn.disabled=false;return;}
+    toast(dias.length>1?('Faixa publicada em '+dias.length+' dias da semana.'):'Faixa publicada.');
     uiModalClose();openTestes();
   };
-  if(g.id)$('tg_del').onclick=async function(){
+
+  if(gr)$('tg_del').onclick=async function(){
     var b=$('tg_del');
     if(!b.classList.contains('confirm')){
-      b.classList.add('confirm');b.textContent='Confirmar exclus\u00e3o?';
+      b.classList.add('confirm');
+      b.textContent=gr.dias.length>1?('Excluir os '+gr.dias.length+' dias?'):'Confirmar exclus\u00e3o?';
       setTimeout(function(){if(!b)return;b.classList.remove('confirm');b.textContent='Excluir';},3500);
       return;
     }
-    try{await api('/crm_tn_grade?id=eq.'+g.id,{method:'DELETE'});}catch(e){toast(tnErro(e));return;}
+    var ids=gr.dias.map(function(d){return d.id;});
+    try{await api('/crm_tn_grade?id=in.('+ids.join(',')+')',{method:'DELETE'});}catch(e){toast(tnErro(e));return;}
     uiModalClose();openTestes();
   };
 }
