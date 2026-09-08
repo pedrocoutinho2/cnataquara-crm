@@ -1387,6 +1387,26 @@ input[type=date].dvazio{color:#C9C9CE}
   .revrow .revt{min-width:100%}
   .ataarea{min-height:220px}
 }
+
+/* ---- testes de nivel: grade, slots e agendamento ---- */
+.tnbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.tnchip{border:1px solid var(--grayLine);background:#fff;border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--ink)}
+.tnchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.tnday{margin:12px 0 4px;font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px}
+.tnslots{display:flex;flex-wrap:wrap;gap:8px}
+.tnslot{border:1px solid var(--grayLine);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;min-width:132px}
+.tnslot:hover{border-color:var(--blue)}
+.tnslot.on{border-color:var(--blue);background:var(--pastelBlue);box-shadow:inset 0 0 0 1px var(--blue)}
+.tnslot b{display:block;font-size:14px;color:var(--ink)}
+.tnslot span{display:block;font-size:11px;color:var(--gray);margin-top:2px}
+.tnslot .tnmod{display:inline-block;margin-top:4px;font-size:10px;border-radius:999px;padding:1px 7px;background:var(--surface);color:var(--gray)}
+.tnslot .tnmod.on{background:var(--pastelRed);color:var(--redDark)}
+.tnvazio{color:var(--gray);font-size:13px;padding:10px 0}
+.tnlin{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-bottom:1px solid var(--grayLine);padding:9px 0}
+.tnlin:last-child{border-bottom:0}
+.tnlin .t{font-size:14px;color:var(--ink)}
+.tnlin .s{font-size:12px;color:var(--gray);margin-top:2px}
+.tnacts{display:flex;gap:6px}
 </style>
 </head>
 <body>
@@ -1436,6 +1456,7 @@ input[type=date].dvazio{color:#C9C9CE}
       <div class="sgi">
       <a data-t="turmas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="2"/></svg><span>Turmas</span></a>
       <a data-t="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="5" width="17.2" height="15.6" rx="2.4"/><path d="M3.4 9.8h17.2"/><path d="M8.2 2.8v4M15.8 2.8v4"/></svg><span>Calend&aacute;rio</span></a>
+      <a data-t="testes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4 3.6 7.2 12 11l8.4-3.8L12 3.4Z"/><path d="M6.6 9.4v4.4c0 1.9 2.4 3.4 5.4 3.4s5.4-1.5 5.4-3.4V9.4"/><path d="M20.4 7.2v5.2"/></svg><span>Testes de n&iacute;vel</span></a>
       <a data-t="mural"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2v-6.4"/><path d="M8.4 2.8h7.2l-.9 5.4 2.9 3.2v1.2H6.4v-1.2l2.9-3.2-.9-5.4Z"/></svg><span>Mural de avisos</span></a>
       <a data-t="faq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M9.5 9.4a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.8"/><path d="M12 17.4h.01" stroke-width="2.3"/></svg><span>Dúvidas frequentes</span></a>
       <a data-t="atas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 2.8h8.4l5.2 5.2v13.2H6.2z"/><path d="M14.2 2.8v5.6h5.4"/><path d="M9.4 12.6h5.6M9.4 16.4h4"/></svg><span>Atas de reuni&atilde;o</span></a>
@@ -2561,6 +2582,10 @@ async function moveTo(id,stage){
       toast('Registre o motivo da perda na ficha.');
       openModal(id);
     }
+    /* Entrar em "Experimental / Teste" abre a escolha de horário na
+       disponibilidade publicada pelo pedagógico. Fechar o modal não desfaz a
+       mudança de etapa: o card já está na coluna, o agendamento é o passo seguinte. */
+    if(tab==='leads'&&stage==='experimental'&&old!=='experimental')tnAbrirAgendamento(s);
   }catch(e){
     s[sf]=old;s.data_fechamento=oldFech;render();toast('Não foi possível mover. Tente de novo.');
   }
@@ -4088,6 +4113,7 @@ function setTab(t){
   if(t==='turmas'){openTurmas();return;}
   if(t==='conversas'){openConversas();return;}
   if(t==='calendario'){openCalendario();return;}
+  if(t==='testes'){openTestes();return;}
   if(t==='atas'){openAtas();return;}
   if(t==='demandas'){openDemandas();return;}
   if(t==='acoes'){openAcoes();return;}
@@ -4105,10 +4131,10 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 /* ================= Menu lateral ================= */
 const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',acoes:'comercial',
   conversas:'atendimento',calc:'atendimento',
-  turmas:'operacao',calendario:'operacao',mural:'operacao',faq:'operacao',atas:'operacao',demandas:'operacao',
+  turmas:'operacao',calendario:'operacao',testes:'operacao',mural:'operacao',faq:'operacao',atas:'operacao',demandas:'operacao',
   relatorios:'gestao',equipe:'gestao'};
 const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',acoes:'Ações comerciais',conversas:'Conversas',
-  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',mural:'Mural de avisos',faq:'Dúvidas frequentes',
+  calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',testes:'Testes de nível',mural:'Mural de avisos',faq:'Dúvidas frequentes',
   atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
@@ -4658,7 +4684,7 @@ var KANBAN={leads:1,escolas:1,empresas:1};
 function telaKanban(t){return !!KANBAN[t||tab];}
 
 var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',acoes:'acoes',conversas:'conversas',
-  calc:'calc',turmas:'turmas',calendario:'calendario',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
+  calc:'calc',turmas:'turmas',calendario:'calendario',testes:'testes',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
   relatorios:'rel_meudia',equipe:'equipe'};
 
 async function loadPerms(){
@@ -4698,7 +4724,7 @@ function tabLiberada(t){
   return podeVer(m);
 }
 function primeiraTabPermitida(){
-  var ordem=['inicio','leads','acoes','turmas','calendario','atas','demandas','mural','faq','conversas','calc','relatorios','escolas','empresas','equipe'];
+  var ordem=['inicio','leads','acoes','turmas','calendario','testes','atas','demandas','mural','faq','conversas','calc','relatorios','escolas','empresas','equipe'];
   for(var i=0;i<ordem.length;i++){if(tabLiberada(ordem[i]))return ordem[i];}
   return 'inicio';
 }
@@ -9512,13 +9538,19 @@ async function agdSyncEvento(ev,acao){
         id:ev.id,titulo:ev.titulo,descricao:ev.descricao||'',data:ev.data,
         hora_inicio:agdH(ev.hora_inicio),hora_fim:agdH(ev.hora_fim),
         responsavel:ev.responsavel||'',participantes:(ev.participantes||[]).join(', '),
+        /* convidado externo e sala do Meet: o Apps Script v1 ignora os dois campos
+           sem quebrar, entao evento antigo continua sincronizando igual */
+        convidados:(ev.convidados||[]),meet:!!ev.meet,
         categoria:c?c.nome:''}})});
     var j=await r.json();
     if(acao==='delete')return;
     if(j&&j.ok){
-      await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify({gcal_id:j.gcal_id||ev.gcal_id,gcal_sync:'ok'})});
+      var pt={gcal_id:j.gcal_id||ev.gcal_id,gcal_sync:'ok'};
+      if(j.meet_url)pt.meet_url=j.meet_url;
+      await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify(pt)});
       var local=AGD.eventos.find(function(x){return x.id===ev.id;});
-      if(local){local.gcal_id=j.gcal_id||ev.gcal_id;local.gcal_sync='ok';}
+      if(local){local.gcal_id=j.gcal_id||ev.gcal_id;local.gcal_sync='ok';if(j.meet_url)local.meet_url=j.meet_url;}
+      return j.meet_url||'';
     }else throw new Error((j&&j.erro)||'resposta inválida do script');
   }catch(e){
     if(acao!=='delete'){try{await api('/crm_agenda_eventos?id=eq.'+ev.id,{method:'PATCH',body:JSON.stringify({gcal_sync:'erro'})});}catch(_e){}}
@@ -11359,6 +11391,408 @@ async function acExcluir(){
   uiModalClose();
   await openAcoes();
   loadAlerts();
+}
+
+/* ================= Testes de n\u00edvel: disponibilidade e agendamento =================
+   Regras que este bloco carrega:
+   - a disponibilidade e' publicada pelo pedagogico (grade semanal + avulsos) e o
+     comercial so escolhe dentro dela;
+   - slot ocupado e' recusado pelo banco. E' a unica excecao a regra "cobra, nao
+     bloqueia": dois testes no mesmo horario com a mesma aplicadora e' conflito
+     fisico, nao pendencia de cadastro;
+   - falha no Google nunca impede o agendamento (regra 14). */
+var TN={slots:[],grade:[],avulsos:[],agend:[],vista:'agenda',lead:null,sel:null,fmod:'',dias:30,busy:false};
+var TNDOWS=['Domingo','Segunda','Ter\u00e7a','Quarta','Quinta','Sexta','S\u00e1bado'];
+var TNSTS={agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',faltou:'Faltou',cancelado:'Cancelado'};
+
+function tnRPC(fn,args){return api('/rpc/'+fn,{method:'POST',body:JSON.stringify(args||{})});}
+function tnHM(h){return h?String(h).slice(0,5):'';}
+function tnMod(m){return m==='online'?'Online':'Presencial';}
+function tnErro(e){
+  var t=String(e&&e.message||e||'');
+  try{var j=JSON.parse(t);if(j&&j.message)return j.message;}catch(_){}
+  return t.slice(0,140)||'N\u00e3o foi poss\u00edvel concluir.';
+}
+function tnAplicadores(){
+  var l=(USERS||[]).filter(function(u){return u.ativo!==false&&(u.papel==='pedagogico'||u.papel==='coordenacao');})
+                   .map(function(u){return u.nome;});
+  if(!l.length)l=RESP.slice();
+  return l;
+}
+/* quem precisa saber que entrou teste na agenda */
+function tnAvisados(aplicador){
+  var l=[];
+  if(aplicador)l.push(aplicador);
+  (USERS||[]).forEach(function(u){
+    if(u.ativo===false)return;
+    if(u.papel==='pedagogico'||u.papel==='coordenacao'){if(l.indexOf(u.nome)<0)l.push(u.nome);}
+  });
+  return l;
+}
+async function tnCats(){
+  if(!AGD.cats||!AGD.cats.length){
+    try{AGD.cats=(await api('/crm_agenda_categorias?select=*&order=nome.asc'))||[];}catch(e){AGD.cats=[];}
+  }
+  var c=AGD.cats.find(function(x){return x.nome==='Pedag\u00f3gico';});
+  return c?c.id:null;
+}
+
+/* ---------------- modal de agendamento (abre no arrasto para Experimental / Teste) */
+async function tnAbrirAgendamento(lead){
+  TN.lead=lead;TN.sel=null;TN.fmod='';
+  uiModal('Agendar teste de n\u00edvel',(lead.nome||'')+(lead.responsavel?' \u00b7 '+lead.responsavel:''),
+    '<div class="tnvazio">Carregando hor\u00e1rios dispon\u00edveis...</div>','');
+  try{await tnCarregaSlots();}
+  catch(e){$('gmbody').innerHTML='<div class="tnvazio">N\u00e3o foi poss\u00edvel ler a disponibilidade: '+esc(tnErro(e))+'</div>';return;}
+  tnDesenhaAgendar();
+}
+async function tnCarregaSlots(){
+  var hoje=hojeISO();
+  TN.slots=(await tnRPC('crm_tn_disponibilidade',{p_de:hoje,p_ate:addDias(hoje,TN.dias),p_modalidade:TN.fmod||null}))||[];
+}
+function tnDesenhaAgendar(){
+  var lead=TN.lead||{};
+  var h='<div class="tnbar">'+
+    ['','presencial','online'].map(function(m){
+      return '<button class="tnchip'+(TN.fmod===m?' on':'')+'" data-mod="'+m+'">'+(m===''?'Todas':tnMod(m))+'</button>';
+    }).join('')+
+    '<span style="font-size:12px;color:var(--gray)">pr\u00f3ximos '+TN.dias+' dias</span></div>';
+
+  if(!TN.slots.length){
+    h+='<div class="tnvazio">Nenhum hor\u00e1rio publicado para esse filtro. '+
+       (podeEditar('testes')?'Publique a grade em Testes de n\u00edvel.':'Peça \u00e0 coordena\u00e7\u00e3o para publicar a disponibilidade.')+
+       '</div>';
+  }else{
+    var atual='';
+    TN.slots.forEach(function(sl,i){
+      if(sl.data!==atual){atual=sl.data;h+='<div class="tnday">'+TNDOWS[tnDow(sl.data)]+', '+brDate(sl.data)+'</div><div class="tnslots">';}
+      var fecha=(i===TN.slots.length-1)||(TN.slots[i+1].data!==sl.data);
+      h+='<button class="tnslot'+(TN.sel&&TN.sel.data===sl.data&&TN.sel.hora_inicio===sl.hora_inicio&&TN.sel.aplicador===sl.aplicador?' on':'')+'" data-i="'+i+'">'+
+         '<b>'+tnHM(sl.hora_inicio)+' \u00e0s '+tnHM(sl.hora_fim)+'</b>'+
+         '<span>'+esc(sl.aplicador)+'</span>'+
+         '<span class="tnmod'+(sl.modalidade==='online'?' on':'')+'">'+tnMod(sl.modalidade)+'</span></button>';
+      if(fecha)h+='</div>';
+    });
+  }
+
+  h+='<div class="agform" style="margin-top:14px">'+
+     '<div class="full"><label>E-mail da aluna ou do respons\u00e1vel</label>'+
+     '<input id="tn_email" type="email" placeholder="para receber o convite e o link do Meet" value="'+esc(lead.email||'')+'"></div>'+
+     '<div class="full"><label>Observa\u00e7\u00e3o para o pedag\u00f3gico (opcional)</label>'+
+     '<textarea id="tn_obs" class="ataarea sm" placeholder="O que a Izabelle e a Marianna precisam saber antes do teste"></textarea></div>'+
+     '</div>';
+
+  $('gmbody').innerHTML=h;
+  $('gmfoot').style.display='';
+  $('gmfoot').innerHTML='<button class="btn primary" id="tn_ok">Agendar teste</button>'+
+                       '<button class="btn" id="tn_cancel">Agora n\u00e3o</button>';
+
+  $('gmbody').querySelectorAll('.tnchip').forEach(function(b){
+    b.onclick=async function(){
+      TN.fmod=b.dataset.mod;TN.sel=null;
+      try{await tnCarregaSlots();}catch(e){}
+      tnDesenhaAgendar();
+    };
+  });
+  $('gmbody').querySelectorAll('.tnslot').forEach(function(b){
+    b.onclick=function(){TN.sel=TN.slots[+b.dataset.i];tnDesenhaAgendar();};
+  });
+  $('tn_cancel').onclick=uiModalClose;
+  $('tn_ok').onclick=tnConfirmar;
+}
+function tnDow(iso){var p=String(iso).split('-');return new Date(Date.UTC(+p[0],+p[1]-1,+p[2])).getUTCDay();}
+
+async function tnConfirmar(){
+  if(!TN.sel){toast('Escolha um hor\u00e1rio dispon\u00edvel.');return;}
+  var btn=$('tn_ok');
+  if(btn.disabled)return;
+  var sl=TN.sel,lead=TN.lead;
+  var email=($('tn_email').value||'').trim();
+  var obs=($('tn_obs').value||'').trim();
+  if(sl.modalidade==='online'&&!email){
+    toast('Teste online precisa do e-mail: \u00e9 por ele que o link do Meet chega.');
+    $('tn_email').focus();return;
+  }
+  btn.disabled=true;
+  var ag=null;
+  try{
+    var r=await tnRPC('crm_tn_agendar',{p_lead_id:lead.id,p_data:sl.data,p_hora_inicio:sl.hora_inicio,
+      p_aplicador:sl.aplicador,p_modalidade:sl.modalidade,p_email:email||null,
+      p_observacoes:obs||null,p_criado_por:currentUser});
+    ag=Array.isArray(r)?r[0]:r;
+  }catch(e){
+    toast(tnErro(e));
+    btn.disabled=false;
+    try{await tnCarregaSlots();}catch(_){}
+    TN.sel=null;tnDesenhaAgendar();
+    return;
+  }
+  var L=(DATA.leads||[]).find(function(x){return x.id===lead.id;});
+  if(L){
+    L.proximo_atendimento=sl.data;L.proximo_atendimento_hora=sl.hora_inicio;L.proximo_canal='teste_nivel';
+    if(email&&!L.email)L.email=email;
+  }
+  uiModalClose();
+  render();loadAlerts();
+  toast('Teste marcado para '+brDate(sl.data)+' \u00e0s '+tnHM(sl.hora_inicio)+' com '+sl.aplicador+'.');
+  tnEspelharAgenda(ag);
+}
+
+/* espelho no calendario: e' isso que avisa Izabelle e Marianna, porque a fila de
+   alertas ja varre crm_agenda_eventos por responsavel e participante */
+async function tnEspelharAgenda(ag){
+  if(!ag)return;
+  try{
+    var cat=await tnCats();
+    var desc='Teste de n\u00edvel ('+tnMod(ag.modalidade)+')'+
+      '\nAluno: '+(ag.nome_aluno||'')+
+      (ag.whatsapp?'\nWhatsApp: '+ag.whatsapp:'')+
+      (ag.email?'\nE-mail: '+ag.email:'')+
+      '\nConsultor: '+(ag.criado_por||currentUser||'')+
+      (ag.observacoes?'\n\n'+ag.observacoes:'');
+    var body={titulo:'Teste de n\u00edvel \u00b7 '+(ag.nome_aluno||'aluno'),descricao:desc,categoria_id:cat,
+      data:ag.data,hora_inicio:ag.hora_inicio,hora_fim:ag.hora_fim,responsavel:ag.aplicador,
+      participantes:tnAvisados(ag.aplicador),lembrete_min:60,
+      convidados:ag.email?[ag.email]:null,meet:(ag.modalidade==='online'),
+      criado_por:currentUser,atualizado_em:new Date().toISOString(),gcal_sync:'pendente'};
+    var r=await api('/crm_agenda_eventos',{method:'POST',body:JSON.stringify(body)});
+    var ev=r&&r[0];
+    if(!ev)return;
+    await api('/crm_tn_agendamentos?id=eq.'+ag.id,{method:'PATCH',body:JSON.stringify({agenda_evento_id:ev.id})});
+    if(!AGD.cfg){try{var cf=await api('/crm_agenda_config?select=*&limit=1');AGD.cfg=(cf&&cf[0])||null;}catch(e){}}
+    var meet=await agdSyncEvento(ev,'upsert');
+    if(meet){
+      await api('/crm_tn_agendamentos?id=eq.'+ag.id,{method:'PATCH',body:JSON.stringify({meet_url:meet})});
+      toast('Convite enviado e sala do Meet criada.');
+    }
+  }catch(e){
+    toast('Teste agendado. O calend\u00e1rio n\u00e3o recebeu \u2014 avise o pedag\u00f3gico.');
+  }
+}
+
+/* ---------------- tela de Testes de n\u00edvel */
+async function openTestes(){
+  $('stats').innerHTML='';
+  $('board').innerHTML='<div class="loading">Carregando testes de n\u00edvel...</div>';
+  var hoje=hojeISO();
+  try{
+    var r=await Promise.all([
+      api('/crm_tn_agendamentos?select=*&data=gte.'+addDias(hoje,-30)+'&order=data.asc,hora_inicio.asc'),
+      api('/crm_tn_grade?select=*&order=dia_semana.asc,hora_inicio.asc'),
+      api('/crm_tn_avulsos?select=*&data=gte.'+addDias(hoje,-7)+'&order=data.asc,hora_inicio.asc')
+    ]);
+    TN.agend=r[0]||[];TN.grade=r[1]||[];TN.avulsos=r[2]||[];
+  }catch(e){
+    $('board').innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar: '+esc(tnErro(e))+'</div>';return;
+  }
+  renderTestes();
+}
+function renderTestes(){
+  var adm=podeEditar('testes');
+  var h='<div class="pane"><div class="tnbar">'+
+    [['agenda','Agendados'],['grade','Grade semanal'],['avulsos','Avulsos e bloqueios']].map(function(v){
+      return '<button class="tnchip'+(TN.vista===v[0]?' on':'')+'" data-v="'+v[0]+'">'+v[1]+'</button>';
+    }).join('')+'</div>';
+
+  if(TN.vista==='agenda')h+=tnViewAgenda();
+  else if(TN.vista==='grade')h+=tnViewGrade(adm);
+  else h+=tnViewAvulsos(adm);
+
+  h+='</div>';
+  $('board').innerHTML=h;
+
+  $('board').querySelectorAll('.tnchip[data-v]').forEach(function(b){
+    b.onclick=function(){TN.vista=b.dataset.v;renderTestes();};
+  });
+  var add=$('tnAddGrade');if(add)add.onclick=function(){tnFormGrade(null);};
+  var addA=$('tnAddAvulso');if(addA)addA.onclick=function(){tnFormAvulso(null);};
+  $('board').querySelectorAll('[data-eg]').forEach(function(b){
+    b.onclick=function(){tnFormGrade(TN.grade.find(function(x){return x.id===b.dataset.eg;}));};
+  });
+  $('board').querySelectorAll('[data-ea]').forEach(function(b){
+    b.onclick=function(){tnFormAvulso(TN.avulsos.find(function(x){return x.id===b.dataset.ea;}));};
+  });
+  $('board').querySelectorAll('[data-st]').forEach(function(b){
+    b.onchange=function(){tnStatus(b.dataset.st,b.value);};
+  });
+}
+function tnViewAgenda(){
+  var hoje=hojeISO();
+  var fut=TN.agend.filter(function(a){return a.data>=hoje&&a.status!=='cancelado';});
+  var pas=TN.agend.filter(function(a){return a.data<hoje||a.status==='cancelado';});
+  function lin(a){
+    var meet=a.meet_url?' \u00b7 <a href="'+esc(a.meet_url)+'" target="_blank" rel="noopener">Meet</a>':'';
+    return '<div class="tnlin"><div>'+
+      '<div class="t">'+esc(a.nome_aluno||'Aluno')+' \u00b7 '+brDate(a.data)+' '+tnHM(a.hora_inicio)+'</div>'+
+      '<div class="s">'+esc(a.aplicador)+' \u00b7 '+tnMod(a.modalidade)+
+        (a.email?' \u00b7 '+esc(a.email):'')+
+        (a.criado_por?' \u00b7 marcado por '+esc(a.criado_por):'')+meet+
+        (a.observacoes?'<br>'+esc(a.observacoes):'')+'</div></div>'+
+      '<div class="tnacts">'+
+        (a.status==='cancelado'?'<span class="tag gray">Cancelado</span>':
+          '<select class="btn" data-st="'+a.id+'" style="padding:4px 6px">'+
+          Object.keys(TNSTS).map(function(k){return '<option value="'+k+'"'+(a.status===k?' selected':'')+'>'+TNSTS[k]+'</option>';}).join('')+
+          '</select>')+
+      '</div></div>';
+  }
+  var h='<div class="rcard"><div class="paneh"><h3>Pr\u00f3ximos testes</h3></div>';
+  h+=fut.length?fut.map(lin).join(''):'<div class="tnvazio">Nenhum teste marcado.</div>';
+  h+='</div><div class="rcard" style="margin-top:12px"><div class="paneh"><h3>Hist\u00f3rico</h3></div>';
+  h+=pas.length?pas.slice(-40).reverse().map(lin).join(''):'<div class="tnvazio">Nada no hist\u00f3rico ainda.</div>';
+  return h+'</div>';
+}
+function tnViewGrade(adm){
+  var h='<div class="rcard"><div class="paneh"><h3>Grade semanal</h3>'+
+    (adm?'<button class="btn primary" id="tnAddGrade">+ Nova faixa</button>':'')+'</div>'+
+    '<div class="rnote">A faixa se repete toda semana e \u00e9 fatiada em hor\u00e1rios da dura\u00e7\u00e3o escolhida. '+
+    'Para tirar um dia espec\u00edfico, use um bloqueio em Avulsos.</div>';
+  if(!TN.grade.length)return h+'<div class="tnvazio">Nenhuma faixa publicada. Enquanto isso, o comercial n\u00e3o consegue marcar teste.</div></div>';
+  h+=TN.grade.map(function(g){
+    return '<div class="tnlin"><div>'+
+      '<div class="t">'+TNDOWS[g.dia_semana]+' \u00b7 '+tnHM(g.hora_inicio)+' \u00e0s '+tnHM(g.hora_fim)+'</div>'+
+      '<div class="s">'+esc(g.aplicador)+' \u00b7 '+tnMod(g.modalidade)+' \u00b7 '+g.duracao_min+' min'+
+        (g.vigencia_fim?' \u00b7 at\u00e9 '+brDate(g.vigencia_fim):'')+
+        (g.ativo?'':' \u00b7 inativa')+'</div></div>'+
+      '<div class="tnacts">'+(adm?'<button class="btn" data-eg="'+g.id+'">Editar</button>':'')+'</div></div>';
+  }).join('');
+  return h+'</div>';
+}
+function tnViewAvulsos(adm){
+  var h='<div class="rcard"><div class="paneh"><h3>Avulsos e bloqueios</h3>'+
+    (adm?'<button class="btn primary" id="tnAddAvulso">+ Novo</button>':'')+'</div>'+
+    '<div class="rnote">Vaga avulsa abre um hor\u00e1rio fora da grade. Bloqueio tira hor\u00e1rio ou dia inteiro. '+
+    'Bloqueio sem aplicadora vale para todas.</div>';
+  if(!TN.avulsos.length)return h+'<div class="tnvazio">Nada registrado.</div></div>';
+  h+=TN.avulsos.map(function(a){
+    return '<div class="tnlin"><div>'+
+      '<div class="t">'+(a.tipo==='vaga'?'Vaga extra':'Bloqueio')+' \u00b7 '+brDate(a.data)+
+        (a.hora_inicio?' \u00b7 '+tnHM(a.hora_inicio)+(a.hora_fim?' \u00e0s '+tnHM(a.hora_fim):''):' \u00b7 dia inteiro')+'</div>'+
+      '<div class="s">'+esc(a.aplicador||'todas as aplicadoras')+(a.tipo==='vaga'?' \u00b7 '+tnMod(a.modalidade):'')+
+        (a.motivo?' \u00b7 '+esc(a.motivo):'')+(a.ativo?'':' \u00b7 inativo')+'</div></div>'+
+      '<div class="tnacts">'+(adm?'<button class="btn" data-ea="'+a.id+'">Editar</button>':'')+'</div></div>';
+  }).join('');
+  return h+'</div>';
+}
+
+function tnFormGrade(g){
+  g=g||{};
+  var aps=tnAplicadores();
+  var body='<div class="agform">'+
+    '<div><label>Dia da semana</label><select id="tg_dia">'+
+      TNDOWS.map(function(d,i){return '<option value="'+i+'"'+(g.dia_semana===i?' selected':'')+'>'+d+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Aplicadora</label><select id="tg_ap">'+
+      aps.map(function(a){return '<option'+(g.aplicador===a?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>In\u00edcio</label><input id="tg_hi" type="time" value="'+tnHM(g.hora_inicio)+'"></div>'+
+    '<div><label>Fim</label><input id="tg_hf" type="time" value="'+tnHM(g.hora_fim)+'"></div>'+
+    '<div><label>Dura\u00e7\u00e3o de cada teste</label><select id="tg_dur">'+
+      [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((g.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
+    '<div><label>Modalidade</label><select id="tg_mod">'+
+      '<option value="presencial"'+(g.modalidade==='online'?'':' selected')+'>Presencial</option>'+
+      '<option value="online"'+(g.modalidade==='online'?' selected':'')+'>Online (com Meet)</option></select></div>'+
+    '<div><label>Vale a partir de</label><input id="tg_vi" type="date" value="'+esc(g.vigencia_inicio||hojeISO())+'"></div>'+
+    '<div><label>At\u00e9 (opcional)</label><input id="tg_vf" type="date" value="'+esc(g.vigencia_fim||'')+'"></div>'+
+    '<div class="full"><label style="text-transform:none;font-size:12px"><input type="checkbox" id="tg_at"'+(g.ativo===false?'':' checked')+'> faixa ativa</label></div>'+
+    '</div>';
+  uiModal(g.id?'Editar faixa da grade':'Nova faixa da grade','Toda semana, no mesmo dia',body,
+    '<button class="btn primary" id="tg_save">Salvar</button><button class="btn" id="tg_cancel">Cancelar</button>'+
+    (g.id?'<div class="spacer"></div><button class="btn" id="tg_del" style="color:var(--red)">Excluir</button>':''));
+  $('tg_cancel').onclick=uiModalClose;
+  $('tg_save').onclick=async function(){
+    var hi=$('tg_hi').value,hf=$('tg_hf').value;
+    if(!hi||!hf){toast('Informe in\u00edcio e fim da faixa.');return;}
+    if(hf<=hi){toast('O fim precisa ser depois do in\u00edcio.');return;}
+    var b={dia_semana:+$('tg_dia').value,aplicador:$('tg_ap').value,hora_inicio:hi,hora_fim:hf,
+      duracao_min:+$('tg_dur').value,modalidade:$('tg_mod').value,
+      vigencia_inicio:$('tg_vi').value||hojeISO(),vigencia_fim:$('tg_vf').value||null,
+      ativo:$('tg_at').checked,atualizado_em:new Date().toISOString()};
+    try{
+      if(g.id)await api('/crm_tn_grade?id=eq.'+g.id,{method:'PATCH',body:JSON.stringify(b)});
+      else{b.criado_por=currentUser;await api('/crm_tn_grade',{method:'POST',body:JSON.stringify(b)});}
+    }catch(e){toast(tnErro(e));return;}
+    uiModalClose();openTestes();
+  };
+  if(g.id)$('tg_del').onclick=async function(){
+    var b=$('tg_del');
+    if(!b.classList.contains('confirm')){
+      b.classList.add('confirm');b.textContent='Confirmar exclus\u00e3o?';
+      setTimeout(function(){if(!b)return;b.classList.remove('confirm');b.textContent='Excluir';},3500);
+      return;
+    }
+    try{await api('/crm_tn_grade?id=eq.'+g.id,{method:'DELETE'});}catch(e){toast(tnErro(e));return;}
+    uiModalClose();openTestes();
+  };
+}
+
+function tnFormAvulso(a){
+  a=a||{};
+  var aps=tnAplicadores();
+  var body='<div class="agform">'+
+    '<div><label>Tipo</label><select id="ta_tipo">'+
+      '<option value="vaga"'+(a.tipo==='bloqueio'?'':' selected')+'>Vaga extra</option>'+
+      '<option value="bloqueio"'+(a.tipo==='bloqueio'?' selected':'')+'>Bloqueio</option></select></div>'+
+    '<div><label>Data</label><input id="ta_data" type="date" value="'+esc(a.data||hojeISO())+'"></div>'+
+    '<div><label>In\u00edcio</label><input id="ta_hi" type="time" value="'+tnHM(a.hora_inicio)+'"></div>'+
+    '<div><label>Fim (opcional)</label><input id="ta_hf" type="time" value="'+tnHM(a.hora_fim)+'"></div>'+
+    '<div><label>Aplicadora</label><select id="ta_ap"><option value="">Todas (s\u00f3 bloqueio)</option>'+
+      aps.map(function(x){return '<option'+(a.aplicador===x?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select></div>'+
+    '<div><label>Modalidade</label><select id="ta_mod">'+
+      '<option value="presencial"'+(a.modalidade==='online'?'':' selected')+'>Presencial</option>'+
+      '<option value="online"'+(a.modalidade==='online'?' selected':'')+'>Online (com Meet)</option></select></div>'+
+    '<div><label>Dura\u00e7\u00e3o</label><select id="ta_dur">'+
+      [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((a.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
+    '<div class="full"><label>Motivo ou observa\u00e7\u00e3o</label><input id="ta_motivo" value="'+esc(a.motivo||'')+'"></div>'+
+    '<div class="full"><label style="text-transform:none;font-size:12px"><input type="checkbox" id="ta_at"'+(a.ativo===false?'':' checked')+'> ativo</label></div>'+
+    '<div class="full rnote">Bloqueio sem hor\u00e1rio tira o dia inteiro. Vaga extra exige hor\u00e1rio e aplicadora.</div>'+
+    '</div>';
+  uiModal(a.id?'Editar avulso':'Novo avulso ou bloqueio','Vale s\u00f3 na data escolhida',body,
+    '<button class="btn primary" id="ta_save">Salvar</button><button class="btn" id="ta_cancel">Cancelar</button>'+
+    (a.id?'<div class="spacer"></div><button class="btn" id="ta_del" style="color:var(--red)">Excluir</button>':''));
+  $('ta_cancel').onclick=uiModalClose;
+  $('ta_save').onclick=async function(){
+    var tipo=$('ta_tipo').value,hi=$('ta_hi').value||null,ap=$('ta_ap').value||null;
+    if(tipo==='vaga'&&(!hi||!ap)){toast('Vaga extra precisa de hor\u00e1rio e aplicadora.');return;}
+    var b={tipo:tipo,data:$('ta_data').value,hora_inicio:hi,hora_fim:$('ta_hf').value||null,
+      aplicador:ap,modalidade:$('ta_mod').value,duracao_min:+$('ta_dur').value,
+      motivo:$('ta_motivo').value.trim()||null,ativo:$('ta_at').checked};
+    if(!b.data){toast('Informe a data.');return;}
+    try{
+      if(a.id)await api('/crm_tn_avulsos?id=eq.'+a.id,{method:'PATCH',body:JSON.stringify(b)});
+      else{b.criado_por=currentUser;await api('/crm_tn_avulsos',{method:'POST',body:JSON.stringify(b)});}
+    }catch(e){toast(tnErro(e));return;}
+    uiModalClose();openTestes();
+  };
+  if(a.id)$('ta_del').onclick=async function(){
+    var b=$('ta_del');
+    if(!b.classList.contains('confirm')){
+      b.classList.add('confirm');b.textContent='Confirmar exclus\u00e3o?';
+      setTimeout(function(){if(!b)return;b.classList.remove('confirm');b.textContent='Excluir';},3500);
+      return;
+    }
+    try{await api('/crm_tn_avulsos?id=eq.'+a.id,{method:'DELETE'});}catch(e){toast(tnErro(e));return;}
+    uiModalClose();openTestes();
+  };
+}
+
+async function tnStatus(id,v){
+  var sel=document.querySelector('[data-st="'+id+'"]');
+  var novo=sel?sel.value:v;
+  var a=TN.agend.find(function(x){return x.id===id;});
+  if(!a||a.status===novo)return;
+  try{
+    await api('/crm_tn_agendamentos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:novo,atualizado_em:new Date().toISOString()})});
+    a.status=novo;
+  }catch(e){toast(tnErro(e));return;}
+  /* cancelar libera o slot e tira o evento da agenda das aplicadoras */
+  if(novo==='cancelado'&&a.agenda_evento_id){
+    try{
+      var r=await api('/crm_agenda_eventos?select=*&id=eq.'+a.agenda_evento_id);
+      var ev=r&&r[0];
+      await api('/crm_agenda_eventos?id=eq.'+a.agenda_evento_id,{method:'DELETE'});
+      if(ev&&ev.gcal_id){if(!AGD.cfg){try{var cf=await api('/crm_agenda_config?select=*&limit=1');AGD.cfg=(cf&&cf[0])||null;}catch(_e){}}agdSyncEvento(ev,'delete');}
+    }catch(e){}
+  }
+  toast('Status atualizado para '+TNSTS[novo]+'.');
+  renderTestes();
 }
 
 /* ---- espelho no calendario ---- */
