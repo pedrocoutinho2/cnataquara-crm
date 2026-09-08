@@ -11639,7 +11639,7 @@ function rtAuto(root){
    - a disponibilidade e' publicada pelo pedagogico (grade semanal + avulsos) e o
      comercial so escolhe dentro dela;
    - slot ocupado e' recusado pelo banco. E' a unica excecao a regra "cobra, nao
-     bloqueia": dois testes no mesmo horario com a mesma aplicadora e' conflito
+     bloqueia": dois testes no mesmo horario com a mesma pessoa aplicando e' conflito
      fisico, nao pendencia de cadastro;
    - falha no Google nunca impede o agendamento (regra 14). */
 var TN={slots:[],grade:[],avulsos:[],agend:[],vista:'agenda',lead:null,sel:null,modSel:'',fmod:'',dias:60,porDia:{},dia:'',mes:'',ja:null,busy:false};
@@ -11749,7 +11749,7 @@ function tnDesenhaJaMarcado(){
       (a.email?'<br>Convite para '+esc(a.email):'')+
       (a.meet_url?'<br><a href="'+esc(a.meet_url)+'" target="_blank" rel="noopener">Link do Meet</a>':'')+
       (a.criado_por?'<br>Marcado por '+esc(a.criado_por):'')+'</span></div>'+
-    '<div class="tnvazio">Para mudar o hor\u00e1rio, cancele este e marque outro. Cancelar tamb\u00e9m tira o evento da agenda das aplicadoras.</div>';
+    '<div class="tnvazio">Para mudar o hor\u00e1rio, cancele este e marque outro. Cancelar tamb\u00e9m tira o evento da agenda de quem ia aplicar.</div>';
   $('gmfoot').style.display='';
   $('gmfoot').innerHTML='<button class="btn" id="tn_remarcar">Cancelar e marcar outro</button>'+
                        '<button class="btn primary" id="tn_fechar">Fechar</button>';
@@ -11835,10 +11835,10 @@ function tnDesenhaAgendar(){
        }).join('')+'</div>';
   }
   h+='<div class="agform" style="margin-top:14px">'+
-     '<div class="full"><label>E-mail da aluna ou do respons\u00e1vel</label>'+
+     '<div class="full"><label>E-mail do aluno ou respons\u00e1vel</label>'+
      '<input id="tn_email" type="email" placeholder="para receber o convite e o link do Meet" value="'+esc(lead.email||'')+'"></div>'+
      '<div class="full"><label>Observa\u00e7\u00e3o para o pedag\u00f3gico (opcional)</label>'+
-     '<textarea id="tn_obs" class="ataarea sm" placeholder="O que a Izabelle e a Marianna precisam saber antes do teste"></textarea></div>'+
+     '<textarea id="tn_obs" class="ataarea sm" placeholder="O que quem vai aplicar precisa saber antes do teste"></textarea></div>'+
      '</div>';
 
   $('gmbody').innerHTML=h;
@@ -12099,13 +12099,13 @@ function tnViewAvulsos(adm){
   var h='<div class="rcard"><div class="paneh"><h3>Avulsos e bloqueios</h3>'+
     (adm?'<button class="btn primary" id="tnAddAvulso">+ Novo</button>':'')+'</div>'+
     '<div class="rnote">Vaga avulsa abre um hor\u00e1rio fora da grade. Bloqueio tira hor\u00e1rio ou dia inteiro. '+
-    'Bloqueio sem aplicadora vale para todas.</div>';
+    'Bloqueio sem pessoa definida vale para todo mundo.</div>';
   if(!TN.avulsos.length)return h+'<div class="tnvazio">Nada registrado.</div></div>';
   h+=TN.avulsos.map(function(a){
     return '<div class="tnlin"><div>'+
       '<div class="t">'+(a.tipo==='vaga'?'Vaga extra':'Bloqueio')+' \u00b7 '+brDate(a.data)+
         (a.hora_inicio?' \u00b7 '+tnHM(a.hora_inicio)+(a.hora_fim?' \u00e0s '+tnHM(a.hora_fim):''):' \u00b7 dia inteiro')+'</div>'+
-      '<div class="s">'+esc(a.aplicador||'todas as aplicadoras')+(a.tipo==='vaga'?' \u00b7 '+tnMod(a.modalidade):'')+
+      '<div class="s">'+esc(a.aplicador||'todo mundo')+(a.tipo==='vaga'?' \u00b7 '+tnMod(a.modalidade):'')+
         (a.motivo?' \u00b7 '+esc(a.motivo):'')+(a.ativo?'':' \u00b7 inativo')+'</div></div>'+
       '<div class="tnacts">'+(adm?'<button class="btn" data-ea="'+a.id+'">Editar</button>':'')+'</div></div>';
   }).join('');
@@ -12122,7 +12122,7 @@ function tnFormGrade(gr){
       TNDOWS.map(function(d,i){
         return '<button class="tnchip'+(sel[i]!==undefined?' on':'')+'" data-dia="'+i+'">'+d+'</button>';
       }).join('')+'</div></div>'+
-    '<div><label>Aplicadora</label><select id="tg_ap">'+
+    '<div><label>Quem aplica</label><select id="tg_ap">'+
       aps.map(function(a){return '<option'+(g.aplicador===a?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'</select></div>'+
     '<div><label>Dura\u00e7\u00e3o de cada teste</label><select id="tg_dur">'+
       [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((g.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
@@ -12207,7 +12207,7 @@ function tnFormAvulso(a){
     '<div><label>Data</label><input id="ta_data" type="date" value="'+esc(a.data||hojeISO())+'"></div>'+
     '<div><label>In\u00edcio</label><input id="ta_hi" type="time" value="'+tnHM(a.hora_inicio)+'"></div>'+
     '<div><label>Fim (opcional)</label><input id="ta_hf" type="time" value="'+tnHM(a.hora_fim)+'"></div>'+
-    '<div><label>Aplicadora</label><select id="ta_ap"><option value="">Todas (s\u00f3 bloqueio)</option>'+
+    '<div><label>Quem aplica</label><select id="ta_ap"><option value="">Todo mundo (s\u00f3 bloqueio)</option>'+
       aps.map(function(x){return '<option'+(a.aplicador===x?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select></div>'+
     '<div><label>Modalidade</label><select id="ta_mod">'+
       '<option value="presencial"'+(a.modalidade==='presencial'?' selected':'')+'>S\u00f3 presencial</option>'+
@@ -12217,7 +12217,7 @@ function tnFormAvulso(a){
       [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((a.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
     '<div class="full"><label>Motivo ou observa\u00e7\u00e3o</label><input id="ta_motivo" value="'+esc(a.motivo||'')+'"></div>'+
     '<div class="full"><label style="text-transform:none;font-size:12px"><input type="checkbox" id="ta_at"'+(a.ativo===false?'':' checked')+'> ativo</label></div>'+
-    '<div class="full rnote">Bloqueio sem hor\u00e1rio tira o dia inteiro. Vaga extra exige hor\u00e1rio e aplicadora.</div>'+
+    '<div class="full rnote">Bloqueio sem hor\u00e1rio tira o dia inteiro. Vaga extra exige hor\u00e1rio e quem aplica.</div>'+
     '</div>';
   uiModal(a.id?'Editar avulso':'Novo avulso ou bloqueio','Vale s\u00f3 na data escolhida',body,
     '<button class="btn primary" id="ta_save">Salvar</button><button class="btn" id="ta_cancel">Cancelar</button>'+
@@ -12225,7 +12225,7 @@ function tnFormAvulso(a){
   $('ta_cancel').onclick=uiModalClose;
   $('ta_save').onclick=async function(){
     var tipo=$('ta_tipo').value,hi=$('ta_hi').value||null,ap=$('ta_ap').value||null;
-    if(tipo==='vaga'&&(!hi||!ap)){toast('Vaga extra precisa de hor\u00e1rio e aplicadora.');return;}
+    if(tipo==='vaga'&&(!hi||!ap)){toast('Vaga extra precisa de hor\u00e1rio e de quem vai aplicar.');return;}
     var b={tipo:tipo,data:$('ta_data').value,hora_inicio:hi,hora_fim:$('ta_hf').value||null,
       aplicador:ap,modalidade:$('ta_mod').value,duracao_min:+$('ta_dur').value,
       motivo:$('ta_motivo').value.trim()||null,ativo:$('ta_at').checked};
@@ -12257,7 +12257,7 @@ async function tnStatus(id,v){
     await api('/crm_tn_agendamentos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:novo,atualizado_em:new Date().toISOString()})});
     a.status=novo;
   }catch(e){toast(tnErro(e));return;}
-  /* cancelar libera o slot e tira o evento da agenda das aplicadoras */
+  /* cancelar libera o slot e tira o evento da agenda de quem ia aplicar */
   if(novo==='cancelado'&&a.agenda_evento_id){
     try{
       var r=await api('/crm_agenda_eventos?select=*&id=eq.'+a.agenda_evento_id);
