@@ -2632,7 +2632,7 @@ async function moveTo(id,stage){
     /* Entrar em "Experimental / Teste" abre a escolha de horário na
        disponibilidade publicada pelo pedagógico. Fechar o modal não desfaz a
        mudança de etapa: o card já está na coluna, o agendamento é o passo seguinte. */
-    if(tab==='leads'&&stage==='experimental'&&old!=='experimental')tnAbrirAgendamento(s);
+    if(tab==='leads'&&stage==='experimental'&&old!=='experimental')tnAposEtapaTeste(id);
   }catch(e){
     s[sf]=old;s.data_fechamento=oldFech;render();toast('Não foi possível mover. Tente de novo.');
   }
@@ -2734,7 +2734,7 @@ function openModal(id){
     hi.addEventListener('input',marca);
   });
   const selEt=form.querySelector('[data-k=etapa]');
-  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();});
+  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();tnSyncBotaoFicha();});
   const selMp=form.querySelector('[data-k=motivo_perda]');
   if(selMp)selMp.addEventListener('change',syncPerda);
   syncPerda();
@@ -2756,8 +2756,12 @@ function openModal(id){
   /* A02: fechar o modal do arrasto sem agendar deixava o lead sem caminho de volta.
      A ficha passa a ser a porta permanente do agendamento do teste. */
   if($('tnFicha')){
-    $('tnFicha').style.display=(tab==='leads'&&s)?'':'none';
-    $('tnFicha').onclick=function(){tnAbrirAgendamento(s);};
+    $('tnFicha').style.display='none';
+    $('tnFicha').onclick=function(){
+      var cur=(DATA.leads||[]).find(function(x){return x.id===editing;});
+      if(cur)tnAbrirAgendamento(cur);
+    };
+    if(tab==='leads'&&s)tnCarregaAtivos().then(tnSyncBotaoFicha);
   }
   $('del').classList.remove('confirm');$('del').textContent='Excluir';
   $('savedmsg').style.display='none';
@@ -3446,11 +3450,21 @@ $('save').onclick=async function(){
          27.1). Sem isso a ficha continuava mostrando o agendamento antigo ate alguem
          reabrir o cadastro. */
       if(res&&res[0])refletirCarimbo(res[0]);
-      if(tab==='leads'&&body.etapa&&body.etapa!==etapaAntes)logEtapa(editing,body.etapa);
+      if(tab==='leads'&&body.etapa&&body.etapa!==etapaAntes){
+        logEtapa(editing,body.etapa);
+        /* mudar a etapa na ficha vale tanto quanto arrastar o card */
+        if(body.etapa==='experimental')tnAposEtapaTeste(editing);
+      }
     }else{
       const res=await api('/'+cfg.table,{method:'POST',body:JSON.stringify(body)});
       if(res&&res[0]){DATA[tab].push(res[0]);editing=res[0].id;$('ints').style.display='';loadInts(editing);$('del').style.display='';
         if(tab==='leads')logEtapa(editing,res[0].etapa||'novo');
+        /* lead cadastrado ja na etapa de teste: o agendamento abre aqui, sem
+           precisar salvar, fechar e reabrir a ficha */
+        if(tab==='leads'){
+          tnSyncBotaoFicha();
+          if(res[0].etapa==='experimental')tnAposEtapaTeste(editing);
+        }
         /* o banco agenda o primeiro contato do lead novo; traz para a ficha
            e para a barra de agendamento sem precisar reabrir o cadastro */
         syncMsub(res[0]);syncAgbar();
@@ -11633,6 +11647,38 @@ var TNDOWS=['Domingo','Segunda','Ter\u00e7a','Quarta','Quinta','Sexta','S\u00e1b
 var TNSTS={agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',faltou:'Faltou',cancelado:'Cancelado'};
 
 function tnRPC(fn,args){return api('/rpc/'+fn,{method:'POST',body:JSON.stringify(args||{})});}
+
+/* Testes ativos por lead. Uma consulta por sess\u00e3o alimenta o bot\u00e3o da ficha:
+   sem isso, a ficha nao sabe se o lead ja tem teste marcado e o botao teria que
+   aparecer para todo mundo, o tempo todo. */
+var TNATIVOS=null;
+async function tnCarregaAtivos(force){
+  if(TNATIVOS&&!force)return TNATIVOS;
+  TNATIVOS={};
+  try{
+    var r=await api('/crm_tn_agendamentos?select=id,lead_id,data,hora_inicio,aplicador,modalidade,status,meet_url'
+      +'&status=neq.cancelado&data=gte.'+addDias(hojeISO(),-1));
+    (r||[]).forEach(function(a){TNATIVOS[a.lead_id]=a;});
+  }catch(e){}
+  return TNATIVOS;
+}
+function tnAtivoDe(id){return (TNATIVOS&&TNATIVOS[id])||null;}
+
+/* O botao da ficha aparece quando faz sentido: lead na etapa de teste, ou lead
+   que ja tem teste marcado. Nas demais etapas ele so polui a barra. */
+function tnSyncBotaoFicha(){
+  var b=$('tnFicha');
+  if(!b)return;
+  if(tab!=='leads'||!editing){b.style.display='none';return;}
+  var sel=document.querySelector('#form [data-k=etapa]');
+  var etapa=sel?sel.value:'';
+  var a=tnAtivoDe(editing);
+  var mostra=!!a||etapa==='experimental';
+  b.style.display=mostra?'':'none';
+  b.textContent=a?('Teste: '+brDate(a.data).slice(0,5)+' '+tnHM(a.hora_inicio))
+                 :'Agendar teste de n\u00edvel';
+  b.classList.toggle('primary',!a&&etapa==='experimental');
+}
 function tnHM(h){return h?String(h).slice(0,5):'';}
 function tnMod(m){return m==='online'?'Online':(m==='ambas'?'Presencial ou online':'Presencial');}
 /* faixa pode aceitar as duas: nesse caso quem agenda informa qual e' */
@@ -11670,6 +11716,16 @@ async function tnCats(){
 }
 
 /* ---------------- modal de agendamento (abre no arrasto para Experimental / Teste) */
+/* Abre o agendamento depois que o lead entra na etapa de teste, por qualquer
+   caminho, e sem atropelar quem ja tem teste marcado. */
+async function tnAposEtapaTeste(id){
+  await tnCarregaAtivos(true);
+  tnSyncBotaoFicha();
+  if(tnAtivoDe(id))return;
+  var lead=(DATA.leads||[]).find(function(x){return x.id===id;});
+  if(lead)tnAbrirAgendamento(lead);
+}
+
 async function tnAbrirAgendamento(lead){
   TN.lead=lead;TN.sel=null;TN.modSel='';TN.fmod='';TN.dia='';TN.mes='';TN.ja=null;
   uiModal('Agendar teste de n\u00edvel',(lead.nome||'')+(lead.responsavel?' \u00b7 '+lead.responsavel:''),
@@ -11718,6 +11774,8 @@ function tnDesenhaJaMarcado(){
 async function tnCancelarAg(a){
   await api('/crm_tn_agendamentos?id=eq.'+a.id,{method:'PATCH',
     body:JSON.stringify({status:'cancelado',atualizado_em:new Date().toISOString()})});
+  if(TNATIVOS&&a.lead_id)delete TNATIVOS[a.lead_id];
+  tnSyncBotaoFicha();
   if(!a.agenda_evento_id)return;
   try{
     var r=await api('/crm_agenda_eventos?select=*&id=eq.'+a.agenda_evento_id);
@@ -11885,6 +11943,8 @@ async function tnConfirmar(){
     L.proximo_atendimento=sl.data;L.proximo_atendimento_hora=sl.hora_inicio;L.proximo_canal='teste_nivel';
     if(email&&!L.email)L.email=email;
   }
+  if(TNATIVOS)TNATIVOS[lead.id]=ag;
+  tnSyncBotaoFicha();
   uiModalClose();
   render();loadAlerts();
   toast('Teste marcado para '+brDate(sl.data)+' \u00e0s '+tnHM(sl.hora_inicio)+' com '+sl.aplicador+'.');
