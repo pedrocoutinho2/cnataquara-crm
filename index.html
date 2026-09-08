@@ -11594,13 +11594,18 @@ function rtAuto(root){
      bloqueia": dois testes no mesmo horario com a mesma aplicadora e' conflito
      fisico, nao pendencia de cadastro;
    - falha no Google nunca impede o agendamento (regra 14). */
-var TN={slots:[],grade:[],avulsos:[],agend:[],vista:'agenda',lead:null,sel:null,fmod:'',dias:30,busy:false};
+var TN={slots:[],grade:[],avulsos:[],agend:[],vista:'agenda',lead:null,sel:null,modSel:'',fmod:'',dias:30,busy:false};
 var TNDOWS=['Domingo','Segunda','Ter\u00e7a','Quarta','Quinta','Sexta','S\u00e1bado'];
 var TNSTS={agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',faltou:'Faltou',cancelado:'Cancelado'};
 
 function tnRPC(fn,args){return api('/rpc/'+fn,{method:'POST',body:JSON.stringify(args||{})});}
 function tnHM(h){return h?String(h).slice(0,5):'';}
-function tnMod(m){return m==='online'?'Online':'Presencial';}
+function tnMod(m){return m==='online'?'Online':(m==='ambas'?'Presencial ou online':'Presencial');}
+/* faixa pode aceitar as duas: nesse caso quem agenda informa qual e' */
+function tnModEf(){
+  if(!TN.sel)return null;
+  return TN.sel.modalidade==='ambas'?(TN.modSel||null):TN.sel.modalidade;
+}
 function tnErro(e){
   var t=String(e&&e.message||e||'');
   try{var j=JSON.parse(t);if(j&&j.message)return j.message;}catch(_){}
@@ -11632,7 +11637,7 @@ async function tnCats(){
 
 /* ---------------- modal de agendamento (abre no arrasto para Experimental / Teste) */
 async function tnAbrirAgendamento(lead){
-  TN.lead=lead;TN.sel=null;TN.fmod='';
+  TN.lead=lead;TN.sel=null;TN.modSel='';TN.fmod='';
   uiModal('Agendar teste de n\u00edvel',(lead.nome||'')+(lead.responsavel?' \u00b7 '+lead.responsavel:''),
     '<div class="tnvazio">Carregando hor\u00e1rios dispon\u00edveis...</div>','');
   try{await tnCarregaSlots();}
@@ -11668,6 +11673,12 @@ function tnDesenhaAgendar(){
     });
   }
 
+  if(TN.sel&&TN.sel.modalidade==='ambas'){
+    h+='<div class="tnday" style="margin-top:14px">Como vai ser esse teste?</div><div class="tnbar">'+
+       ['presencial','online'].map(function(m){
+         return '<button class="tnchip'+(TN.modSel===m?' on':'')+'" data-modsel="'+m+'">'+tnMod(m)+'</button>';
+       }).join('')+'</div>';
+  }
   h+='<div class="agform" style="margin-top:14px">'+
      '<div class="full"><label>E-mail da aluna ou do respons\u00e1vel</label>'+
      '<input id="tn_email" type="email" placeholder="para receber o convite e o link do Meet" value="'+esc(lead.email||'')+'"></div>'+
@@ -11682,13 +11693,21 @@ function tnDesenhaAgendar(){
 
   $('gmbody').querySelectorAll('.tnchip').forEach(function(b){
     b.onclick=async function(){
-      TN.fmod=b.dataset.mod;TN.sel=null;
+      TN.fmod=b.dataset.mod;TN.sel=null;TN.modSel='';
       try{await tnCarregaSlots();}catch(e){}
       tnDesenhaAgendar();
     };
   });
   $('gmbody').querySelectorAll('.tnslot').forEach(function(b){
-    b.onclick=function(){TN.sel=TN.slots[+b.dataset.i];tnDesenhaAgendar();};
+    b.onclick=function(){
+      var novo=TN.slots[+b.dataset.i];
+      /* trocar de hor\u00e1rio zera a escolha: faixa nova pode ser s\u00f3 presencial */
+      if(!TN.sel||TN.sel.modalidade!==novo.modalidade)TN.modSel='';
+      TN.sel=novo;tnDesenhaAgendar();
+    };
+  });
+  $('gmbody').querySelectorAll('[data-modsel]').forEach(function(b){
+    b.onclick=function(){TN.modSel=b.dataset.modsel;tnDesenhaAgendar();};
   });
   $('tn_cancel').onclick=uiModalClose;
   $('tn_ok').onclick=tnConfirmar;
@@ -11700,9 +11719,11 @@ async function tnConfirmar(){
   var btn=$('tn_ok');
   if(btn.disabled)return;
   var sl=TN.sel,lead=TN.lead;
+  var mod=tnModEf();
   var email=($('tn_email').value||'').trim();
   var obs=($('tn_obs').value||'').trim();
-  if(sl.modalidade==='online'&&!email){
+  if(!mod){toast('Informe se o teste vai ser presencial ou online.');return;}
+  if(mod==='online'&&!email){
     toast('Teste online precisa do e-mail: \u00e9 por ele que o link do Meet chega.');
     $('tn_email').focus();return;
   }
@@ -11710,14 +11731,14 @@ async function tnConfirmar(){
   var ag=null;
   try{
     var r=await tnRPC('crm_tn_agendar',{p_lead_id:lead.id,p_data:sl.data,p_hora_inicio:sl.hora_inicio,
-      p_aplicador:sl.aplicador,p_modalidade:sl.modalidade,p_email:email||null,
+      p_aplicador:sl.aplicador,p_modalidade:mod,p_email:email||null,
       p_observacoes:obs||null,p_criado_por:currentUser});
     ag=Array.isArray(r)?r[0]:r;
   }catch(e){
     toast(tnErro(e));
     btn.disabled=false;
     try{await tnCarregaSlots();}catch(_){}
-    TN.sel=null;tnDesenhaAgendar();
+    TN.sel=null;TN.modSel='';tnDesenhaAgendar();
     return;
   }
   var L=(DATA.leads||[]).find(function(x){return x.id===lead.id;});
@@ -11884,8 +11905,9 @@ function tnFormGrade(g){
     '<div><label>Dura\u00e7\u00e3o de cada teste</label><select id="tg_dur">'+
       [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((g.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
     '<div><label>Modalidade</label><select id="tg_mod">'+
-      '<option value="presencial"'+(g.modalidade==='online'?'':' selected')+'>Presencial</option>'+
-      '<option value="online"'+(g.modalidade==='online'?' selected':'')+'>Online (com Meet)</option></select></div>'+
+      '<option value="presencial"'+(g.modalidade==='presencial'?' selected':'')+'>S\u00f3 presencial</option>'+
+      '<option value="online"'+(g.modalidade==='online'?' selected':'')+'>S\u00f3 online (com Meet)</option>'+
+      '<option value="ambas"'+((g.modalidade||'ambas')==='ambas'?' selected':'')+'>Presencial ou online</option></select></div>'+
     '<div><label>Vale a partir de</label><input id="tg_vi" type="date" value="'+esc(g.vigencia_inicio||hojeISO())+'"></div>'+
     '<div><label>At\u00e9 (opcional)</label><input id="tg_vf" type="date" value="'+esc(g.vigencia_fim||'')+'"></div>'+
     '<div class="full"><label style="text-transform:none;font-size:12px"><input type="checkbox" id="tg_at"'+(g.ativo===false?'':' checked')+'> faixa ativa</label></div>'+
@@ -11933,8 +11955,9 @@ function tnFormAvulso(a){
     '<div><label>Aplicadora</label><select id="ta_ap"><option value="">Todas (s\u00f3 bloqueio)</option>'+
       aps.map(function(x){return '<option'+(a.aplicador===x?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select></div>'+
     '<div><label>Modalidade</label><select id="ta_mod">'+
-      '<option value="presencial"'+(a.modalidade==='online'?'':' selected')+'>Presencial</option>'+
-      '<option value="online"'+(a.modalidade==='online'?' selected':'')+'>Online (com Meet)</option></select></div>'+
+      '<option value="presencial"'+(a.modalidade==='presencial'?' selected':'')+'>S\u00f3 presencial</option>'+
+      '<option value="online"'+(a.modalidade==='online'?' selected':'')+'>S\u00f3 online (com Meet)</option>'+
+      '<option value="ambas"'+((a.modalidade||'ambas')==='ambas'?' selected':'')+'>Presencial ou online</option></select></div>'+
     '<div><label>Dura\u00e7\u00e3o</label><select id="ta_dur">'+
       [20,30,40,50,60].map(function(m){return '<option value="'+m+'"'+((a.duracao_min||30)===m?' selected':'')+'>'+m+' min</option>';}).join('')+'</select></div>'+
     '<div class="full"><label>Motivo ou observa\u00e7\u00e3o</label><input id="ta_motivo" value="'+esc(a.motivo||'')+'"></div>'+
