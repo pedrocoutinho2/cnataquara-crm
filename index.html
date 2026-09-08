@@ -1407,6 +1407,24 @@ input[type=date].dvazio{color:#C9C9CE}
 .tnlin .t{font-size:14px;color:var(--ink)}
 .tnlin .s{font-size:12px;color:var(--gray);margin-top:2px}
 .tnacts{display:flex;gap:6px}
+
+/* ---- texto rico: negrito, italico, sublinhado e lista nos campos longos ---- */
+.rtwrap{border:1px solid var(--grayLine);border-radius:10px;background:#fff;overflow:hidden}
+.rtwrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 2px var(--pastelBlue)}
+.rtbar{display:flex;gap:2px;flex-wrap:wrap;padding:4px 5px;border-bottom:1px solid var(--grayLine);background:var(--surface)}
+.rtbar button{border:0;background:transparent;border-radius:6px;width:28px;height:26px;cursor:pointer;color:var(--gray);font-size:13px;line-height:1}
+.rtbar button:hover{background:#fff;color:var(--ink)}
+.rtbar button.on{background:#fff;color:var(--blue)}
+.rtbar .sep{width:1px;height:18px;background:var(--grayLine);margin:4px 3px;align-self:center}
+.rted{min-height:84px;max-height:340px;overflow:auto;padding:9px 11px;font-size:14px;line-height:1.5;color:var(--ink);outline:0}
+.rted:empty:before{content:attr(data-ph);color:#8A8A8E}
+.rted ul,.rted ol{margin:4px 0 4px 20px}
+.rted p{margin:0 0 6px}
+.rted a{color:var(--blue)}
+.rtro{background:var(--surface);color:var(--gray)}
+.rich b,.rich strong{font-weight:600}
+.rich ul,.rich ol{margin:4px 0 4px 20px}
+.rich p{margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -1962,6 +1980,7 @@ function uiModal(titulo,sub,body,foot,onclose){
   $('gmfoot').style.display=foot?'':'none';
   $('gov').classList.add('open');
   lockScroll();
+  rtAuto($('gmbody'));
   $('gmx').onclick=uiModalClose;
   $('gov').onclick=function(e){if(e.target===$('gov'))uiModalClose();};
   var mb=$('gmbody');if(mb)mb.scrollTop=0;
@@ -3627,7 +3646,9 @@ $('csv').onclick=function(){
     return cfg.csv.map(function(k){
       let v=s[k];
       if(k===SF(cfg)){const st=cfg.stages.find(function(x){return x.id===v;});v=st?st.n:v;}
-      return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+      /* campo longo pode ter formatacao: no CSV vai texto puro, sem tag */
+      v=rtTxt(v);
+      return '"'+String(v==null?'':v).replace(/"/g,'""').replace(/\n/g,' ')+'"';
     }).join(';');
   });
   const csvStr='\uFEFF'+head.join(';')+'\n'+rows.join('\n');
@@ -7704,7 +7725,7 @@ function renderMural(){
           (a.tipo==='promocao'?'<span class="tag red">Promo\u00e7\u00e3o</span>':'<span class="tag">Aviso</span>')+
           (fora?'<span class="tag gray">'+(a.ativo?'Fora de vig\u00eancia':'Inativo')+'</span>':'')+
         '</div>'+
-        (a.corpo?'<div class="pb">'+esc(a.corpo)+'</div>':'')+
+        (a.corpo?'<div class="pb rich">'+rtView(a.corpo)+'</div>':'')+
         '<div class="pv">Vig\u00eancia: '+brDate(a.vigencia_inicio)+(a.vigencia_fim?' at\u00e9 '+brDate(a.vigencia_fim):' \u00b7 sem prazo')+'</div>'+
         (adm?'<div class="pbtns"><button class="btn" data-ea="'+a.id+'">Editar</button>'+
              '<button class="btn danger" data-da="'+a.id+'">Excluir</button></div>':'')+
@@ -7826,7 +7847,7 @@ function renderFaq(){
       if(f.categoria!==cat){cat=f.categoria;h+='<div class="faqcat">'+esc(cat)+'</div>';}
       h+='<div class="faqq" data-fq="'+f.id+'">'+
         '<button type="button"><span>'+esc(f.pergunta)+(f.ativo?'':' <span class="tag gray">Inativa</span>')+'</span><span class="ar">\u25be</span></button>'+
-        '<div class="fa">'+esc(f.resposta)+
+        '<div class="fa rich">'+rtView(f.resposta)+
           (adm?'<div class="pbtns"><button class="btn" data-ef="'+f.id+'">Editar</button>'+
                '<button class="btn danger" data-df="'+f.id+'">Excluir</button></div>':'')+
         '</div></div>';
@@ -9270,7 +9291,7 @@ function agdDetalhe(){
       '<div class="agdk">Pessoas</div><div class="agdv"><div class="agdpess">'+pess+'</div></div>'+
       '<div class="agdk">Categoria</div><div class="agdv">'+esc(c?c.nome:'—')+'</div>'+
       '<div class="agdk">Alerta</div><div class="agdv">'+esc(lb?lb[1]:'sem lembrete')+'</div>'+
-      (ev.descricao?'<div class="agdk">Descrição</div><div class="agdv desc">'+esc(ev.descricao)+'</div>':'')+
+      (ev.descricao?'<div class="agdk">Descrição</div><div class="agdv desc rich">'+rtView(ev.descricao)+'</div>':'')+
       (agdConvidado(ev,currentUser)?'':'<div class="agdnota">Você não está na lista deste evento, então não recebe o alerta dele.</div>')+
     '</div>'+
   '</div>';
@@ -9309,6 +9330,7 @@ function agdShowModal(titulo,sub,body,foot){
   $('agmfoot').innerHTML=foot||'';
   $('agov').classList.add('open');
   lockScroll();
+  rtAuto($('agmbody'));
   $('agmx').onclick=agdCloseModal;
   $('agov').onclick=function(e){if(e.target===$('agov'))agdCloseModal();};
 }
@@ -11392,6 +11414,175 @@ async function acExcluir(){
   await openAcoes();
   loadAlerts();
 }
+
+/* ================= Texto rico nos campos longos =================
+   Contrato: o textarea continua sendo a fonte de verdade. O editor escreve HTML
+   ja higienizado no .value dele, entao NENHUM caminho de salvamento muda.
+   Quem le o campo para exibir usa rtView(); quem exporta (CSV, PDF, WhatsApp)
+   usa rtTxt(), que devolve texto puro. Campo que nao pode receber HTML entra
+   em RTSKIP. */
+var RTSKIP={watxt:1,c_txt:1,c_tpl:1,imp_txt:1,rev_dec:1,rev_pend:1,ata_txt:1};
+var RTOK={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,UL:1,OL:1,LI:1,BR:1,P:1,DIV:1,SPAN:1,A:1};
+var RTFORA={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,LINK:1,META:1,FORM:1,INPUT:1,SVG:1};
+
+function rtEhHtml(v){return /<(b|strong|i|em|u|s|ul|ol|li|br|p|div|span|a)\b/i.test(String(v||''));}
+
+/* higienizacao por arvore: so a lista branca sobrevive, e o unico atributo que
+   passa e' href http(s). Nada de innerHTML cru vindo do banco. */
+function rtSan(html){
+  var doc=document.implementation.createHTMLDocument('');
+  doc.body.innerHTML=String(html||'');
+  (function limpa(no){
+    var f=Array.prototype.slice.call(no.childNodes);
+    f.forEach(function(n){
+      if(n.nodeType===3)return;
+      if(n.nodeType!==1){n.remove();return;}
+      var tag=n.tagName;
+      /* estes somem com conteudo e tudo; os demais desconhecidos so perdem a tag */
+      if(RTFORA[tag]){n.remove();return;}
+      if(!RTOK[tag]){
+        while(n.firstChild)n.parentNode.insertBefore(n.firstChild,n);
+        n.remove();return;
+      }
+      Array.prototype.slice.call(n.attributes).forEach(function(at){
+        var ok=(tag==='A'&&at.name==='href'&&/^https?:\/\//i.test(at.value));
+        if(!ok)n.removeAttribute(at.name);
+      });
+      if(tag==='A'){n.setAttribute('target','_blank');n.setAttribute('rel','noopener');}
+      limpa(n);
+    });
+  })(doc.body);
+  return doc.body.innerHTML;
+}
+/* exibicao: texto antigo (sem tag) continua escapado e com quebra de linha */
+function rtView(v){
+  v=String(v==null?'':v);
+  if(!rtEhHtml(v))return esc(v).replace(/\n/g,'<br>');
+  return rtSan(v);
+}
+/* para CSV, PDF, WhatsApp e qualquer lugar que precisa de texto puro */
+function rtTxt(v){
+  v=String(v==null?'':v);
+  if(!rtEhHtml(v))return v;
+  var d=document.implementation.createHTMLDocument('');
+  d.body.innerHTML=rtSan(v);
+  d.body.querySelectorAll('li').forEach(function(li){li.insertBefore(d.createTextNode('\u2022 '),li.firstChild);});
+  d.body.querySelectorAll('br,p,div,li').forEach(function(el){el.appendChild(d.createTextNode('\n'));});
+  return (d.body.textContent||'').replace(/\n{3,}/g,'\n\n').trim();
+}
+
+var RTBOTOES=[['bold','<b>B</b>','Negrito'],['italic','<i>I</i>','It\u00e1lico'],['underline','<u>U</u>','Sublinhado'],
+  ['sep'],['insertUnorderedList','\u2022','Lista'],['insertOrderedList','1.','Lista numerada'],
+  ['sep'],['rtlink','\u{1F517}','Link'],['removeFormat','\u2716','Limpar formata\u00e7\u00e3o']];
+
+function rtUp(ta){
+  if(!ta||ta._rt)return;
+  if(ta.id&&RTSKIP[ta.id])return;
+  /* ft<id> sao os templates da fila de disparo: viram mensagem de WhatsApp,
+     onde tag HTML nao existe. Ficam em texto puro de proposito. */
+  if(ta.id&&/^ft[0-9a-f-]/i.test(ta.id))return;
+  if(ta.classList.contains('nort'))return;
+  ta._rt=true;
+  var ro=ta.readOnly||ta.disabled;
+  var wrap=document.createElement('div');
+  wrap.className='rtwrap';
+  var bar=document.createElement('div');
+  bar.className='rtbar';
+  if(!ro){
+    RTBOTOES.forEach(function(b){
+      if(b[0]==='sep'){var sp=document.createElement('span');sp.className='sep';bar.appendChild(sp);return;}
+      var bt=document.createElement('button');
+      bt.type='button';bt.innerHTML=b[1];bt.title=b[2];bt.dataset.cmd=b[0];
+      bar.appendChild(bt);
+    });
+  }else{
+    bar.innerHTML='<span style="font-size:11px;color:var(--gray);padding:3px 4px">somente leitura</span>';
+  }
+  var ed=document.createElement('div');
+  ed.className='rted rich'+(ro?' rtro':'');
+  ed.contentEditable=ro?'false':'true';
+  ed.setAttribute('data-ph',ta.getAttribute('placeholder')||'');
+  if(ta.style.minHeight)ed.style.minHeight=ta.style.minHeight;
+  ed.innerHTML=rtView(ta.value);
+
+  ta.style.display='none';
+  ta.parentNode.insertBefore(wrap,ta);
+  wrap.appendChild(bar);wrap.appendChild(ed);wrap.appendChild(ta);
+
+  function grava(){
+    var h=rtSan(ed.innerHTML);
+    /* sem formatacao nenhuma, guarda texto puro: nao suja o dado a toa */
+    ta.value=rtEhHtml(h)?h:(ed.textContent||'').trim();
+    ta.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  if(!ro){
+    ed.addEventListener('input',grava);
+    ed.addEventListener('blur',grava);
+    ed.addEventListener('paste',function(e){
+      e.preventDefault();
+      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
+      document.execCommand('insertText',false,t);
+    });
+    bar.querySelectorAll('button').forEach(function(bt){
+      bt.onmousedown=function(e){e.preventDefault();};
+      bt.onclick=function(){
+        ed.focus();
+        var c=bt.dataset.cmd;
+        if(c==='rtlink'){
+          var u=prompt('Endere\u00e7o do link (come\u00e7ando com https://)');
+          if(u&&/^https?:\/\//i.test(u))document.execCommand('createLink',false,u);
+          else if(u)toast('Link precisa come\u00e7ar com http:// ou https://');
+        }else{
+          try{document.execCommand(c,false,null);}catch(e){}
+        }
+        grava();rtEstado(bar);
+      };
+    });
+    ed.addEventListener('keyup',function(){rtEstado(bar);});
+    ed.addEventListener('mouseup',function(){rtEstado(bar);});
+  }
+  /* o codigo antigo escreve direto em ta.value em varios lugares (limpar campo
+     depois de salvar, por exemplo). Sem isso o editor ficaria com o texto velho. */
+  ta._rtSync=function(){ed.innerHTML=rtView(ta.value);};
+}
+function rtEstado(bar){
+  bar.querySelectorAll('button').forEach(function(bt){
+    var c=bt.dataset.cmd;
+    if(c==='bold'||c==='italic'||c==='underline'){
+      var on=false;try{on=document.queryCommandState(c);}catch(e){}
+      bt.classList.toggle('on',!!on);
+    }
+  });
+}
+/* devolve ao editor o que outro codigo escreveu no textarea */
+function rtRefresh(root){
+  (root||document).querySelectorAll('textarea').forEach(function(ta){if(ta._rtSync)ta._rtSync();});
+}
+function rtAuto(root){
+  try{(root||document).querySelectorAll('textarea').forEach(rtUp);}catch(e){}
+}
+/* Um observador cobre todos os pontos de render (ficha, atas, demandas, telas do
+   board) sem espalhar chamada por dezenas de funcoes. rtUp e' idempotente. */
+(function(){
+  var pend=false;
+  function passa(){pend=false;rtAuto(document);}
+  try{
+    new MutationObserver(function(muts){
+      if(pend)return;
+      for(var i=0;i<muts.length;i++){
+        var a=muts[i].addedNodes;
+        for(var j=0;j<a.length;j++){
+          var n=a[j];
+          if(n.nodeType!==1)continue;
+          if(n.tagName==='TEXTAREA'||(n.querySelector&&n.querySelector('textarea'))){
+            pend=true;requestAnimationFrame(passa);return;
+          }
+        }
+      }
+    }).observe(document.body,{childList:true,subtree:true});
+  }catch(e){}
+  document.addEventListener('DOMContentLoaded',function(){rtAuto(document);});
+})();
 
 /* ================= Testes de n\u00edvel: disponibilidade e agendamento =================
    Regras que este bloco carrega:
