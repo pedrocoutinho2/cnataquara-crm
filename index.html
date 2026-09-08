@@ -4322,7 +4322,7 @@ async function sha256(txt){
 }
 
 async function loadUsers(){
-  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,email,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,email,email_agenda,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   RESP=USERS.map(function(u){return u.nome;});
   RESPC={};
   USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
@@ -8434,7 +8434,7 @@ async function openTeam(){
   let users;
   try{
     await loadPerms();
-    users=await api('/crm_usuarios?select=id,nome,email,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+    users=await api('/crm_usuarios?select=id,nome,email,email_agenda,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
   }catch(e){
     board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
@@ -11697,6 +11697,14 @@ function tnAplicadores(){
   if(!l.length)l=RESP.slice();
   return l;
 }
+/* E-mail que recebe o convite do Google. Pode ser diferente do e-mail de login:
+   quem aplica o teste usa a propria conta Google na agenda. */
+function tnEmailAgenda(nome){
+  var u=(USERS||[]).find(function(x){return x.nome===nome;});
+  if(!u)return '';
+  return (u.email_agenda||u.email||'').trim();
+}
+
 /* quem precisa saber que entrou teste na agenda */
 function tnAvisados(aplicador){
   var l=[];
@@ -11967,7 +11975,10 @@ async function tnEspelharAgenda(ag){
     var body={titulo:'Teste de n\u00edvel \u00b7 '+(ag.nome_aluno||'aluno'),descricao:desc,categoria_id:cat,
       data:ag.data,hora_inicio:ag.hora_inicio,hora_fim:ag.hora_fim,responsavel:ag.aplicador,
       participantes:tnAvisados(ag.aplicador),lembrete_min:60,
-      convidados:ag.email?[ag.email]:null,meet:(ag.modalidade==='online'),
+      /* quem aplica entra como convidado em TODO teste, presencial ou online:
+         o convite tem que cair na agenda pessoal dela, nao so no calendario da unidade */
+      convidados:[ag.email,tnEmailAgenda(ag.aplicador)].filter(function(x){return x&&x.indexOf('@')>0;}),
+      meet:(ag.modalidade==='online'),
       /* teste de nivel tem calendario proprio, para o pedagogico nao receber
          notificacao de toda acao comercial de rua */
       calendar_id:(AGD.cfg&&AGD.cfg.cal_testes)||null,
@@ -12012,7 +12023,7 @@ function renderTestes(){
     }).join('')+'</div>';
 
   if(TN.vista==='agenda')h+=tnViewAgenda();
-  else if(TN.vista==='grade')h+=tnViewGrade(adm);
+  else if(TN.vista==='grade')h+=tnViewGrade(adm)+tnViewConvites(adm);
   else h+=tnViewAvulsos(adm);
 
   h+='</div>';
@@ -12023,6 +12034,8 @@ function renderTestes(){
   });
   var add=$('tnAddGrade');if(add)add.onclick=function(){tnFormGrade(null);};
   var addA=$('tnAddAvulso');if(addA)addA.onclick=function(){tnFormAvulso(null);};
+  var salvaEm=$('tnSalvaEmails');
+  if(salvaEm)salvaEm.onclick=tnSalvarConvites;
   $('board').querySelectorAll('[data-eg]').forEach(function(b){
     b.onclick=function(){
       var gr=tnGrupos().find(function(x){return x.chave===b.dataset.eg;});
@@ -12095,6 +12108,50 @@ function tnGrupos(){
   ordem.forEach(function(k){mapa[k].dias.sort(function(a,b){return a.dia_semana-b.dia_semana;});});
   return ordem.map(function(k){return mapa[k];});
 }
+/* Convite do Google vai para o e-mail que a pessoa usa na agenda, que nem sempre
+   e' o e-mail de login. Sem esta tela o campo so existiria no banco e envelheceria. */
+function tnViewConvites(adm){
+  var nomes=tnAplicadores();
+  var h='<div class="rcard" style="margin-top:12px"><div class="paneh"><h3>Convites do Google</h3>'+
+    (adm?'<button class="btn primary" id="tnSalvaEmails">Salvar</button>':'')+'</div>'+
+    '<div class="rnote">Quem aplica o teste entra como convidado em todo agendamento, presencial ou online. '+
+    'Se a pessoa usa outra conta Google na agenda, informe aqui. Em branco, vale o e-mail de login.</div>';
+  h+=nomes.map(function(n){
+    var u=(USERS||[]).find(function(x){return x.nome===n;})||{};
+    return '<div class="tnlin"><div>'+
+      '<div class="t">'+esc(n)+'</div>'+
+      '<div class="s">login: '+esc(u.email||'sem e-mail')+'</div></div>'+
+      '<div class="tnacts"><input type="email" data-uem="'+esc(u.id||'')+'" '+
+        'placeholder="e-mail da agenda" value="'+esc(u.email_agenda||'')+'"'+(adm?'':' readonly')+
+        ' style="min-width:230px"></div></div>';
+  }).join('');
+  return h+'</div>';
+}
+async function tnSalvarConvites(){
+  var b=$('tnSalvaEmails');
+  if(b.disabled)return;
+  var campos=[].slice.call($('board').querySelectorAll('[data-uem]'));
+  var mudou=campos.filter(function(el){
+    var u=(USERS||[]).find(function(x){return x.id===el.dataset.uem;});
+    return u&&(el.value.trim()!==(u.email_agenda||''));
+  });
+  var ruim=mudou.find(function(el){return el.value.trim()&&el.value.trim().indexOf('@')<1;});
+  if(ruim){toast('E-mail inv\u00e1lido: '+ruim.value.trim());ruim.focus();return;}
+  if(!mudou.length){toast('Nada mudou.');return;}
+  b.disabled=true;
+  try{
+    for(var i=0;i<mudou.length;i++){
+      var el=mudou[i];
+      await api('/crm_usuarios?id=eq.'+el.dataset.uem,{method:'PATCH',
+        body:JSON.stringify({email_agenda:el.value.trim()||null})});
+    }
+    await loadUsers();
+  }catch(e){toast(tnErro(e));b.disabled=false;return;}
+  b.disabled=false;
+  toast('Convites atualizados.');
+  renderTestes();
+}
+
 function tnViewAvulsos(adm){
   var h='<div class="rcard"><div class="paneh"><h3>Avulsos e bloqueios</h3>'+
     (adm?'<button class="btn primary" id="tnAddAvulso">+ Novo</button>':'')+'</div>'+
