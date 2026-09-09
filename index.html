@@ -307,6 +307,11 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .rtab td{padding:7px 9px;border-bottom:1px solid var(--line)}
 .rtab tr:nth-child(even) td{background:var(--surface)}
 .rtab .num{text-align:right;font-variant-numeric:tabular-nums}
+/* coluna de numero nao precisa de folga: `width:1%` com largura automatica encolhe
+   a celula ate o conteudo e devolve a sobra para as colunas de texto, que sao as
+   que precisam. Sem isso a tabela reparte o espaco livre igualmente e a coluna de
+   canal fica espremida ao lado de colunas numericas largas. */
+.rtab th.num,.rtab td.num{width:1%;white-space:nowrap}
 @media(max-width:640px){.frow{grid-template-columns:105px 1fr 64px}}
 
 /* ===== Login ===== */
@@ -466,9 +471,12 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .rtab td{padding:8px 9px;vertical-align:top}
 .rtab td:first-child{overflow-wrap:anywhere;min-width:110px}
 /* resposta por canal: uma linha por canal, sem quebrar no meio do nome */
-.cnl{display:block;white-space:nowrap;font-size:11.5px;line-height:1.55}
-.cnl b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
-.cnl i{font-style:normal;color:var(--gray)}
+.cnl{display:block;white-space:nowrap;font-size:11.5px;line-height:1.65}
+.cnl em{display:inline-block;min-width:74px;font-style:normal;color:var(--ink)}
+.cnl b{display:inline-block;min-width:48px;text-align:right;font-weight:700;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.cnl i{font-style:normal;color:var(--gray);margin-left:7px;font-variant-numeric:tabular-nums}
+.rtab td:first-child{min-width:132px}
 @media(max-width:760px){
   .rtab,.rtab tbody,.rtab tr,.rtab td{display:block;width:100%}
   .rtab tr.hd{display:none}
@@ -477,6 +485,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
   .rtab tr:nth-child(even) td{background:none}
   .rtab td{border:none;padding:2px 0;text-align:left}
   .rtab td:first-child{font-family:'Poppins';font-weight:600;font-size:13px;margin-bottom:3px}
+  .rtab th.num,.rtab td.num{width:100%;white-space:normal}
   .rtab td[data-l]:not(:first-child){display:flex;justify-content:space-between;gap:10px;font-size:12px}
   .rtab td[data-l]:not(:first-child):before{content:attr(data-l);color:var(--gray)}
 }
@@ -1854,7 +1863,7 @@ function respostaCanais(st,max){
   if(!ks.length)return '—';
   return ks.slice(0,max||3).map(function(k){
     var c=st.porCanal[k];
-    return '<span class="cnl">'+esc(canalNome(k)||k)+' <b>'+pct(c.ef,c.n)+'</b> <i>('+c.n+')</i></span>';
+    return '<span class="cnl"><em>'+esc(canalNome(k)||k)+'</em><b>'+pct(c.ef,c.n)+'</b><i>('+c.n+')</i></span>';
   }).join('');
 }
 var NOTA_A15='A <b>resposta</b> é quanto do que se tenta volta, e depende muito mais do canal '
