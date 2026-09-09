@@ -8004,12 +8004,17 @@ let CALCMSG={tpl:null,carregado:false,override:null,editando:false,draft:null};
 
 const CALC_TPL_PADRAO=[
   '*Investimento*',
-  '{curso_nome} \u2014 {periodos}',
   '{curso_parcela}',
+  '[desconto]',
+  'Com {desconto} de desconto no cart\u00e3o ou boleto',
+  '[/desconto]',
   '',
   '[material]',
   '*Material did\u00e1tico*',
   '{material_parcela}',
+  '[desconto_material]',
+  'Com {desconto_material} de desconto no cart\u00e3o ou boleto',
+  '[/desconto_material]',
   '[/material]',
   '',
   '[matricula]',
@@ -8018,15 +8023,15 @@ const CALC_TPL_PADRAO=[
   '[/matricula]',
   '',
   '[validade]',
-  'Proposta v\u00e1lida at\u00e9 {validade}.',
+  'Mas essa proposta s\u00f3 vale at\u00e9 {validade}, ta bom?',
   '[/validade]'
 ].join('\n');
 
-const CALC_VARS=['curso_nome','nivel1','nivel2','periodos','curso_parcela','curso_total',
-  'material_nome','material_parcela','material_total','parcela_unica','taxa','total_geral',
+const CALC_VARS=['curso_nome','nivel1','nivel2','periodos','curso_parcela','curso_total','desconto',
+  'material_nome','material_parcela','material_total','desconto_material','parcela_unica','taxa','total_geral',
   'economia','validade','consultor','unidade','whatsapp'];
 
-const CALC_BLOCOS=['material','matricula','validade','dois','parcela_unica'];
+const CALC_BLOCOS=['material','matricula','validade','dois','parcela_unica','desconto','desconto_material'];
 
 function tplAtual(){
   return (CALCMSG.tpl&&CALCMSG.tpl.trim())?CALCMSG.tpl:CALC_TPL_PADRAO;
@@ -8037,6 +8042,12 @@ function fmtNum(c){
   return v[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+v[1];
 }
 function money(c){return (c<0?'-':'')+'R$ '+fmtNum(c);}
+/* percentual do jeito que o cliente le: 20%, 17,5%. uma casa, sem zero a toa.
+   nome proprio: ja existe uma pct(a,b) nos relatorios, nao pode colidir */
+function pctDesc(p){
+  const r=Math.round((p||0)*10)/10;
+  return (r===Math.round(r)?String(Math.round(r)):String(r).replace('.',','))+'%';
+}
 /* mascara de moeda: le so os digitos e reposiciona o cursor no fim */
 function maskMoeda(el){
   const d=String(el.value).replace(/\D/g,'');
@@ -8105,6 +8116,11 @@ function calcular(){
     totalCheio:cursoCheio+matCheio+taxa,
     totalDesc:cursoDesc+matDesc+taxa,
     economia:(cursoCheio+matCheio)-(cursoDesc+matDesc),
+    /* desconto medio efetivo: sai do dinheiro, nao da media simples dos %.
+       com os dois periodos custando igual da exatamente a media de d1 e d2,
+       e quando os niveis tem preco diferente continua batendo com o total. */
+    descCursoPct:cursoCheio>0?(1-cursoDesc/cursoCheio)*100:0,
+    descMatPct:matCheio>0?(1-matDesc/matCheio)*100:0,
     parcCurso:cursoDesc/CALC.parcC,
     parcMat:matDesc/CALC.parcM,
     mesmaParc:CALC.parcC===CALC.parcM,
@@ -8139,7 +8155,8 @@ function resultadoHTML(R){
      '<div class="cl2"><span>Nível '+(CALC.dois?'1º / 2º':'')+'</span><b>'+
        esc(R.n1?R.n1.nome:'')+(CALC.dois&&R.n2&&R.n2.codigo!==R.n1.codigo?' / '+esc(R.n2.nome):'')+'</b></div>'+
      '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.cursoCheio)+'</b></div>'+
-     '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+'</b></div>'+
+     '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+
+       (CALC.dois&&CALC.d1!==CALC.d2?' <span style="font-weight:600;color:var(--gray)">\u00b7 m\u00e9dia '+pctDesc(R.descCursoPct)+'</span>':'')+'</b></div>'+
      '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.cursoDesc)+'</b></div>'+
      '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+'</span>'+
        '<span class="cbv">'+money(R.parcCurso)+'</span></div></div>';
@@ -8149,7 +8166,8 @@ function resultadoHTML(R){
   if(CALC.mat&&R.matCheio>0){
     h+='<div class="cl2"><span>Livros</span><b>'+esc(R.m1?R.m1.nome:'—')+(R.m2?' + '+esc(R.m2.nome):'')+'</b></div>'+
        '<div class="cl2 ref"><span>Valor cheio (referência)</span><b>'+money(R.matCheio)+'</b></div>'+
-       '<div class="cl2"><span>Desconto</span><b>'+CALC.dm1+'%'+(CALC.dois&&R.m2?' / '+CALC.dm2+'%':'')+'</b></div>'+
+       '<div class="cl2"><span>Desconto</span><b>'+CALC.dm1+'%'+(CALC.dois&&R.m2?' / '+CALC.dm2+'%':'')+
+         (CALC.dois&&R.m2&&CALC.dm1!==CALC.dm2?' <span style="font-weight:600;color:var(--gray)">\u00b7 m\u00e9dia '+pctDesc(R.descMatPct)+'</span>':'')+'</b></div>'+
        '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.matDesc)+'</b></div>'+
        '<div class="cbig"><span class="cbl">'+(CALC.parcM>1?CALC.parcM+'x de':'À vista')+'</span>'+
          '<span class="cbv">'+money(R.parcMat)+'</span></div>';
@@ -8266,9 +8284,11 @@ function calcCampos(R){
     periodos:CALC.dois?'2 períodos':'1 período',
     curso_parcela:CALC.parcC>1?(CALC.parcC+'x de '+money(R.parcCurso)):('À vista: '+money(R.cursoDesc)),
     curso_total:money(R.cursoDesc),
+    desconto:pctDesc(R.descCursoPct),
     material_nome:(R.m1?R.m1.nome:'')+(R.m2?' + '+R.m2.nome:''),
     material_parcela:CALC.parcM>1?(CALC.parcM+'x de '+money(R.parcMat)):('À vista: '+money(R.matDesc)),
     material_total:money(R.matDesc),
+    desconto_material:pctDesc(R.descMatPct),
     parcela_unica:CALC.parcC>1?(CALC.parcC+'x de '+money(R.somaParc)):('À vista: '+money(R.cursoDesc+R.matDesc)),
     taxa:money(R.taxa),
     total_geral:money(R.totalDesc),
@@ -8286,7 +8306,10 @@ function calcCondicoes(R){
     matricula:R.taxa>0,
     validade:!!CALC.validade,
     dois:!!CALC.dois,
-    parcela_unica:!!(R.mesmaParc&&CALC.parcC>1&&CALC.mat&&R.matDesc>0)
+    parcela_unica:!!(R.mesmaParc&&CALC.parcC>1&&CALC.mat&&R.matDesc>0),
+    /* sem desconto nao existe linha de desconto na mensagem */
+    desconto:R.descCursoPct>=0.05,
+    desconto_material:!!(CALC.mat&&R.matDesc>0&&R.descMatPct>=0.05)
   };
 }
 
@@ -8371,7 +8394,8 @@ function abrirModeloMensagem(){
   const blocos=CALC_BLOCOS.map(function(b){return '<code>['+b+']</code>';}).join(' ');
   const body='<div class="cmsg ctpl inmodal">'+
     '<div class="vars"><b>Campos:</b> '+vars+'</div>'+
-    '<div class="vars"><b>Blocos:</b> '+blocos+' \u2014 o que estiver entre <code>[bloco]</code> e <code>[/bloco]</code> s\u00f3 aparece quando faz sentido (material inclu\u00eddo, taxa maior que zero, validade preenchida, dois per\u00edodos, parcela \u00fanica de curso mais material).</div>'+
+    '<div class="vars"><b>Blocos:</b> '+blocos+' \u2014 o que estiver entre <code>[bloco]</code> e <code>[/bloco]</code> s\u00f3 aparece quando faz sentido (material inclu\u00eddo, taxa maior que zero, validade preenchida, dois per\u00edodos, parcela \u00fanica de curso mais material, desconto maior que zero).</div>'+
+    '<div class="vars"><b>Desconto:</b> <code>{desconto}</code> \u00e9 a m\u00e9dia do desconto do 1\u00ba e do 2\u00ba per\u00edodo do curso e <code>{desconto_material}</code> a m\u00e9dia do material. Com um per\u00edodo s\u00f3, \u00e9 o desconto daquele per\u00edodo. Zerado o desconto, a linha inteira some.</div>'+
     '<textarea id="c_tpl" spellcheck="false">'+esc(CALCMSG.draft)+'</textarea>'+
     '<span class="nota">Salvar grava no banco e passa a valer para todos os consultores na pr\u00f3xima vez que abrirem a calculadora.</span>'+
   '</div>';
