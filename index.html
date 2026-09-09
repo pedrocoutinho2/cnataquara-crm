@@ -291,12 +291,8 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .rmodal{max-width:1100px}
 .rhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .rhead select{border:1px solid var(--line);border-radius:var(--r-md);padding:8px 10px;background:var(--white);font-weight:600;color:var(--blue)}
-.rkpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.rkpi{flex:1;min-width:110px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 12px;text-align:center}
-.rkpi b{display:block;font-family:'Poppins';font-size:22px;color:var(--blue);line-height:1.15}
-.rkpi.ok b{color:var(--ok)}
-.rkpi.bad b{color:var(--redDark)}
-.rkpi span{font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px}
+/* .rkpis/.rkpi vivem no bloco 'Relatorios v5'; a definicao duplicada que existia
+   aqui era codigo morto (sobrescrita mais abaixo) e saiu em 09/09/2026. */
 .rsec{margin-bottom:18px}
 .rsec h3{font-family:'Poppins';font-size:13.5px;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
 .fun{display:flex;flex-direction:column;gap:6px}
@@ -402,10 +398,21 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .rkpi{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:var(--r-lg);padding:11px 13px 10px;text-align:left;box-shadow:var(--shadow-1);min-width:0}
 .rkpi.ok{border-top-color:var(--ok)}
 .rkpi.bad{border-top-color:var(--red)}
-.rkpi b{display:block;font-family:'Poppins';font-size:23px;line-height:1.1;color:var(--blue);letter-spacing:-.3px}
+.rkpi b{display:block;font-family:'Poppins';font-size:23px;line-height:1.1;color:var(--blue);letter-spacing:-.3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
 .rkpi.ok b{color:var(--ok)}
 .rkpi.bad b{color:var(--redDark)}
 .rkpi span{display:block;font-size:10.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;line-height:1.3}
+/* o numero que manda na tela. um por relatorio, nunca dois. */
+.rkpi.lead{grid-column:span 2;border-top-width:3px;background:linear-gradient(180deg,var(--pastelBlue) 0%,var(--white) 62%)}
+.rkpi.lead.bad{background:linear-gradient(180deg,var(--pastelRed) 0%,var(--white) 62%)}
+.rkpi.lead.ok{background:linear-gradient(180deg,var(--okBg) 0%,var(--white) 62%)}
+.rkpi.lead b{font-size:38px;letter-spacing:-1px}
+.rkpi.lead span{font-size:11.5px;color:var(--ink);font-weight:600}
+/* a linha que responde "em relacao a que" e' o que separa numero de informacao */
+.rkpi .kctx{display:block;font-size:11.5px;color:var(--gray);text-transform:none;letter-spacing:0;
+  margin-top:5px;line-height:1.4;font-weight:400}
+@media(max-width:640px){.rkpi.lead{grid-column:1/-1}.rkpi.lead b{font-size:30px}}
 .rkpi .kd{display:inline-block;font-style:normal;font-size:10.5px;font-weight:700;margin-top:6px;border-radius:var(--r-pill);padding:1.5px 8px;background:var(--surface);color:var(--gray)}
 .rkpi .kd.up{background:var(--okBg);color:var(--ok)}
 .rkpi .kd.down{background:var(--dangerBg);color:var(--danger)}
@@ -975,16 +982,42 @@ input[type=date].dvazio{color:#C9C9CE}
 .rgsec{margin:0 0 18px}
 .rgsec h2{font-family:'Poppins';font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;margin:0 0 9px}
 .rhub{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px}
-.rhcard{text-align:left;background:var(--white);border:1px solid var(--line);border-left:4px solid var(--red);
-  border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow-1);cursor:pointer;transition:transform .12s,box-shadow .12s}
-.rhcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
-.rhcard b{display:block;font-family:'Poppins';font-size:14px;color:var(--ink);margin-bottom:5px}
+/* .rhcard e' NOTA dentro de um relatorio. Navegacao do hub e' .rhnav. Eram a mesma
+   classe fazendo dois papeis, e o card de nota herdava afordancia de clique. */
+.rhcard{text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:11px 13px}
+.rhcard b{display:block;font-family:'Poppins';font-size:12.5px;color:var(--ink);margin-bottom:3px}
 .rhcard span{display:block;font-size:12px;line-height:1.5;color:var(--gray)}
+.rhnav{display:block;width:100%;text-align:left;background:var(--white);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:15px 16px 14px;box-shadow:var(--shadow-1);cursor:pointer;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1),box-shadow .16s,border-color .16s}
+.rhnav:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(26,26,26,.10);border-color:#C9D3E8}
+.rhnav:active{transform:translateY(0)}
+.rhnav:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.rhnav b{display:flex;align-items:center;gap:7px;font-family:'Poppins';font-size:14px;color:var(--ink);margin-bottom:5px}
+.rhnav b::after{content:'\2192';margin-left:auto;color:var(--red);font-size:15px;opacity:0;transform:translateX(-4px);
+  transition:opacity .16s,transform .16s}
+.rhnav:hover b::after,.rhnav:focus-visible b::after{opacity:1;transform:translateX(0)}
+.rhnav .rq{display:block;font-size:12.5px;line-height:1.5;color:var(--gray)}
+.rhnav .rn{display:block;font-size:11.5px;font-weight:600;color:var(--blue);margin-top:7px;
+  font-variant-numeric:tabular-nums}
+.rhnav .rn.al{color:var(--redDark)}
+@media(prefers-reduced-motion:reduce){.rhnav,.rhnav b::after{transition:none}.rhnav:hover{transform:none}}
 .rlist{max-height:360px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .lrow{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;
   padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer}
 .lrow:last-child{border-bottom:none}
 .lrow:hover{background:var(--surface)}
+.lrow:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;border-radius:var(--r-sm);background:var(--surface)}
+.rfil button:focus-visible,.rback:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* lista rolada: a barra de rolagem tambem e' parte da tela */
+.rlist{scrollbar-width:thin;scrollbar-color:#C9CFDD transparent}
+.rlist::-webkit-scrollbar{width:9px}
+.rlist::-webkit-scrollbar-thumb{background:#C9CFDD;border-radius:var(--r-pill);border:2px solid var(--white)}
+.rlist::-webkit-scrollbar-thumb:hover{background:#A9B3C7}
+.rlist::-webkit-scrollbar-track{background:transparent}
+::selection{background:var(--pastelRed);color:var(--ink)}
+input,textarea,select{caret-color:var(--red)}
 .lrow .ln{font-weight:600;color:var(--ink);min-width:0;overflow-wrap:anywhere}
 .lrow .lsub{display:block;font-weight:400;color:var(--gray);font-size:11px;margin-top:2px}
 .lrow .ld{color:var(--redDark);font-weight:600;white-space:nowrap;font-size:11.5px}
@@ -5643,12 +5676,11 @@ function renderReports(){
         listaMeses.map(function(m){return '<option value="'+m+'"'+(per===m?' selected':'')+'>'+mesLabel(m)+'</option>';}).join('')+
       '</select></div>'+
     '<div class="rkpis">'+
-      '<div class="rkpi"><b>'+total+'</b><span>Leads</span>'+kd(total,pTotal)+'</div>'+
-      '<div class="rkpi"><b>'+ativos+'</b><span>Ativos</span></div>'+
-      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span>'+kd(fech.length,pFech)+'</div>'+
+      '<div class="rkpi lead ok"><b>'+fech.length+'</b><span>Matrículas no recorte</span>'+
+        '<i class="kctx">'+pct(fech.length,total)+' de conversão sobre '+total+' leads · '+tmed+' até fechar</i>'+kd(fech.length,pFech)+'</div>'+
+      '<div class="rkpi"><b>'+ativos+'</b><span>Ainda no funil</span></div>'+
       '<div class="rkpi bad"><b>'+perd.length+'</b><span>Perdidos</span></div>'+
-      '<div class="rkpi"><b>'+pct(fech.length,total)+'</b><span>Conversão</span></div>'+
-      '<div class="rkpi"><b>'+tmed+'</b><span>Tempo até matrícula</span></div>'+
+      '<div class="rkpi"><b>'+total+'</b><span>Leads no recorte</span>'+kd(total,pTotal)+'</div>'+
     '</div>'+
     '<div class="rgrid">'+
       sugestoes+
@@ -5854,11 +5886,12 @@ function renderCanais(){
 
   /* ---------- montagem ---------- */
   const kpis='<div class="rkpis">'+
-    '<div class="rkpi"><b>'+totalCt+'</b><span>Contatos no período</span></div>'+
-    '<div class="rkpi ok"><b>'+totalEf+'</b><span>Efetivos</span></div>'+
-    '<div class="rkpi"><b>'+pct(totalEf,totalCt)+'</b><span>Taxa de efetividade</span></div>'+
-    '<div class="rkpi"><b style="font-size:18px">'+(maisUsado?esc(canalLbl(maisUsado)):'—')+'</b><span>Canal mais usado</span></div>'+
-    '<div class="rkpi ok"><b style="font-size:18px">'+(maisEfetivo?esc(canalLbl(maisEfetivo)):'—')+'</b><span>Canal mais efetivo</span></div>'+
+    '<div class="rkpi lead"><b>'+pct(totalEf,totalCt)+'</b><span>Das tentativas viram conversa</span>'+
+      '<i class="kctx">'+totalEf+' conversas em '+totalCt+' tentativas'+
+      (maisEfetivo?' · canal mais efetivo: '+esc(canalLbl(maisEfetivo)):'')+'</i></div>'+
+    '<div class="rkpi"><b>'+totalCt+'</b><span>Tentativas no período</span></div>'+
+    '<div class="rkpi ok"><b>'+totalEf+'</b><span>Conversas de fato</span></div>'+
+    '<div class="rkpi"><b style="font-size:17px">'+(maisUsado?esc(canalLbl(maisUsado)):'—')+'</b><span>Canal mais usado</span></div>'+
     '<div class="rkpi"><b>'+consult.length+'</b><span>Consultores ativos</span></div>'+
   '</div>';
 
@@ -6255,8 +6288,8 @@ var RELDEF=[
    res:'Onde o funil trava, quantas matrículas cada degrau custa e por quais motivos os leads são perdidos.'},
   {id:'espera',mod:'rel_unidade',grupo:'Operação',nome:'Fila de espera · sem turma',
    res:'Quem ficou de fora por falta de turma, por curso e turno, cruzado com as turmas que hoje têm vaga.'},
-  {id:'demanda',mod:'rel_unidade',grupo:'Operação',nome:'Demanda por faixa',
-   res:'Em que faixa (Garden, Fun, Kids, Teen, Adulto) está a demanda que ainda não virou matrícula, cruzada com as turmas que têm vaga.'},
+  {id:'demanda',mod:'rel_unidade',grupo:'Operação',nome:'Demanda por nível',
+   res:'Em que nível (Garden, Fun, Kids, Teen, Adulto) está a demanda que ainda não virou matrícula, cruzada com as turmas que têm vaga.'},
   {id:'equipe',mod:'rel_unidade',grupo:'Equipe',nome:'Desempenho da equipe',
    res:'Leads, contatos, efetividade, matrículas e conversão de cada consultor no período.'},
   {id:'canais',mod:'rel_funil',grupo:'Equipe',nome:'Canais de contato',
@@ -6302,23 +6335,31 @@ function renderHub(){
     return (hoje-new Date(s.ultimo_contato))/86400000>7;
   });
   var espera=all.filter(function(s){return s.sem_turma&&s.etapa!=='fechado';});
+  /* matricula do mes e' o numero que a unidade persegue; o resto e' apoio */
   var resumo='<div class="rkpis">'+
-    '<div class="rkpi"><b>'+lm.length+'</b><span>Leads no mês</span></div>'+
-    '<div class="rkpi ok"><b>'+fm.length+'</b><span>Matrículas no mês</span></div>'+
-    '<div class="rkpi"><b>'+pct(fm.length,lm.length)+'</b><span>Conversão do mês</span></div>'+
+    '<div class="rkpi lead ok"><b>'+fm.length+'</b><span>Matrículas em '+mesLabel(ym).toLowerCase()+'</span>'+
+      '<i class="kctx">'+lm.length+' leads entraram no mês · '+pct(fm.length,lm.length)+' de conversão</i></div>'+
     '<div class="rkpi"><b>'+ativos.length+'</b><span>Leads ativos</span></div>'+
     '<div class="rkpi'+(esq.length?' bad':'')+'"><b>'+esq.length+'</b><span>Sem contato há +7 dias</span></div>'+
     '<div class="rkpi'+(espera.length?' bad':'')+'"><b>'+espera.length+'</b><span>Na fila por falta de turma</span></div>'+
   '</div>';
 
+  /* cada card do hub carrega o numero que ja da para resolver hoje */
+  var pend={followup:esq.length?esq.length+' esperando contato':'',
+            espera:espera.length?espera.length+' na fila':'',
+            demanda:ativos.length?ativos.length+' leads em aberto':''};
+
   $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
     '<div class="rtitle"><h1>Relatórios</h1>'+
-      '<span class="rhsub">Escolha o relatório que quer abrir</span>'+
+      '<span class="rhsub">Cada relatório responde uma pergunta. Escolha a sua.</span>'+
       '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+'</div>'+
     resumo+
     ordem.map(function(g){
       return '<div class="rgsec"><h2>'+esc(g)+'</h2><div class="rhub">'+map[g].map(function(r){
-        return '<button class="rhcard" data-v="'+r.id+'"><b>'+esc(r.nome)+'</b><span>'+esc(r.res)+'</span></button>';
+        var n=pend[r.id]||'';
+        return '<button class="rhnav" data-v="'+r.id+'"><b>'+esc(r.nome)+'</b>'+
+          '<span class="rq">'+esc(r.res)+'</span>'+
+          (n?'<span class="rn'+(r.id==='followup'?' al':'')+'">'+esc(n)+'</span>':'')+'</button>';
       }).join('')+'</div></div>';
     }).join('')+
   '</div></div>';
@@ -6355,6 +6396,14 @@ function blocoLeads(titulo,lista,nota,vazio){
 }
 function bindLeadRows(){
   document.querySelectorAll('#board [data-lead]').forEach(function(el){
+    /* a linha e' um div clicavel: sem isso ela nao existe para o teclado */
+    if(el.tabIndex<0)el.tabIndex=0;
+    el.setAttribute('role','button');
+    el.onkeydown=function(e){
+      if(e.key!=='Enter'&&e.key!==' ')return;
+      if(e.target.tagName==='A')return;
+      e.preventDefault();el.click();
+    };
     el.onclick=function(e){
       if(e.target.tagName==='A'||e.target.closest('a'))return;
       goToAlert('leads',el.dataset.lead);
@@ -6387,11 +6436,11 @@ function renderFollow(){
       '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
       '<button class="dctl" id="fexp">↓ CSV</button></div>'+
     '<div class="rkpis">'+
-      '<div class="rkpi'+(total?' bad':' ok')+'"><b>'+total+'</b><span>Precisam de contato</span></div>'+
+      '<div class="rkpi lead'+(total?' bad':' ok')+'"><b>'+total+'</b><span>Precisam de contato hoje</span>'+
+        '<i class="kctx">de '+ativos.length+' leads ativos'+(nunca.length?' · '+nunca.length+' nunca receberam o primeiro toque':'')+'</i></div>'+
       '<div class="rkpi'+(nunca.length?' bad':'')+'"><b>'+nunca.length+'</b><span>Nunca contatados</span></div>'+
       '<div class="rkpi"><b>'+frios.length+'</b><span>Parados há +30 dias</span></div>'+
       '<div class="rkpi'+(neg.length?' bad':'')+'"><b>'+neg.length+'</b><span>Negociações paradas</span></div>'+
-      '<div class="rkpi"><b>'+ativos.length+'</b><span>Leads ativos</span></div>'+
     '</div>'+
     '<div class="rgrid">'+
       blocoLeads('🔴 Nunca receberam contato',nunca,'Lead sem primeiro toque é dinheiro parado. Comece por aqui.','Nenhum lead sem primeiro contato. Ótimo sinal.')+
@@ -6582,12 +6631,12 @@ function renderGargalo(){
       '</select></div>'+
     alerta+
     '<div class="rkpis">'+
-      '<div class="rkpi"><b>'+leads.length+'</b><span>Leads no recorte</span></div>'+
-      '<div class="rkpi ok"><b>'+fech.length+'</b><span>Matrículas</span></div>'+
+      '<div class="rkpi lead bad"><b>'+(pior?pior.custo:0)+'</b><span>Matrículas presas no maior gargalo</span>'+
+        '<i class="kctx">'+(pior?esc(pior.de)+' \u2192 '+esc(pior.para)+' · ':'')+'contra '+fech.length+' matrícula'+(fech.length===1?'':'s')+' fechada'+(fech.length===1?'':'s')+' no recorte</i></div>'+
       '<div class="rkpi bad"><b>'+perd.length+'</b><span>Perdidos</span></div>'+
       '<div class="rkpi"><b>'+pct(perd.length,leads.length)+'</b><span>Taxa de perda</span></div>'+
-      '<div class="rkpi bad"><b>'+(pior?pior.custo:0)+'</b><span>Matrículas presas no gargalo</span></div>'+
-      '<div class="rkpi"><b>'+semTurma.length+'</b><span>Na fila por falta de turma</span></div>'+
+      '<div class="rkpi"><b>'+leads.length+'</b><span>Leads no recorte</span></div>'+
+      '<div class="rkpi'+(semTurma.length?' bad':'')+'"><b>'+semTurma.length+'</b><span>Na fila por falta de turma</span></div>'+
     '</div>'+
     '<div class="rgrid">'+
       heroGargalo+
@@ -6615,12 +6664,14 @@ function turnoDe(hor){
   if(h<18)return 'Tarde';
   return 'Noite';
 }
-/* ================= Relatório: Demanda por faixa =================
-   Responde "em que faixa estamos deixando aluno na mesa".
+/* ================= Relatório: Demanda por nível =================
+   Responde "em que nível estamos deixando aluno na mesa".
    Universo: tudo que não fechou (perdido, aguardando 27.1 e ativos).
-   O nível quase nunca está preenchido, então a faixa é resolvida por
-   cascata sobre todos os campos do card, guardando de onde veio. */
-var DEM={faixa:'todas',turmas:null,notas:null};
+   O campo Nível quase nunca está preenchido, então o nível é resolvido por
+   cascata sobre todos os campos do card, guardando de onde veio.
+   ATENCAO: o estado se chama DEMF, nao DEM. `var DEM` ja pertence ao modulo
+   Demandas (linha ~10130) e a segunda declaracao vencia, quebrando esta tela. */
+var DEMF={faixa:'todas',turmas:null,notas:null};
 var DEM_FAIXAS=['Garden','Fun','Kids','Teen','Adulto/Jovem'];
 
 function demNorm(t){
@@ -6667,22 +6718,22 @@ function demEtapaRotulo(e){
 
 async function openDemanda(force){
   $('stats').innerHTML='';
-  if(!REL.leads)$('board').innerHTML=relEsqueleto('Varrendo os cards para descobrir a faixa...');
+  if(!REL.leads)$('board').innerHTML=relEsqueleto('Varrendo os cards para descobrir o nível...');
   try{
     await relLoad(!!force);
-    if(!DEM.turmas||force)DEM.turmas=await api('/crm_turmas?select=codigo,curso,dias,horario,sala,professor,alunos,capacidade,sem_vaga,semestre&ativa=eq.true&order=curso.asc,horario.asc');
-    if(!DEM.notas||force){
+    if(!DEMF.turmas||force)DEMF.turmas=await api('/crm_turmas?select=codigo,curso,dias,horario,sala,professor,alunos,capacidade,sem_vaga,semestre&ativa=eq.true&order=curso.asc,horario.asc');
+    if(!DEMF.notas||force){
       var ns=await api('/crm_leads_interacoes?select=lead_id,nota&order=data.desc&limit=8000');
       var idx={};
       (ns||[]).forEach(function(n){
         if(!n.nota)return;
         idx[n.lead_id]=(idx[n.lead_id]||'')+' '+n.nota;
       });
-      DEM.notas=idx;
+      DEMF.notas=idx;
     }
   }catch(e){
-    if(!DEM.turmas)DEM.turmas=[];
-    if(!DEM.notas)DEM.notas={};
+    if(!DEMF.turmas)DEMF.turmas=[];
+    if(!DEMF.notas)DEMF.notas={};
     if(!REL.leads){$('board').innerHTML='<div class="loading">Não foi possível carregar a demanda agora.</div>';return;}
   }
   renderDemanda();
@@ -6691,9 +6742,9 @@ async function openDemanda(force){
 function renderDemanda(){
   resetCharts();
   var base=(relLeads()).filter(function(l){return l.etapa!=='fechado';});
-  base.forEach(function(l){l._dem=demClassifica(l,DEM.notas);});
+  base.forEach(function(l){l._dem=demClassifica(l,DEMF.notas);});
 
-  var turmas=(DEM.turmas||[]).filter(function(t){
+  var turmas=(DEMF.turmas||[]).filter(function(t){
     var cap=t.capacidade||0,al=t.alunos||0;
     return !t.sem_vaga&&(cap===0||al<cap);
   });
@@ -6713,11 +6764,11 @@ function renderDemanda(){
   DEM_FAIXAS.forEach(function(f){if(grupos[f].length>ln){ln=grupos[f].length;lider=f;}});
 
   /* filtro de faixa */
-  var opts=[{k:'todas',r:'Todas ('+base.length+')'}]
+  var opts=[{k:'todas',r:'Todos ('+base.length+')'}]
     .concat(DEM_FAIXAS.map(function(f){return {k:f,r:f+' ('+grupos[f].length+')'};}))
-    .concat([{k:'nao',r:'Sem faixa ('+semFaixa.length+')'}]);
+    .concat([{k:'nao',r:'Sem nível ('+semFaixa.length+')'}]);
   var filtro='<div class="rfil" style="margin-bottom:14px">'+opts.map(function(o){
-    return '<button data-demf="'+esc(o.k)+'"'+(DEM.faixa===o.k?' class="on"':'')+'>'+esc(o.r)+'</button>';
+    return '<button data-demf="'+esc(o.k)+'"'+(DEMF.faixa===o.k?' class="on"':'')+'>'+esc(o.r)+'</button>';
   }).join('')+'</div>';
 
   function linha(l){
@@ -6725,7 +6776,7 @@ function renderDemanda(){
     return '<div class="lrow" data-lead="'+esc(l.id)+'">'+
       '<span class="ln">'+esc(l.nome||'')+
         '<span class="lsub">'+esc([demEtapaRotulo(l.etapa),l.motivo_perda||'',l.responsavel||'',
-          (d.origem?(d.firme?'':'~ ')+d.origem:'sem pista de faixa')].filter(Boolean).join(' · '))+'</span></span>'+
+          (d.origem?(d.firme?'':'~ ')+d.origem:'sem pista de nível')].filter(Boolean).join(' · '))+'</span></span>'+
       '<span class="ld">'+esc(l.curso||'')+'</span>'+
       (waLink(l.whatsapp)?'<a class="wa" target="_blank" rel="noopener" href="'+waLink(l.whatsapp)+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
       '<span></span>'+
@@ -6750,11 +6801,11 @@ function renderDemanda(){
         '<div class="rkpi ok"><b>'+atv+'</b><span>Ainda no funil</span></div>'+
       '</div>'+
       (ts.length
-        ? '<div class="ibox ok" style="margin-bottom:10px"><div class="itx"><b>'+ts.length+' turma'+(ts.length>1?'s':'')+' com vaga nesta faixa</b>'+
+        ? '<div class="ibox ok" style="margin-bottom:10px"><div class="itx"><b>'+ts.length+' turma'+(ts.length>1?'s':'')+' com vaga neste nível</b>'+
           '<p>'+ts.slice(0,4).map(function(t){
             return esc((t.curso||'')+' · '+(t.dias||'')+' '+(t.horario||'')+((t.capacidade||0)?' · '+((t.capacidade||0)-(t.alunos||0))+' vaga(s)':''));
           }).join('<br>')+'</p></div></div>'
-        : '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Nenhuma turma com vaga nesta faixa</b>'+
+        : '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Nenhuma turma com vaga neste nível</b>'+
           '<p>Demanda represada aqui é candidata a turma nova em 27.1.</p></div></div>')+
       (tops.length?'<div class="rhcard" style="margin-bottom:8px"><b>Motivos da perda</b><span>'+
         tops.map(function(m){return esc(m)+': '+mot[m];}).join(' · ')+'</span></div>':'')+
@@ -6766,17 +6817,17 @@ function renderDemanda(){
   }
 
   var corpo='';
-  if(DEM.faixa==='nao'){
-    corpo='<div class="rcard"><h3>Sem faixa identificada ('+semFaixa.length+')</h3>'+
-      '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Estes leads não dizem em que faixa entrariam</b>'+
+  if(DEMF.faixa==='nao'){
+    corpo='<div class="rcard"><h3>Sem nível identificado ('+semFaixa.length+')</h3>'+
+      '<div class="ibox warn" style="margin-bottom:10px"><div class="itx"><b>Estes leads não dizem em que nível entrariam</b>'+
       '<p>Nível vazio, turma vazia, nada nas observações nem nas interações e sem idade. '+
       'Abrir a ficha e preencher nível ou idade é o que faz este relatório virar decisão de abertura de turma.</p></div></div>'+
       '<div class="rlist">'+semFaixa.map(linha).join('')+'</div></div>';
-  }else if(DEM.faixa==='todas'){
+  }else if(DEMF.faixa==='todas'){
     corpo=DEM_FAIXAS.map(cardFaixa).join('');
-    if(!corpo)corpo='<div class="ibox warn"><div class="itx"><b>Nenhuma faixa identificada na base</b><p>Preencha nível ou idade nas fichas.</p></div></div>';
+    if(!corpo)corpo='<div class="ibox warn"><div class="itx"><b>Nenhum nível identificado na base</b><p>Preencha nível ou idade nas fichas.</p></div></div>';
   }else{
-    corpo=cardFaixa(DEM.faixa)||'<div class="ibox"><div class="itx"><b>Ninguém nesta faixa</b><p>Nenhum lead em aberto foi classificado como '+esc(DEM.faixa)+'.</p></div></div>';
+    corpo=cardFaixa(DEMF.faixa)||'<div class="ibox"><div class="itx"><b>Ninguém neste nível</b><p>Nenhum lead em aberto foi classificado como '+esc(DEMF.faixa)+'.</p></div></div>';
   }
 
   $('board').innerHTML='<div class="rscreen"><div class="rwrap">'+
@@ -6784,13 +6835,15 @@ function renderDemanda(){
       '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
       '<button class="dctl" id="dexp">↓ CSV</button></div>'+
     '<div class="rkpis">'+
-      '<div class="rkpi"><b>'+base.length+'</b><span>Leads em aberto</span></div>'+
-      '<div class="rkpi ok"><b>'+identificados+'</b><span>Com faixa identificada</span></div>'+
+      '<div class="rkpi lead"><b>'+ln+'</b><span>Leads represados em '+esc(lider)+'</span>'+
+        '<i class="kctx">é o nível com mais demanda em aberto, de '+base.length+' leads · '+
+        turmasDaFaixa(lider).length+' turma(s) com vaga nesse nível</i></div>'+
+      '<div class="rkpi ok"><b>'+identificados+'</b><span>Com nível identificado</span></div>'+
       '<div class="rkpi'+(cobertura<50?' bad':'')+'"><b>'+cobertura+'%</b><span>Cobertura do dado</span></div>'+
-      '<div class="rkpi"><b>'+esc(lider)+'</b><span>Maior demanda</span></div>'+
+      '<div class="rkpi"><b>'+base.length+'</b><span>Leads em aberto</span></div>'+
       '<div class="rkpi"><b>'+turmas.length+'</b><span>Turmas com vaga</span></div>'+
     '</div>'+
-    (cobertura<50?'<div class="ibox warn"><div class="itx"><b>'+semFaixa.length+' leads em aberto sem nenhuma pista de faixa</b>'+
+    (cobertura<50?'<div class="ibox warn"><div class="itx"><b>'+semFaixa.length+' leads em aberto sem nenhuma pista de nível</b>'+
       '<p>A varredura passa por nível, turma, observações, histórico de interações e idade. '+
       'Enquanto o campo Nível não for preenchido no atendimento, este relatório enxerga só '+cobertura+'% da demanda.</p></div></div>':'')+
     filtro+
@@ -6799,13 +6852,13 @@ function renderDemanda(){
 
   bindSubnav();bindRel(renderDemanda);bindLeadRows();
   document.querySelectorAll('#board [data-demf]').forEach(function(b){
-    b.onclick=function(){DEM.faixa=b.dataset.demf;renderDemanda();};
+    b.onclick=function(){DEMF.faixa=b.dataset.demf;renderDemanda();};
   });
   var bd=$('dexp');
   if(bd)bd.onclick=function(){
-    var lista=DEM.faixa==='nao'?semFaixa:(DEM.faixa==='todas'?base:grupos[DEM.faixa]||[]);
-    baixaCSV('cna-demanda-faixa-'+hojeISO(),
-      ['Nome','WhatsApp','Curso','Faixa','Origem da faixa','Confiança','Etapa','Motivo da perda','Nível','Idade','Responsável','Origem do lead','Entrada'],
+    var lista=DEMF.faixa==='nao'?semFaixa:(DEMF.faixa==='todas'?base:grupos[DEMF.faixa]||[]);
+    baixaCSV('cna-demanda-nivel-'+hojeISO(),
+      ['Nome','WhatsApp','Curso','Nível estimado','Origem do nível','Confiança','Etapa','Motivo da perda','Nível','Idade','Responsável','Origem do lead','Entrada'],
       lista.map(function(l){
         return [l.nome||'',l.whatsapp||'',l.curso||'',l._dem.faixa||'Não identificada',
           l._dem.origem||'—',l._dem.firme?'Confirmada':(l._dem.origem?'Estimada':'—'),
@@ -6892,10 +6945,10 @@ function renderEspera(){
       '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
       '<button class="dctl" id="eexp">↓ CSV</button></div>'+
     '<div class="rkpis">'+
-      '<div class="rkpi'+(fila.length?' bad':' ok')+'"><b>'+fila.length+'</b><span>Na fila de espera</span></div>'+
+      '<div class="rkpi lead'+(fila.length?' bad':' ok')+'"><b>'+fila.length+'</b><span>Esperando turma</span>'+
+        '<i class="kctx">'+comSaida+' já poderiam entrar numa turma que tem vaga hoje · espera média de '+esperaMedia+'</i></div>'+
       '<div class="rkpi ok"><b>'+comSaida+'</b><span>Já têm turma com vaga</span></div>'+
       '<div class="rkpi"><b>'+gks.length+'</b><span>Combinações curso + turno</span></div>'+
-      '<div class="rkpi"><b>'+esperaMedia+'</b><span>Tempo médio na fila</span></div>'+
       '<div class="rkpi"><b>'+turmas.length+'</b><span>Turmas com vaga</span></div>'+
     '</div>'+
     (fila.length?'':'<div class="ibox ok"><div class="itx"><b>Ninguém na fila por falta de turma</b>'+
@@ -7026,10 +7079,9 @@ function renderEquipe(){
       '<div class="spacer" style="flex:1"></div>'+freshTag(REL.ts)+relBotao()+
       '<button class="dctl" id="qexp">↓ CSV</button></div>'+
     '<div class="rkpis">'+
-      '<div class="rkpi"><b>'+ks.length+'</b><span>Pessoas com movimento</span></div>'+
+      '<div class="rkpi lead ok"><b>'+totF+'</b><span>Matrículas da equipe</span>'+
+        '<i class="kctx">'+pct(totF,totN)+' de conversão sobre '+totN+' leads · '+ks.length+' pessoas com movimento no período</i></div>'+
       '<div class="rkpi"><b>'+totN+'</b><span>Leads no período</span></div>'+
-      '<div class="rkpi ok"><b>'+totF+'</b><span>Matrículas</span></div>'+
-      '<div class="rkpi"><b>'+pct(totF,totN)+'</b><span>Conversão da equipe</span></div>'+
       '<div class="rkpi"><b>'+totC+'</b><span>Tentativas de contato</span></div>'+
       '<div class="rkpi"><b>'+totE+'</b><span>Conversas de fato</span></div>'+
     '</div>'+
@@ -7152,10 +7204,10 @@ function renderCustom(){
       corpo='<div class="rcard wide"><h3>Resultado</h3><div class="rempty">Nenhum lead bate com esse recorte. Afrouxe um filtro.</div></div>';
     }else{
       corpo='<div class="rkpis">'+
-        '<div class="rkpi"><b>'+tot.n+'</b><span>Leads no recorte</span></div>'+
-        '<div class="rkpi ok"><b>'+tot.f+'</b><span>Matrículas</span></div>'+
+        '<div class="rkpi lead ok"><b>'+tot.f+'</b><span>Matrículas no recorte</span>'+
+          '<i class="kctx">'+pct(tot.f,tot.n)+' de conversão sobre '+tot.n+' leads, em '+ks.length+' grupo(s)</i></div>'+
         '<div class="rkpi bad"><b>'+tot.p+'</b><span>Perdidos</span></div>'+
-        '<div class="rkpi"><b>'+pct(tot.f,tot.n)+'</b><span>Conversão</span></div>'+
+        '<div class="rkpi"><b>'+tot.n+'</b><span>Leads no recorte</span></div>'+
         '<div class="rkpi"><b>'+ks.length+'</b><span>Grupos</span></div>'+
       '</div>'+
       '<div class="rgrid">'+
@@ -7524,8 +7576,9 @@ function renderInicio(){
   /* ---- big numbers ---- */
   const refAnt=ontem?brDate(ontem.data).slice(0,5):'';
   const kpis='<div class="rkpis">'+
-    '<div class="rkpi'+(bateu?' ok':'')+'"><b>'+ef+'</b><span>Efetivos hoje</span>'+kd(ef,ontem?ontem.efetivos:null,'vs. '+refAnt)+'</div>'+
-    '<div class="rkpi'+(falta?'':' ok')+'"><b>'+falta+'</b><span>Faltam para a meta</span></div>'+
+    '<div class="rkpi lead'+(bateu?' ok':'')+'"><b>'+ef+'</b><span>Conversas efetivas hoje</span>'+
+      '<i class="kctx">'+(bateu?'meta do dia batida':'faltam '+falta+' para a meta de '+META_EF)+'</i>'+
+      kd(ef,ontem?ontem.efetivos:null,'vs. '+refAnt)+'</div>'+
     '<div class="rkpi"><b>'+(k.agendados||0)+'</b><span>Agendados hoje</span>'+kd(k.agendados||0,ontem?ontem.agendados:null,'vs. '+refAnt)+'</div>'+
     '<div class="rkpi'+((k.pendentes||0)?' bad':'')+'"><b>'+(k.pendentes||0)+'</b><span>Ainda em aberto</span></div>'+
     '<div class="rkpi ok"><b>'+(k.matriculas||0)+'</b><span>Matrículas hoje</span>'+kd(k.matriculas||0,ontem?ontem.matriculas:null,'vs. '+refAnt)+'</div>'+
