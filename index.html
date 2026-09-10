@@ -1836,14 +1836,14 @@ document.querySelectorAll('.logoImg').forEach(function(i){i.src=LOGO;});
 const UNIDADES={
   taquara:{
     nome:'CNA Taquara', curto:'Taquara',
-    endereco:'Estrada da Soca, 129', tel:'(21) 3579-6700', email:'taquara@cna.com.br',
+    email:'taquara@cna.com.br',
     bairros:'Taquara e bairros vizinhos',
     url:'https://gpnwmsnayrqjcmhqrtpx.supabase.co',
     key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwbndtc25heXJxamNtaHFydHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNjY4NTEsImV4cCI6MjEwMDg0Mjg1MX0.xQARkaQ9kPmVwqMM5ixfUCHP6cmEHOtI2eqVWFEjlrw'
   },
   queimados:{
     nome:'CNA Queimados', curto:'Queimados',
-    endereco:'[CONFIRMAR]', tel:'[CONFIRMAR]', email:'queimados@cna.com.br',
+    email:'queimados@cna.com.br',
     bairros:'Queimados e bairros vizinhos',
     url:'https://jdbzmcwagczxthkcclgk.supabase.co',
     key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkYnptY3dhZ2N6eHRoa2NjbGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTA2NzMsImV4cCI6MjEwNDYyNjY3M30.WsNykxU3PEwZxuzp4or0vKR-WlHnQTlz04wl9jfL32M'
@@ -9434,10 +9434,10 @@ function tPrint(){
   var html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
     +'<title>Mapa de turmas '+esc(tSemestre)+' · '+esc(UN().nome)+'</title><style>'+css+'</style></head><body>'
     +'<div class="head"><div><h1>Mapa de turmas '+esc(tSemestre)+'</h1>'
-    +'<div class="sub">'+esc(UN().nome+' · '+UN().endereco)+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
+    +'<div class="sub">'+esc(UN().nome)+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
     +'<div class="meta">'+lista.length+' turmas · '+totAl+' alunos<br>'+comVaga+' turmas com vaga · '+vagasTot+' vagas livres<br>Impresso em '+hoje+'</div></div>'
     +tPrintTabela(lista)
-    +'<div class="foot">'+esc(UN().nome+' · '+UN().tel+' · '+UN().email)+'</div>'
+    +'<div class="foot">'+esc(UN().nome+' · '+UN().email)+'</div>'
     +'</body></html>';
   var w=window.open('','_blank');
   if(!w){toast('Libere os pop-ups do navegador para imprimir o mapa.');return;}
