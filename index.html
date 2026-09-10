@@ -2094,7 +2094,7 @@ function emptyFilters(){
   /* A01/A02/A03: o funil abre com TODO o historico. O recorte automatico por data
      de cadastro escondia lead antigo em negociacao e fazia o cabecalho divergir do
      quadro. Quem quiser o mes escolhe no seletor de periodo da toolbar. */
-  const f={q:'',prio:null,tipo:null,resp:null,ag:null,per:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null};
+  const f={q:'',prio:null,tipo:null,resp:null,ag:null,per:null,entradaDe:null,entradaAte:null,proxDe:null,proxAte:null,uc:null,ucDe:null,ucAte:null};
   return f;
 }
 let filters=emptyFilters();
@@ -2300,6 +2300,19 @@ function matches(s){
     if(filters.ag==='hoje'&&_d!==_h)return false;
     if(filters.ag==='semana'&&!(_d&&_d<=addDias(_h,7)))return false;
     if(filters.ag==='sem'&&_d)return false;
+  }
+  /* ultimo contato: so' contato efetivo (A52). Lead que nunca teve contato
+     efetivo so' aparece no preset "nunca"; faixa de datas o exclui. */
+  if(tab==='leads'&&(filters.uc||filters.ucDe||filters.ucAte)){
+    const _u=s.ultimo_contato?String(s.ultimo_contato).slice(0,10):'',_hu=hojeISO();
+    if(filters.uc==='nunca'&&_u)return false;
+    if(filters.uc&&filters.uc!=='nunca'&&!_u)return false;
+    if(filters.uc==='hoje'&&_u!==_hu)return false;
+    if(filters.uc==='7'&&_u<addDias(_hu,-7))return false;
+    if(filters.uc==='8a30'&&(_u<addDias(_hu,-30)||_u>addDias(_hu,-8)))return false;
+    if(filters.uc==='mais30'&&_u>=addDias(_hu,-30))return false;
+    if(filters.ucDe&&(!_u||_u<filters.ucDe))return false;
+    if(filters.ucAte&&(!_u||_u>filters.ucAte))return false;
   }
   if(filters.q){
     // busca por número: compara só os dígitos, ignorando (), -, espaço e o DDI 55
@@ -3867,6 +3880,9 @@ function activeFilterCount(){
   /* o recorte de periodo tem seletor proprio na toolbar; so conta aqui quando e' faixa manual */
   if((filters.entradaDe||filters.entradaAte)&&(tab!=='leads'||filters.per==='custom'))n++;
   if(filters.proxDe||filters.proxAte)n++;
+  if(filters.ag)n++;
+  if(tab==='leads'&&filters.uc)n++;
+  if(tab==='leads'&&(filters.ucDe||filters.ucAte))n++;
   return n;
 }
 function updateFBtn(){
@@ -3924,6 +3940,10 @@ function buildChips(){
     html+=dateGroup('Data de cadastro','entradaDe','entradaAte');
   }
   html+=dateGroup('Próximo contato','proxDe','proxAte');
+  if(tab==='leads'){
+    html+=selGroup('Último contato efetivo','uc',[['hoje','Hoje'],['7','Últimos 7 dias'],['8a30','De 8 a 30 dias atrás'],['mais30','Há mais de 30 dias'],['nunca','Nunca teve contato efetivo']]);
+    html+=dateGroup('Último contato (faixa)','ucDe','ucAte');
+  }
   html+='<div class="factions"><button class="btn" id="fclear">Limpar filtros</button></div>';
   $('fpanel').innerHTML=html;
 

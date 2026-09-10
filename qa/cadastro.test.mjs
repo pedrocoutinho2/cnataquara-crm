@@ -41,7 +41,7 @@ async function abrir() {
   await ctx.addInitScript(() => {
     try {
       localStorage.setItem('crmAuth', 'Admin QA');
-      localStorage.setItem('crmAuthEmail', 'qa@cnataquara.com.br');
+      localStorage.setItem('crmAuthEmail', 'qa@cnataquara.com.br'); localStorage.setItem('crmUnidade', 'taquara');
     } catch (e) { }
   });
   const json = (route, body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
