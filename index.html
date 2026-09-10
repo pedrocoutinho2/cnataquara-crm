@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM CNA Taquara · Escolas, Empresas e Clientes</title>
+<title>CRM CNA · Escolas, Empresas e Clientes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -337,6 +337,11 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .lform input{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;font-size:15px;width:100%;font-family:'Poppins';color:var(--ink)}
 .lform input:focus{outline:none;border-color:var(--blue)}
 .lform .btn{width:100%;justify-content:center;padding:11px}
+.lunid{display:flex;flex-direction:column;gap:5px;text-align:left}
+.lunid.off{display:none}
+.lunid label{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:.2px}
+.lunid select{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;font-size:15px;width:100%;font-family:'Poppins';color:var(--ink);background:var(--white)}
+.lunid select:focus{outline:none;border-color:var(--blue)}
 .lerr{color:var(--redDark);font-size:12.5px;min-height:16px;margin-top:10px;font-weight:600}
 
 /* ===== Tela de relatórios ===== */
@@ -1536,7 +1541,7 @@ input,textarea,select{caret-color:var(--red)}
 
 <header>
   <button class="mbtn" id="menubtn" aria-label="Abrir menu">&#9776;</button>
-  <div class="brand"><img class="logoImg" alt="CNA idiomas"><span class="sub">CRM · Taquara</span></div>
+  <div class="brand"><img class="logoImg" alt="CNA idiomas"><span class="sub unidadeNome">CRM</span></div>
   <h1 class="ptitle" id="ptitle">Início</h1>
   <div class="hright">
     <button class="abtn" id="abtn" title="Meus agendamentos" style="display:none">&#128276;<b id="acount">0</b></button>
@@ -1699,11 +1704,18 @@ input,textarea,select{caret-color:var(--red)}
 
 <div class="login" id="login">
   <div class="lbox">
-    <div class="lbrand"><img class="logoImg big" alt="CNA idiomas"><span class="sub">CRM · Taquara</span></div>
-    <p class="lmsg">Entre com o seu e-mail do CNA.</p>
+    <div class="lbrand"><img class="logoImg big" alt="CNA idiomas"><span class="sub unidadeNome">CRM</span></div>
+    <p class="lmsg" id="lmsg">Entre com o seu e-mail do CNA.</p>
     <div class="lform" id="lform">
       <input id="lmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="E-mail">
       <input id="pin" type="password" autocomplete="current-password" placeholder="Senha">
+      <div id="lunid" class="lunid off">
+        <label for="lunidsel">Unidade</label>
+        <select id="lunidsel">
+          <option value="taquara">CNA Taquara</option>
+          <option value="queimados">CNA Queimados</option>
+        </select>
+      </div>
       <button class="btn primary" id="entrar">Entrar</button>
     </div>
     <p class="lerr" id="lerr"></p>
@@ -1817,8 +1829,52 @@ input,textarea,select{caret-color:var(--red)}
 /* ================= Supabase ================= */
 const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAABuCAMAAADLXPzWAAAA/1BMVEUAAADnHkXpGjyUGjAbCA1hERplCAgaRI+qMUhwDx4bNGkXO41SEhgqAwsSGWkUKFUXJksmRXf/AH//AAB2AXUAfQBtbG0JZGr/d3eBKjkAAP9oaLD/AP81AgioBFapFxexQ1UA//+qVVUA/wCBKTwwQ15MXHtlcYh4f/eUnq7/VaoRYJ5DXZZ6L0Jgnp6MNESxsbHleqMAf/9QaIKxtcDFipvUqqpDXHt8L0RnQjx1h5b/f////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqe7K1AAAAQHRSTlMA/v7yKKEI/fzZ7f1iVQ6iZPcCAQICBAgCrgEDAYcDA/cBAwFDXqFuAk4DBOrvBLAD/gKbPfUGwLIqZgIBAAAAviOmKAAAEWxJREFUeNrtXIt24zYOpcSHRVmy7Nh1Mpk8Jul2Ot3dvh/7/P/vWoIAQUqWYkl2pusz4emZOpYsi1fAxQUIWoiBYf7j/1dpK6XMxw5pVfsySpwwlJVZludZXgkh3Ys8k7ISZvJ1HreVhE+edDOIyg5uq9I/FkWRTRqFFg80K/3hxwquNfsmhJJ4UQTG/d+/vJp8pb2wbhpa3IjTh6p+lIRJPgkZGWalASZbzb+FvTAf2sDArejpwOxEBVORWuxOwuQZnra3FIAELBnGOFicsddkI/i0PTQPM4H5VxsYfxPTn/tO1EX71mYacIAlgnIcmXCG+/Z78mRJtia1e2M7C5iq6LOY6cBYesj2BJNxuFQMCyEygnQTi9HXiIINPljIef60OwQmm+FKBi6DdyjvTzEXW6RW4GFJUDoCTJa6Er9b2Npd2/wpwBjPVHSHUs3GRSdhaDy1pOSrWhxD6DjimxyfzgPMjYAgQg/XffpuXnwEc8n9ZcBWEB05aehwNZm1ghr40/PnB+ZZaG8wZPWz+BdwQVjYP9xEra7VKAPsnqW7Csf702cGxs2pyBJgHP/OwKWSGV8EAJK6cqBcz+QreyCAJvrT/iyuJIPZEjFYNZPqAq+AqbAxGLNX7p/+oYwKL+CfYWAgPilxYz6fxewdZyaUSS49yZn2opZRujhrqUgAu2TJFhOGHQAmn+xPpwMTr+BIIdzINJMxqA6JcnMvypyisXJqrhTDtT5UxdP86XRgjLLkA9JaGbO57RSOkgUL2Nx6J2L929K2fXo3Tj2PpqrbAT8nzDE+fRZgTLwHWysd3GmaM9nohmguGsM/Re5jCq/FsC1gnPklLu7/AX9Sd+a1gTH4+RyzJFScyL+jxYzxHJUHXIBb/llkWT5+RG/pWIwzP01WnOcsakZRzemuZIMda/GgCCZ3B8VYMfMYP5OjvQSopwLTTgnwkg5njbqRFGPGqeUrA4PJTU6ZwE30ClmPLb5IJgFZfXWldLsSMyKTZLEQ6jEJMOZRKS1jXQcR8vWIK/NqwOxipHZ5rZefPM3RabYuEurEP/NZiRIYXOD8aDFbX8+TCc74HI/Ep5OAMVvMhoOm+/57x2vBu8dVZriCiLP4K/FNlERTkiWrxYHFEFK1LQ703ovQnAYMP23vOC5hssKnPBGr4+mnZhO3yuOSR1xypwB07YYaNZLrvuPKElSPFRpNWirNqVTzYM4PzDZKu1yvvEhzT+FTHcpdhR7LMKH2Fy6IqsOnkJMyi20fMNWHwj8ihIZpyYduXb8Ox2CYReNwiWSwnBBlZK22x0JSQlJia4qEbyl0bM3o0W8xOgvPiBZE8lDUoPjUmz+dAMwNqyiEI/jDXthA/sfFjEqziCcbqjAgo521zCnW9gITKpyVLQL/kuF4qump780HhhKcnNRCRZWqwl2mYpmnj5WHTDA6uD9dBGDGKI1JwIDRRH9Ki6d4wJwPGJIsGJhveIEhWk8+psypAx86NWokKXeEyZwRmCTbqLXs5lpANd0kYTYw+xY7wLeHr9EhWqIzHWUpPJEMhlZBrDoNlz5ggnhRmCXk3azbnAUY70ikNCx6BNdXa3as/Fhkug+fA9OyrL5OxuUAmFCR8VST+FM4JLv500xgzE7J8G1wSdYunh+cHgmrTEfSbJZdDlyPtKdFW4tTR58rUYTGYo9sF2oOpPBMYJ7R7oPnss5Dh3JfUbO12qM1Uc+1KRfUp9oLMS4A87Wool3ExUmh+J6DsvHx6eY0YAz5CkUkJVNYWs50xGRkzDgV07c9vWHiAJhO8RezBF4gJ2gkpJbmNI5hPZBImFgpw8yA2PilyJRHYBjJfN661ChgQhiyTDXtfDX60yxg7tAOfaZoRbvmS2UVb0Y588cxYKwaaWInA8MR2oduK7MUFyp9Xs0EhosNuWdeVXDSX3OTgbejnDWfOgZMnMpZKCYC066LY22HFycRmvZhqu/NAEYJnD9OQvEX5/zY2Zl4RXmoxpr1AGPFeS2GdYzkuiBRTe2XaCwL+LACqmPNNsvHA2OCMvBdF9GRvPiwIX/UIpYsh9tKEmDCJ+esY44ABrxeJolAxsl1yLoTT4O7vzMfkBfGArOLZuHnYJOKjA/TOScDOkkTzJ8JDIUJEnZdskV/ylN+Bn+abDGK9T7VGNBtNZQY9qHij86UpM67PwmYmK1YLuTxIjtDk1SF2Z+4yj8WGOuhoNjDeobEx1bZpBgeQIfM4HEEx7wyMA9o0iy5EBlL8alVfIcDk4DhYgMJMdspExj8ZoRqHxPwATGTyONQcxi/vDAKmK/YoaWTR4aso7VO2cm6s04hfqzF2IKsTda35Ej+EyTK7nyZqq2Jh+0gjxhXRUitq6/NmYHBZ0NPjkN0nH8ihSlwTQdGfwhe6CZTFzEJ4Mkg/+adyoyjQdMHDFN1FIQzmmnHAwPlVKWTNQP8Ulu3q8ITgTFRn3qUOTjbTgsQJT2OjJnVegWtZD3E/YTJqtnrAJP6U4QmSuGss6Q1AhhzE+OMDHIulN8OFlWQ8RU/m74FOM4+9VNUqKNWF04ABmOrDYI9GAhCU1nZSR9GAPOcyGtg3kAw0GNwc/P8+Ph448bjDc9XiqRO5EzmcTAXteK2LmJSYMyZgcmyA0OsbNpQnBbMpwITVbK3ffWOF2O7cUTnfCGhksi0716y5iQdI9zxtPN8wAjWe3lct62TAt9YYOJqKpxxnSh+aTWMd2HERT9Zf5UIZX3Y1y9j1rDlHupM6s8ATIxPSSNOQjXjOSYuVLOsHVh7j41jMTLlfZmB4q4jqa4VEfU5VgnGWIy5SkucXLLWvNadjwJmF9W/dyR90ODWbQTLIoQhwh9cNUa5yoeKPFlmenhlYBD7Sh60BLerwkeAAckb8vM8rU4N9Mix4q4E7jNAQz0wGY5LIGV0lri7EndX6tWiUoRG2X5oSNX4GbwAzI4iEuVFqjjs6ukFJmbgfWn2fxPGxdged1agTRszZp22u3Q9Ghjc8cIckR9m3X5tdRiYfczCsaT/YaiZ8qCLNKwZ9MebRBkpbPDhixZWT9xSs50BTNR7eVoZpiwB3q/jk+2xGFUETEOlrpNvvLDrrC3eWhZw1ZFG3E/FHeJGOcCmtsdMAaaVP0VjJ3+yEpTEC65k46JdguCoAY1ScqDPymxVLB5ZEYoEsVWjKIopHVXb5HZHAwP5UwJNWwrXtRgGhptW0f0enFeOH7oK+7woMt0d9uDlnI8Lm7frjxN30e7SBavRwOCeQ9ndKRW6pdWgxaSPVZk9HCXbfTluKN8SdfXg68ScP+x6jDEPPSSdxqdRXYlxySzwzFRg0J9aqWUeujuNGQYmtpjOLCOlfSJt7YbtAaHGUwXGa7PX2Ibf9i7aScAICH+drYehijUAjIlptGPea2F0lYy/8KiGhq6UaGUGnVCiC05yqVFDTsJkoAF6IjCiv74HCVTdC4yhVI/XSIqMNsFkR7fS83YZtYtl8sNMyMZ7SRVENk4SZD17CWYBE/0p6auGJTjbC8xzUoabHJGyrKPeenKmLRUVW0vuVavxabQrVb3A5AMpwQAx2nTNoDONqwNHCg5Xddonjlp5XGkJlb2skxkYcZ+qcvrtCgeNnL1f6d0JwCSunA8DY9I02kUkxYpk7AaImEzaJC/qIJP2DOIDeIKYhj8HMqE3PFzYngBMkj+9AMyWt5d0mngntPjnmHE8VTI2jW872WRCejmXjATKgmOjDs3jtRK9Am+ixUDI17boZYSrdrGBNXtVJBsVxkPT6ubMe7W1apXTvIQ4YYHpNGDAT1QlD/fG822bJP8L5cewMKC117UvDyD0sLVL7UVYWQGY/mjdyoPgLYQJD0tdmfHJUpIv2XlRqWU0yh5QDQPznMQgef9Lsp3tHs38KI8RseTYwEmR6VDMJDv120F6Sq4EO/VvzgSM1/RV8KcuMM/pzuFYhfHtYMRy25dHaFOMDRChJF/1cF4aDWZlS8XZLIbzpyJlDQLGJNUSZ/w3oaqEpSoxqixr0vYrsZO8IfpwNdsMrpJ2Vd7gn6cp3z6jCUsJLWBwuwRJmIojUh4F5hhnjfkHdxMNrZFsY8NgNmuwwHt32FE1a4HTtPeAITDJDlm/3KpizVdNWhFr7VOPpHU/ZL2yP30c3Hcd6ze9m0Xj0tXMhYdahkb3CjhsL9T3XCo5sgzyMr/rImnhjT+QIX8fzFbSTK4NynASmWeH2XWuqUnyhFU8jk/xp5jSEpK6rZJFgkm/tnTne36zVMzgdX4eyv59OvDi6sxQGTVVvhT8wi7L+cubEBYQGigR0o+fxH4pPe+HG+JPoIStKWGfVz8wtK1K+WRg6j5a3e0r4Lp97zroBGR8zxVRWNKP6rcWDiyBjDFGptyiot8/g2n8PLwa4skfUqVJuVLSdaHxHb+q1U6jZo+K0hQDLRFBN4GikeG7zHTEdZRgD6Kiafx+7Cl1cqVadbbT1pwqHa4UwLv3fibqXt/X9akbFExHuNb+P6zfwlc51GbtVKxpEL/Sy6PLaKdN5gy7NSbczvbkb9hNvJ1Z+2j9n9v+dcqzgMQX7fnyGfOLf/0h3sbbeBtv4228DRyr1QvHrt/weRtdTbheHZZng6Su1+rLRGUv1mVZNqLdj9y499ZORatysym/UGRUWS7K7uQdMJtG/M2Btlgsmi+UecvlclHWYtUCy73XiB9Es1kuFuUXicutKhcOGCVuD4H5JGq0mKcv0WDEdQN80h7eiuCFI6BG3Z4h7IdvuyyaUe2qxZNoFstl2T12/QltjM9dOST8VPcrT+NwTkrrHbBW5y+LvPLgMhFPC9yr60G3YmAdFt67XYWjqxQF1fPx1eW4UtOgKz05SQOBulEIzC/OldwxRROt4RiE9iB/1u5z/s0GoMWP8mWVP7uJMgivvb4UZFbim00ZAs/ayZbNYrEpEZgVxPKlm4t/2psSDi0WyxKfu9c4Lqz7wLV2ODj3W7DqgaMLuBhitfI8voRTa3F7KcAg0d664OxvfemnT8Asl8sGfAzkDhx0/wAy19de47h3lvCOU0Kb0r/0AW7vRMAGAhpcxwH7SYlv4HD4+/pSgAGivRXrDc7b3fvSh+v3CAxKYA9CiWCUsI7vT6e3EAP8X+NhxLNL0gJ7pPOm8X+Ly7IYTyxw803pLQeBcd6zdic1Hg9HON5jlmBNiKNjkRLMBg8uaN4KjjnmAQdbeF4pvYr0F7w0YPxEkSLApxiYxZoUX+mj1xpQg9PWzDeNR9R/kISyZ161QrQ3AMyGPr9uanFhwPiHW7sECcP1MgCzXFPe0EB15hqRWQnPMcCkwKtoRNdu/h7bFSsdsKHNGi1lAUHqgpTvmsScM3bPDwIZgcgXgQHrKP0CnhN1ANKagQGRh+bgXu0jMGvwSYxUawdxsyBGai4IGDR/D4x6QuW7jMAsAjCkZ1ZEGykwCAdBpFDFuMttkM4ZYvijvJAyRgKMt5KYKzUEAlqHm9EKzOl65cn2EBj/6hohuiUiLxtPzP6qQDubENMuCpg1P+33JF8QmCVyJ7jPNfDIGrXIS8D4ay6BbGsiJ0wQIKYtujWO/29gfJRBMReiEuCwRh3jyRcjEE7Vn79MOcadlQDT+IAFhwIwCsMRkdYF2Mx7BgYn3yhVN54b1oLiTdQxa3fMK1is7nmsViuEdE22s0RgyGMaAsbXCeFHhN3Hy/UlWMx7dA1woTUKNTeFDVLmJxS868DCcAzPQeW7DJQLENUtYMDNyvUalXJDlgJvhC+7HGDe/6Rw1ktKgMo9qWEXbd9TDugzKXCg/Q8BGHeMwjW+QvFHmRFGouanTxSufdrQiB9+ugT69S4RX8Ioy0A3kO6oUDSngw0trPDnVDwLsnE8WPKVynsUxTQuprb+3Wax+Rhe/wqP9e/f/fsfm8238Mavm83mOzz220c45MTJt/y5xYZebcIVPm4W+OrbjTvVnfvthq4kPqLNfPyt/zb+ByTA7aF8sHwhAAAAAElFTkSuQmCC';
 document.querySelectorAll('.logoImg').forEach(function(i){i.src=LOGO;});
-const SUPA='https://gpnwmsnayrqjcmhqrtpx.supabase.co/rest/v1';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwbndtc25heXJxamNtaHFydHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNjY4NTEsImV4cCI6MjEwMDg0Mjg1MX0.xQARkaQ9kPmVwqMM5ixfUCHP6cmEHOtI2eqVWFEjlrw';
+/* ===== Unidades =====
+   Um app, dois bancos. Cada unidade tem projeto Supabase proprio: nao existe
+   tabela compartilhada nem coluna de unidade. Quem escolhe o backend e o
+   e-mail digitado no login. Ver crm_login e abrirUnidade abaixo. */
+const UNIDADES={
+  taquara:{
+    nome:'CNA Taquara', curto:'Taquara',
+    endereco:'Estrada da Soca, 129', tel:'(21) 3579-6700', email:'taquara@cna.com.br',
+    bairros:'Taquara e bairros vizinhos',
+    url:'https://gpnwmsnayrqjcmhqrtpx.supabase.co',
+    key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwbndtc25heXJxamNtaHFydHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNjY4NTEsImV4cCI6MjEwMDg0Mjg1MX0.xQARkaQ9kPmVwqMM5ixfUCHP6cmEHOtI2eqVWFEjlrw'
+  },
+  queimados:{
+    nome:'CNA Queimados', curto:'Queimados',
+    endereco:'[CONFIRMAR]', tel:'[CONFIRMAR]', email:'queimados@cna.com.br',
+    bairros:'Queimados e bairros vizinhos',
+    url:'https://jdbzmcwagczxthkcclgk.supabase.co',
+    key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkYnptY3dhZ2N6eHRoa2NjbGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTA2NzMsImV4cCI6MjEwNDYyNjY3M30.WsNykxU3PEwZxuzp4or0vKR-WlHnQTlz04wl9jfL32M'
+  }
+};
+
+/* E-mails que enxergam as duas unidades. Lista fechada: ser admin numa unidade
+   nao da acesso a outra. */
+const MULTI_UNIDADE=['taquara@cna.com.br','queimados@cna.com.br','eliane@cna.com.br'];
+
+/* nome.queimados@cna.com.br -> queimados · nome.taquara@cna.com.br -> taquara
+   Quem esta na lista acima devolve null e cai no seletor. */
+function unidadeDoEmail(mail){
+  const e=String(mail||'').trim().toLowerCase();
+  if(MULTI_UNIDADE.indexOf(e)>-1)return null;
+  if(e.slice(-21)==='.queimados@cna.com.br')return 'queimados';
+  if(e.slice(-19)==='.taquara@cna.com.br')return 'taquara';
+  return null;
+}
+
+let SUPA=null, KEY=null, UNIDADE=null;
+function UN(){return UNIDADES[UNIDADE]||UNIDADES.taquara;}
+function abrirUnidade(chave){
+  const u=UNIDADES[chave];
+  if(!u)throw new Error('Unidade desconhecida: '+chave);
+  UNIDADE=chave; SUPA=u.url+'/rest/v1'; KEY=u.key;
+  document.title='CRM '+u.nome+' \u00b7 Escolas, Empresas e Clientes';
+  document.querySelectorAll('.unidadeNome').forEach(function(el){el.textContent='CRM \u00b7 '+u.curto;});
+  return u;
+}
+function fecharUnidade(){UNIDADE=null;SUPA=null;KEY=null;}
 
 async function api(path,opt){
   opt=opt||{};
@@ -2755,7 +2811,7 @@ function openModal(id){
   editing=id;
   const s=id?(DATA[tab]||[]).find(function(x){return x.id===id;}):null;
   $('mtitle').textContent=s?s.nome:('Nova '+cfg.one);
-  msubBase=tab==='escolas'?'CNA na Escola · Taquara':(tab==='empresas'?'CNA na Empresa e parcerias · Taquara':'Cliente B2C · funil de matrícula');
+  msubBase=tab==='escolas'?'CNA na Escola · '+UN().curto:(tab==='empresas'?'CNA na Empresa e parcerias · '+UN().curto:'Cliente B2C · funil de matrícula');
   syncMsub(s);
   const form=$('form');
   form.innerHTML='';
@@ -3979,11 +4035,11 @@ $('csv').onclick=function(){
 
 
 /* ================= Conversas (WhatsApp) ================= */
-const FUNCS='https://gpnwmsnayrqjcmhqrtpx.supabase.co/functions/v1';
+function FUNCS(){return UN().url+'/functions/v1';}
 const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
 
 function waFn(nome,body){
-  return fetch(FUNCS+'/'+nome,{
+  return fetch(FUNCS()+'/'+nome,{
     method:'POST',
     headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
     body:JSON.stringify(body||{})
@@ -4604,8 +4660,11 @@ async function loadUsers(){
 function showLogin(){
   $('login').classList.remove('off');
   $('pin').value='';$('lerr').textContent='';
+  $('lunid').classList.add('off');
+  document.querySelectorAll('.unidadeNome').forEach(function(el){el.textContent='CRM';});
   const ult=safeGet('crmUltimoEmail')||'';
   $('lmail').value=ult;
+  if(ult&&MULTI_UNIDADE.indexOf(ult.toLowerCase())>-1)$('lunid').classList.remove('off');
   setTimeout(function(){(ult?$('pin'):$('lmail')).focus();},80);
 }
 
@@ -4616,18 +4675,38 @@ async function tryLogin(){
     const senha=$('pin').value;
     if(!email){$('lerr').textContent='Digite seu e-mail.';$('lmail').focus();return;}
     if(!senha){$('lerr').textContent='Digite sua senha.';$('pin').focus();return;}
+    /* Resolve a unidade ANTES de autenticar: e ela que decide contra qual
+       banco o crm_login vai rodar. */
+    const multi=MULTI_UNIDADE.indexOf(email.toLowerCase())>-1;
+    if(multi&&$('lunid').classList.contains('off')){
+      $('lunid').classList.remove('off');
+      $('lerr').textContent='Escolha a unidade.';
+      $('lunidsel').focus();
+      return;
+    }
+    const alvo=multi?$('lunidsel').value:unidadeDoEmail(email);
+    if(!alvo){$('lerr').textContent='E-mail fora do padrao da rede. Confira o endereco.';$('lmail').focus();return;}
     bt.disabled=true;$('lerr').textContent='';
-    const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_email:email,p_senha:senha})});
+    abrirUnidade(alvo);
+    let r=null;
+    try{
+      r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_email:email,p_senha:senha})});
+    }catch(e){fecharUnidade();throw e;}
     bt.disabled=false;
-    if(!r||!r.nome){$('lerr').textContent='E-mail ou senha incorretos.';$('pin').value='';$('pin').focus();return;}
+    if(!r||!r.nome){
+      fecharUnidade();
+      $('lerr').textContent='E-mail ou senha incorretos.';$('pin').value='';$('pin').focus();return;
+    }
     $('pin').value='';
     safeSet('crmUltimoEmail',r.email||email);
+    safeSet('crmUnidade',alvo);
     if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,r.email||email,senha);return;}
     currentUser=r.nome;MEUEMAIL=r.email||email;
     safeSet('crmAuth',r.nome);safeSet('crmAuthEmail',MEUEMAIL);
+    await loadUsers();
     entrar();
   }catch(e){
-    bt.disabled=false;
+    bt.disabled=false;fecharUnidade();
     $('lerr').textContent='Erro ao entrar: '+(e&&e.message?e.message:e);
   }
 }
@@ -4913,7 +4992,7 @@ function disparaAlerta(ag,at){
     ?('\u23F0 '+lista[0].hora+' · hora de falar com '+lista[0].nome)
     :('\u23F0 '+lista.length+' contatos esperando retorno agora'));
   bipe(novos.length?2:1);
-  notifica('CNA Taquara · contato agendado',
+  notifica(UN().nome+' · contato agendado',
     um?(lista[0].nome+' · '+lista[0].rot+(lista[0].etapa?' · '+lista[0].etapa:''))
       :(lista.length+' contatos esperando retorno agora'));
 }
@@ -5182,22 +5261,34 @@ function entrar(){
 $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
 $('lmail').addEventListener('keydown',function(e){if(e.key==='Enter')$('pin').focus();});
+$('lmail').addEventListener('input',function(){
+  const m=MULTI_UNIDADE.indexOf(($('lmail').value||'').trim().toLowerCase())>-1;
+  $('lunid').classList.toggle('off',!m);
+});
 $('logout').onclick=function(){
   currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
+  safeSet('crmUnidade','');fecharUnidade();
   DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};window._dcons=null;window._ddata=null;RVIEW='dia';
   ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
   showLogin();
 };
 
 async function BOOT(){
+  /* Sem unidade resolvida nao existe banco para consultar: a tela de login
+     sobe primeiro e loadUsers so roda depois que a unidade estiver aberta. */
+  const un=safeGet('crmUnidade')||'';
+  const saved=safeGet('crmAuth')||'';
+  if(!un||!UNIDADES[un]||!saved){showLogin();return;}
   try{
+    abrirUnidade(un);
     await loadUsers();
   }catch(e){
+    fecharUnidade();
+    showLogin();
     $('lerr').textContent='Não foi possível conectar. Verifique a conexão e recarregue a página.';
     return;
   }
-  const saved=safeGet('crmAuth');
-  if(saved&&RESP.indexOf(saved)>-1){
+  if(RESP.indexOf(saved)>-1){
     currentUser=saved;MEUEMAIL=safeGet('crmAuthEmail')||null;entrar();
   }else{
     showLogin();
@@ -5980,7 +6071,7 @@ function buildSugestoes(ctx){
     if(m==='Preço')acao='Antes de falar valor, ancore no que está incluso: material, professor formado na UniCNA, CNA Net e turma pequena.';
     else if(m==='Sem retorno')acao='Monte uma cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.';
     else if(m==='Contato inválido')acao='O problema é de captação. Confira o formulário do anúncio e o preenchimento do WhatsApp no cadastro.';
-    else if(m==='Fora da região')acao='Aperte a segmentação geográfica dos anúncios para Taquara e bairros vizinhos.';
+    else if(m==='Fora da região')acao='Aperte a segmentação geográfica dos anúncios para '+UN().bairros+'.';
     it.push({p:'media',t:'<i>'+esc(m)+'</i> responde por '+pc+' das perdas ('+q+' leads).<em>'+acao+'</em>'});
   }
 
@@ -6737,7 +6828,7 @@ var ACAO_MOTIVO={
   'Sem retorno':'Cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.',
   'Preço':'Ancorar valor antes do número: material incluso, professor formado na UniCNA, CNA Net e turma pequena.',
   'Contato inválido':'O problema é de captação. Conferir o formulário do anúncio e a digitação do WhatsApp no cadastro.',
-  'Fora da região':'Apertar a segmentação geográfica dos anúncios para Taquara e bairros vizinhos.',
+  'Fora da região':'Apertar a segmentação geográfica dos anúncios para '+UN().bairros+'.',
   'Só robótica':'Registrar o interesse e oferecer o idioma como segunda porta de entrada.',
   'Sem turma disponível':'Esses leads vão para a fila de espera. Abrir turma ou realocar horário resolve matrícula pronta.',
   'Outro':'Motivo genérico demais para virar ação. Vale detalhar melhor no momento do registro.'
@@ -7948,7 +8039,7 @@ async function checarFechamento(){
   const pend=(INI.dia&&INI.dia.kpis?INI.dia.kpis.pendentes:0)||0;
   const msg='Fim de expediente: atualize os contatos'+(pend?' ('+pend+' ainda em aberto)':'')+' e feche o dia.';
   toast(msg);bipe(1);
-  notifica('CNA Taquara · fechamento do dia',msg);
+  notifica(UN().nome+' · fechamento do dia',msg);
   if(tab==='inicio')openInicio(true);
 }
 
@@ -8608,7 +8699,7 @@ function calcCampos(R){
     economia:money(R.economia),
     validade:brDate(CALC.validade),
     consultor:currentUser||'',
-    unidade:'CNA Taquara',
+    unidade:UN().nome,
     whatsapp:'(21) 97719-3899'
   };
 }
@@ -9341,12 +9432,12 @@ function tPrint(){
     +'.c .o{font-size:7px;color:#A30E2A}'
     +'.foot{margin-top:8px;font-size:7.5px;color:#5A5A5A;text-align:center}';
   var html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
-    +'<title>Mapa de turmas '+esc(tSemestre)+' · CNA Taquara</title><style>'+css+'</style></head><body>'
+    +'<title>Mapa de turmas '+esc(tSemestre)+' · '+esc(UN().nome)+'</title><style>'+css+'</style></head><body>'
     +'<div class="head"><div><h1>Mapa de turmas '+esc(tSemestre)+'</h1>'
-    +'<div class="sub">CNA Taquara · Estrada da Soca, 129'+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
+    +'<div class="sub">'+esc(UN().nome+' · '+UN().endereco)+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
     +'<div class="meta">'+lista.length+' turmas · '+totAl+' alunos<br>'+comVaga+' turmas com vaga · '+vagasTot+' vagas livres<br>Impresso em '+hoje+'</div></div>'
     +tPrintTabela(lista)
-    +'<div class="foot">CNA Taquara · (21) 3579-6700 · taquara@cna.com.br</div>'
+    +'<div class="foot">'+esc(UN().nome+' · '+UN().tel+' · '+UN().email)+'</div>'
     +'</body></html>';
   var w=window.open('','_blank');
   if(!w){toast('Libere os pop-ups do navegador para imprimir o mapa.');return;}
@@ -10132,7 +10223,7 @@ function ataPartAdd(){
 /* ---- editor ---- */
 function ataAbrirEditor(r){
   ATA.cur=r?JSON.parse(JSON.stringify(r)):{titulo:'',tipo:'equipe',data:hojeISO(),hora_inicio:'',hora_fim:'',
-    local:'CNA Taquara',redator:currentUser,ata_bruta:'',status:'rascunho'};
+    local:UN().nome,redator:currentUser,ata_bruta:'',status:'rascunho'};
   ATA.parts=r?(r.participantes||[]).map(function(p){return {nome:p.nome,presente:p.presente!==false,deve_assinar:p.deve_assinar!==false};})
               :[{nome:currentUser,presente:true,deve_assinar:true}];
   var c=ATA.cur,novo=!c.id;
@@ -10145,7 +10236,7 @@ function ataAbrirEditor(r){
     '<div><label>Data</label><input id="ata_data" type="date" value="'+esc(c.data||hojeISO())+'"></div>'+
     '<div class="row"><div style="flex:1"><label>Início</label><input id="ata_hi" type="time" value="'+esc(String(c.hora_inicio||'').slice(0,5))+'"></div>'+
       '<div style="flex:1"><label>Fim</label><input id="ata_hf" type="time" value="'+esc(String(c.hora_fim||'').slice(0,5))+'"></div></div>'+
-    '<div class="full"><label>Local</label><input id="ata_local" value="'+esc(c.local||'')+'" placeholder="CNA Taquara, sala 3 · ou link da chamada"></div>'+
+    '<div class="full"><label>Local</label><input id="ata_local" value="'+esc(c.local||'')+'" placeholder="Sala 3 · ou link da chamada"></div>'+
     '<div class="full"><label>Participantes (todos assinam)</label><div class="agpchips" id="ata_pchips"></div>'+
       '<div class="agpadd"><select id="ata_padd"><option value="">Adicionar quem participou...</option>'+
         RESP.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'</select>'+
@@ -10456,7 +10547,7 @@ var DEM={lista:[],prog:{},anx:{},cur:null,resps:[],
 var DEMDRAG=null;
 var DEMSTATUS=[['pendente','Pendente','#5A5A5A'],['andamento','Em andamento','#B45309'],
   ['concluida','Conclu\u00edda','#1B7A3D'],['cancelada','Cancelada','#B9B9BE']];
-var DEMSTG=SUPA.replace('/rest/v1','/storage/v1');
+function DEMSTG(){return UN().url+'/storage/v1';}
 var DEMIST=[['pendente','Pendente','ist-p'],['andamento','Em contato','ist-a'],
   ['ok','Resolvido','ist-k'],['sem_sucesso','Sem sucesso','ist-x'],['na','N\u00e3o se aplica','ist-n']];
 function demIst(s,i){var x=DEMIST.find(function(p){return p[0]===s;});return x?x[i]:(i===1?s:'ist-p');}
@@ -11084,7 +11175,7 @@ async function demEnviarArqs(demandaId,arqs){
 async function demUpload(demandaId,file){
   var ext=(String(file.name).match(/\.[A-Za-z0-9]+$/)||[''])[0];
   var path=demandaId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
-  var r=await fetch(DEMSTG+'/object/demandas/'+path,{method:'POST',
+  var r=await fetch(DEMSTG()+'/object/demandas/'+path,{method:'POST',
     headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'x-upsert':'true',
       'Content-Type':file.type||'application/octet-stream'},body:file});
   if(!r.ok)throw new Error(await r.text());
@@ -11094,12 +11185,12 @@ async function demUpload(demandaId,file){
 }
 async function demBaixar(a){
   try{
-    var r=await fetch(DEMSTG+'/object/sign/demandas/'+a.path,{method:'POST',
+    var r=await fetch(DEMSTG()+'/object/sign/demandas/'+a.path,{method:'POST',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
       body:JSON.stringify({expiresIn:3600})});
     if(!r.ok)throw new Error('assinatura');
     var j=await r.json(),u=j.signedURL||j.signedUrl||'';
-    if(u.indexOf('http')!==0)u=(u.indexOf('/storage/v1')===0?SUPA.replace('/rest/v1',''):DEMSTG)+u;
+    if(u.indexOf('http')!==0)u=(u.indexOf('/storage/v1')===0?UN().url:DEMSTG())+u;
     window.open(u,'_blank');
   }catch(e){toast('N\u00e3o foi poss\u00edvel abrir o arquivo.');}
 }
@@ -11107,7 +11198,7 @@ async function demExcluirAnexo(id){
   var a=DEM.anexos.find(function(x){return x.id===id;});
   if(!a||!confirm('Remover "'+a.nome+'"?'))return;
   try{
-    await fetch(DEMSTG+'/object/demandas/'+a.path,{method:'DELETE',
+    await fetch(DEMSTG()+'/object/demandas/'+a.path,{method:'DELETE',
       headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}});
     await api('/crm_demanda_anexos?id=eq.'+id,{method:'DELETE'});
   }catch(e){toast('Erro ao remover: '+e.message);return;}
@@ -11618,7 +11709,7 @@ function acAbrir(id){
       '<optgroup label="Empresas">'+ACOES.empresas.map(function(x){
         return '<option value="m:'+x.id+'"'+(vinc==='m:'+x.id?' selected':'')+'>'+esc(x.nome)+'</option>';}).join('')+'</optgroup>'+
       '</select><div class="pkhint">Vincular \u00e9 o que mostra depois quantas vezes j\u00e1 batemos no mesmo lugar.</div></div>'+
-    '<div><label>Local</label><input id="ac_local" value="'+esc(c.local_nome||'')+'" placeholder="Ex: Academia Bodytech Taquara"'+ro+'></div>'+
+    '<div><label>Local</label><input id="ac_local" value="'+esc(c.local_nome||'')+'" placeholder="Ex: academia, condóminio ou colégio do bairro"'+ro+'></div>'+
     '<div><label>Endere\u00e7o</label><input id="ac_end" value="'+esc(c.endereco||'')+'" placeholder="Rua, n\u00famero, bairro"'+ro+'></div>'+
 
     '<div class="fsec"><b>Quem vai</b><i></i></div>'+
