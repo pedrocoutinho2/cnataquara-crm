@@ -225,6 +225,10 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .dot.p1{background:var(--red)}.dot.p2{background:var(--blue)}.dot.p3{background:#B9B9BE}
 .card h3{font-size:13.5px;font-weight:600;line-height:1.25;flex:1}
 .avatar{width:22px;height:22px;border-radius:50%;color:var(--white);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:'Poppins'}
+.unidSw{border:1px solid var(--line);border-radius:var(--r-md);background:var(--white);color:var(--blue);font-family:'Poppins';font-size:12px;font-weight:600;padding:5px 8px;max-width:150px;cursor:pointer}
+.unidSw:focus{outline:none;border-color:var(--blue)}
+.unidSw:disabled{opacity:.55;cursor:progress}
+.unidSw.off{display:none}
 .card .cresp{font-size:11.5px;color:var(--gray);line-height:1.3;margin-top:3px}
 .card .meta{font-size:11.5px;color:var(--gray);margin:5px 0 7px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .card .meta .sep{color:#C9C9CE}
@@ -1547,6 +1551,7 @@ input,textarea,select{caret-color:var(--red)}
     <button class="abtn" id="abtn" title="Meus agendamentos" style="display:none">&#128276;<b id="acount">0</b></button>
     <div class="stats" id="stats"></div>
     <div class="userbox">
+      <select class="unidSw off" id="unidSw" title="Trocar de unidade" aria-label="Unidade"></select>
       <span class="avatar" id="uav" style="background:#5A5A5A">?</span>
       <b id="unome" style="font-size:13px;color:var(--blue)"></b>
       <button class="btn" id="logout">Sair</button>
@@ -1602,6 +1607,7 @@ input,textarea,select{caret-color:var(--red)}
   <div class="sfoot">
     <span class="avatar" id="sav" style="background:#5A5A5A">?</span>
     <b id="snome"></b>
+    <select class="unidSw off" id="unidSwM" title="Trocar de unidade" aria-label="Unidade"></select>
     <button class="btn" id="ssenha" type="button" title="Trocar minha senha">Senha</button>
     <button class="btn" id="slogout" type="button">Sair</button>
   </div>
@@ -5245,6 +5251,7 @@ function isAdmin(){
 function entrar(){
   somUnlock();pedeNotif();
   $('login').classList.add('off');
+  montarSeletorUnidade();
   $('unome').textContent=currentUser;
   $('uav').textContent=currentUser[0];
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
@@ -5265,9 +5272,70 @@ $('lmail').addEventListener('input',function(){
   const m=MULTI_UNIDADE.indexOf(($('lmail').value||'').trim().toLowerCase())>-1;
   $('lunid').classList.toggle('off',!m);
 });
+/* ===== Troca de unidade com o painel ja aberto =====
+   So aparece para quem esta em MULTI_UNIDADE. Nao ha token de sessao neste
+   app (tudo roda como anon), entao isto e conveniencia de navegacao, nao
+   fronteira de seguranca: quem manda e o RLS de cada projeto. A troca so
+   completa se o mesmo e-mail existir ATIVO no banco de destino. */
+function podeTrocarUnidade(){
+  return MULTI_UNIDADE.indexOf(String(MEUEMAIL||'').trim().toLowerCase())>-1;
+}
+function montarSeletorUnidade(){
+  const mostra=podeTrocarUnidade();
+  ['unidSw','unidSwM'].forEach(function(id){
+    const el=$(id); if(!el)return;
+    el.classList.toggle('off',!mostra);
+    if(!mostra){el.innerHTML='';return;}
+    el.innerHTML=Object.keys(UNIDADES).map(function(k){
+      return '<option value="'+k+'">'+esc(UNIDADES[k].nome)+'</option>';
+    }).join('');
+    el.value=UNIDADE;
+    el.disabled=false;
+  });
+}
+function limparEstadoDaUnidade(){
+  DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};
+  window._dcons=null;window._ddata=null;RVIEW='dia';RESPC={};
+  ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};
+  AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
+}
+async function trocarUnidade(alvo){
+  if(!UNIDADES[alvo]||alvo===UNIDADE){montarSeletorUnidade();return;}
+  if(!podeTrocarUnidade()){montarSeletorUnidade();return;}
+  const anterior=UNIDADE, nomeAnterior=currentUser;
+  ['unidSw','unidSwM'].forEach(function(id){if($(id))$(id).disabled=true;});
+  try{
+    abrirUnidade(alvo);
+    await loadUsers();
+    const eu=USERS.filter(function(u){
+      return String(u.email||'').trim().toLowerCase()===String(MEUEMAIL).trim().toLowerCase();
+    })[0];
+    if(!eu){throw new Error('Voce nao tem acesso ativo em '+UNIDADES[alvo].nome+'.');}
+    currentUser=eu.nome;
+    safeSet('crmAuth',eu.nome);safeSet('crmUnidade',alvo);
+    limparEstadoDaUnidade();
+    entrar();
+    toast('Agora voce esta em '+UNIDADES[alvo].nome+'.');
+  }catch(e){
+    /* volta para onde estava, senao a tela fica apontando para um banco
+       onde a pessoa nao entrou */
+    try{
+      abrirUnidade(anterior);
+      await loadUsers();
+      currentUser=nomeAnterior;
+      safeSet('crmAuth',nomeAnterior);safeSet('crmUnidade',anterior);
+    }catch(e2){}
+    montarSeletorUnidade();
+    toast((e&&e.message)?String(e.message).slice(0,160):'Nao foi possivel trocar de unidade.');
+  }
+}
+$('unidSw').onchange=function(){trocarUnidade(this.value);};
+$('unidSwM').onchange=function(){closeDrawer();trocarUnidade(this.value);};
+
 $('logout').onclick=function(){
   currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
   safeSet('crmUnidade','');fecharUnidade();
+  ['unidSw','unidSwM'].forEach(function(id){if($(id)){$(id).classList.add('off');$(id).innerHTML='';}});
   DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};window._dcons=null;window._ddata=null;RVIEW='dia';
   ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
   showLogin();
