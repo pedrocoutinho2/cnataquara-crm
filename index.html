@@ -617,6 +617,10 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .tcell.empty{background:#FCFCFD}
 .tviews{display:flex;gap:6px;margin-left:auto}
 .tviews .tchip{padding:5px 12px}
+.tsems{display:flex;gap:6px;flex-wrap:wrap}
+.tsems .tchip{padding:5px 12px}
+.tsemr{font-weight:400;opacity:.85}
+.tsemnota{background:var(--pastelBlue);color:var(--ink);border-radius:var(--r-md);padding:9px 13px;font-size:12.5px;line-height:1.5;margin-bottom:12px}
 @media(max-width:640px){
   .pane:has(table.tmap){padding-left:10px;padding-right:10px}
   table.tmap th,table.tmap td{width:132px}
@@ -2533,7 +2537,7 @@ function niveisDoCurso(c){
    com grafia mista (A1.1/FLY 1, PADV 1, YOUNG KIDS 3/FUN 3), entao o casamento e por padrao. */
 const NIVEL_ORDEM=[
   [/GARDEN\s*(\d)?/,100],[/(?:YOUNG\s*KIDS|FUN)\s*(\d)?/,200],[/KIDS\s*(\d)?/,300],
-  [/TEENS?\s*UP?\s*(\d)?/,400],[/(?:FLY|A1\.)\s*(\d)?/,500],[/(?:QUEST|PROGRESS\w*|A2\.)\s*(\d)?/,600],
+  [/TEENS?\s*UP?\s*(\d)?/,400],[/(?:FLY|A1\.)\s*(\d)?/,500],[/(?:QUEST|PROGRESS\w*|A2\.)\s*(\d)?/,600],[/B1\.?\s*(\d)?/,650],
   [/PADV\s*(\d)?/,800],[/(?:ADV\w*|EXPANS\w*)\s*(\d)?/,700],[/GOLD\s*(\d)?/,850],
   [/(?:MASTER|PLATIN\w*|B2)\s*(\d)?/,900],[/SENIOR/,930],[/TURBO/,940],[/ACC/,950],
   [/CONTACTO\s*(\d)?/,1000],[/CAC/,1100]
@@ -2986,7 +2990,7 @@ async function syncFaixa(){
   let rows=[];
   try{rows=(await turmasCache())||[];}catch(e){return;}
   if(idadeForm()!==n)return;   /* a idade mudou enquanto o mapa carregava */
-  const sem=(typeof tSemestre!=='undefined'&&tSemestre)?tSemestre:null;
+  const sem=tSemRef(rows);
   const alvo={};alvo[fx.f]=1;if(fx.tb)alvo[fx.tb]=1;
   const nomes=[];
   rows.forEach(function(t){
@@ -3397,7 +3401,7 @@ function turmaValor(t){
 async function fillTurmas(sel,atual){
   if(!sel)return;
   const rows=await turmasCache();
-  const sem=(typeof tSemestre!=='undefined'&&tSemestre)?tSemestre:null;
+  const sem=tSemRef(rows);
   const lista=rows.filter(function(t){return !sem||t.semestre===sem;});
   const grupos={},ordem=[];
   lista.forEach(function(t){
@@ -7183,7 +7187,9 @@ function renderDemanda(){
   var base=(relLeads()).filter(function(l){return l.etapa!=='fechado';});
   base.forEach(function(l){l._dem=demClassifica(l,DEMF.notas);});
 
+  var semD=tSemRef(DEMF.turmas);
   var turmas=(DEMF.turmas||[]).filter(function(t){
+    if(semD&&t.semestre!==semD)return false;
     var cap=t.capacidade||0,al=t.alunos||0;
     return !t.sem_vaga&&(cap===0||al<cap);
   });
@@ -7325,7 +7331,9 @@ function renderEspera(){
   var fila=(relLeads()).filter(function(s){
     return s.sem_turma&&s.etapa!=='fechado';
   });
+  var semE=tSemRef(ESP.turmas);
   var turmas=(ESP.turmas||[]).filter(function(t){
+    if(semE&&t.semestre!==semE)return false;
     var cap=t.capacidade||0,al=t.alunos||0;
     return !t.sem_vaga&&(cap===0||al<cap);
   });
@@ -9139,8 +9147,28 @@ function eqSenha(u){
 BOOT();
 
 /* ================= Turmas (mapa de turmas) ================= */
-var TURMAS=[], tFiltroDia='', tFiltroProf='', tBusca='', tSoVaga=false, tEdit=null, tSemestre='2026.2';
+var TURMAS=[], tFiltroDia='', tFiltroProf='', tBusca='', tSoVaga=false, tEdit=null, tSemestre='';
 var T_DIAS=['SEG/QUA','TER/QUI','SEX','SÁB'];
+
+/* Semestre. O ATUAL sai da data (jan-jun = .1, jul-dez = .2): vira sozinho, sem
+   deploy. A tela do mapa pode mostrar outro semestre (ex.: 2027.1 em planejamento),
+   mas ficha do lead, dica de faixa, fila de espera e demanda por nivel usam sempre
+   o semestre de referencia, via tSemRef(). */
+function semVigente(){var d=new Date();return d.getFullYear()+'.'+(d.getMonth()<6?'1':'2');}
+function tSemestres(rows){
+  var out=[];
+  (rows||[]).forEach(function(t){if(t&&t.semestre&&out.indexOf(t.semestre)<0)out.push(t.semestre);});
+  return out.sort();
+}
+/* referencia: o atual, se existir no mapa; senao o mais recente anterior a ele; senao o primeiro */
+function tSemRef(rows){
+  var ss=tSemestres(rows),v=semVigente();
+  if(!ss.length)return null;
+  if(ss.indexOf(v)>-1)return v;
+  var ant=ss.filter(function(x){return x<v;});
+  return ant.length?ant[ant.length-1]:ss[0];
+}
+function tSemRotulo(x,ref){return x===ref?'atual':(x>ref?'próximo':'anterior');}
 
 function tVagas(t){
   if(t.sem_vaga)return 0;
@@ -9155,6 +9183,8 @@ async function openTurmas(){
   }catch(e){
     $('board').innerHTML='<div class="loading">Não foi possível carregar o mapa de turmas.</div>';return;
   }
+  var tss=tSemestres(TURMAS);
+  if(!tSemestre||tss.indexOf(tSemestre)<0)tSemestre=tSemRef(TURMAS)||semVigente();
   tEdit=null;
   var ov=$('tov');if(ov)ov.classList.remove('open');
   unlockScroll();
@@ -9232,14 +9262,27 @@ function renderTurmas(){
   var adm=podeEditar('turmas');
   var lista=tFiltradas();
   var profs=[];
-  TURMAS.forEach(function(t){if(t.professor&&profs.indexOf(t.professor)<0)profs.push(t.professor);});
+  TURMAS.forEach(function(t){if(t.semestre===tSemestre&&t.professor&&profs.indexOf(t.professor)<0)profs.push(t.professor);});
   profs.sort();
+  var sems=tSemestres(TURMAS.filter(function(t){return !t.__nova;}));
+  if(sems.indexOf(tSemestre)<0)sems.push(tSemestre);
+  sems.sort();
+  var semRef=tSemRef(TURMAS.filter(function(t){return !t.__nova;}))||tSemestre;
 
   var totAl=0,comVaga=0,vagasTot=0;
   lista.forEach(function(t){totAl+=(t.alunos||0);var v=tVagas(t);if(v>0){comVaga++;vagasTot+=v;}});
 
   var h='<div class="pane">';
   h+='<div class="paneh"><h3>Mapa de turmas '+esc(tSemestre)+'</h3>';
+  if(sems.length>1){
+    h+='<div class="tsems" role="group" aria-label="Semestre do mapa">';
+    sems.forEach(function(x){
+      var on=(x===tSemestre);
+      h+='<button class="tchip'+(on?' on':'')+'" data-sem="'+esc(x)+'" aria-pressed="'+(on?'true':'false')+'">'
+        +esc(x)+' <span class="tsemr">'+esc(tSemRotulo(x,semRef))+'</span></button>';
+    });
+    h+='</div>';
+  }
   h+='<div class="tviews">';
   h+='<button class="tchip'+(tView==='grade'?' on':'')+'" data-view="grade">Grade</button>';
   h+='<button class="tchip'+(tView==='lista'?' on':'')+'" data-view="lista">Lista</button>';
@@ -9264,6 +9307,10 @@ function renderTurmas(){
   h+='<button class="tchip'+(tSoVaga?' on':'')+'" id="tvaga">Só com vaga</button>';
   h+='</div>';
 
+  if(tSemestre!==semRef){
+    h+='<div class="tsemnota">'+(tSemestre>semRef?'Mapa de <b>'+esc(tSemestre)+'</b> em planejamento.':'Mapa de <b>'+esc(tSemestre)+'</b>, semestre anterior.')
+      +' Campo Turma da ficha, dica de faixa, fila de espera e demanda por nível continuam usando o <b>'+esc(semRef)+'</b>.</div>';
+  }
   h+='<div class="tsum"><b>'+lista.length+'</b> turmas · <b>'+totAl+'</b> alunos · <b>'+comVaga+'</b> turmas com vaga (<b>'+vagasTot+'</b> vagas livres)</div>';
 
   if(!lista.length){
@@ -9543,6 +9590,13 @@ function tBind(){
   if(pr)pr.onchange=function(){tFiltroProf=pr.value;renderTurmas();};
   document.querySelectorAll('.tchip[data-view]').forEach(function(b){
     b.onclick=function(){tView=b.dataset.view;renderTurmas();};
+  });
+  document.querySelectorAll('.tchip[data-sem]').forEach(function(b){
+    b.onclick=function(){
+      if(b.dataset.sem===tSemestre)return;
+      tSemestre=b.dataset.sem;tFiltroDia='';tFiltroProf='';
+      renderTurmas();
+    };
   });
   var vg=$('tvaga');
   if(vg)vg.onclick=function(){tSoVaga=!tSoVaga;renderTurmas();};
