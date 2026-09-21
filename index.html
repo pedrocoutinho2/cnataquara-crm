@@ -1648,6 +1648,26 @@ input,textarea,select{caret-color:var(--red)}
   .mtlabels .m b{font-size:15px}
 }
 
+.mthist{min-width:980px}
+.mthist thead tr.grp th{font-family:'Poppins';font-size:11px;letter-spacing:.06em;color:var(--ink);text-align:center;border-bottom:2px solid var(--line);padding:8px 8px 6px}
+.mthist thead tr.grp th.per{text-align:left;vertical-align:bottom}
+.mthist thead tr.grp th.g1{color:var(--red)} .mthist thead tr.grp th.g2{color:var(--blue)} .mthist thead tr.grp th.g4{color:var(--blue)}
+.mthist .g1,.mthist .g2,.mthist .g3,.mthist .g4{border-left:1px solid var(--line)}
+.mthist tbody td{padding:10px 8px}
+.mthist tbody tr.p1 td{background:var(--surface)}
+.mthist tbody tr.now td{background:var(--pastelRed)}
+.mthist td.per{min-width:190px}
+.mthist td.per b{display:block;font-size:13px}
+.mthist td.per small{display:block;font-size:11px;color:var(--gray);margin-top:2px}
+.mthist td.strong{font-weight:700}
+.mthist td.soft{color:var(--gray)}
+.mthsem{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 7px;margin-bottom:3px;background:var(--pastelBlue);color:var(--blue)}
+tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px solid var(--line)}
+.mthnow{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--red)}
+.mthv{display:block;font-size:10.5px;font-weight:600;margin-top:1px}
+.mthv.up{color:var(--ok)} .mthv.dn{color:var(--redDark)}
+.mthed{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mthist td.ac{width:1%}
 </style>
 </head>
 <body>
@@ -13643,17 +13663,36 @@ async function mtNovoPeriodo(){
 /* ---- Histórico ---- */
 function mtHistorico(){
   var S=MT.d.semestres||[],ed=mtPodeMetas();
-  var rows=S.map(function(s,i){
-    var ant=i>0?S[i-1]:null,pk=mtPico(ant),rema=(s.rema_auto||0)+(s.rema_contratual||0),base=(s.base_auto||0)+(s.base_contratual||0);
-    return '<tr><td><b>'+mtRotulo(s.inicio)+'</b>'+(s.obs?'<div class="sub" style="font-size:11px;color:var(--gray)">'+esc(s.obs)+'</div>':'')+'</td>'+
-      '<td class="n">'+mtN(s.matriculas)+'</td><td class="n">'+mtN(s.rema_auto)+'</td><td class="n">'+mtN(s.rema_contratual)+'</td><td class="n">'+mtN(rema)+'</td>'+
-      '<td class="n">'+mtN(mtPico(s))+'</td><td class="n">'+(pk?mtP(rema/pk):'\u00b7')+'</td><td class="n">'+mtN(base)+'</td><td class="n">'+(base?mtP(rema/base):'\u00b7')+'</td>'+
-      '<td class="n">'+(s.base_contratual?mtP(s.rema_contratual/s.base_contratual):'\u00b7')+'</td>'+
-      (ed?'<td><button class="dctl" type="button" onclick="mtSemEditar(\''+s.inicio+'\')">Editar</button></td>':'')+'</tr>';}).join('');
-  return '<div class="mtban"><div><b>Manuten\u00e7\u00e3o = rema do per\u00edodo \u00f7 pico do per\u00edodo anterior.</b> Pico = rema + matr\u00edculas do per\u00edodo.</div></div>'+
-    '<section class="mtcard"><h3>Semestre a semestre</h3><div class="rtabw"><table class="mttab"><thead><tr><th>Per\u00edodo</th><th class="n">Matr\u00edc.</th><th class="n">Rema aut.</th><th class="n">Rema contr.</th><th class="n">Rema total</th>'+
-    '<th class="n">Pico</th><th class="n">Manuten\u00e7\u00e3o</th><th class="n">Base</th><th class="n">Rema \u00f7 base</th><th class="n">Contr. %</th>'+(ed?'<th></th>':'')+'</tr></thead><tbody>'+
-    (rows||'<tr><td colspan="11" class="mtgray">Sem hist\u00f3rico.</td></tr>')+'</tbody></table></div></section>';
+  var pen='<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z"/></svg>';
+  var hoje=hojeISO();
+  var varia=function(a,b){if(a==null||b==null||!isFinite(a)||!isFinite(b))return '';var d=(a-b)*100;if(Math.abs(d)<0.05)return '';
+    return '<span class="mthv '+(d>0?'up':'dn')+'">'+(d>0?'\u25b2':'\u25bc')+' '+Math.abs(d).toFixed(1).replace('.',',')+'</span>';};
+  var idx={};S.forEach(function(s,i){idx[s.inicio]=i;});
+  var ind=function(s){var i=idx[s.inicio],ant=i>0?S[i-1]:null,pk=mtPico(ant),rema=(s.rema_auto||0)+(s.rema_contratual||0),base=(s.base_auto||0)+(s.base_contratual||0);
+    return {rema:rema,base:base,pico:mtPico(s),man:pk?rema/pk:null,rb:base?rema/base:null,cp:s.base_contratual?s.rema_contratual/s.base_contratual:null};};
+  var rows=S.map(function(s){
+    var x=ind(s),aa=mtSem((+s.inicio.slice(0,4)-1)+s.inicio.slice(4)),xa=aa?ind(aa):null;
+    var p2=+s.inicio.slice(5,7)===4,atual=s.inicio<=hoje&&s.fim>=hoje;
+    return '<tr class="'+(p2?'p2':'p1')+(atual?' now':'')+'">'+
+      '<td class="per"><span class="mthsem">'+(p2?'Abr\u2013Set':'Out\u2013Mar')+'</span><b>'+mtRotulo(s.inicio)+'</b>'+(atual?'<span class="mthnow">em andamento</span>':'')+
+        (s.obs?'<small>'+esc(s.obs)+'</small>':'')+'</td>'+
+      '<td class="n g1 strong">'+mtN(s.matriculas)+'</td>'+
+      '<td class="n g2">'+mtN(s.rema_auto)+'</td><td class="n">'+mtN(s.rema_contratual)+'</td><td class="n strong">'+mtN(x.rema)+'</td>'+
+      '<td class="n g3 soft">'+mtN(s.base_auto)+'</td><td class="n soft">'+mtN(s.base_contratual)+'</td><td class="n">'+mtN(x.base)+'</td>'+
+      '<td class="n g4">'+mtN(x.pico)+'</td>'+
+      '<td class="n strong mtblue">'+mtP(x.man)+varia(x.man,xa&&xa.man)+'</td>'+
+      '<td class="n">'+mtP(x.rb)+varia(x.rb,xa&&xa.rb)+'</td>'+
+      '<td class="n">'+mtP(x.cp)+varia(x.cp,xa&&xa.cp)+'</td>'+
+      (ed?'<td class="ac"><button class="mthed" type="button" title="Editar '+mtRotulo(s.inicio)+'" aria-label="Editar '+mtRotulo(s.inicio)+'" onclick="mtSemEditar(\''+s.inicio+'\')">'+pen+'</button></td>':'')+'</tr>';}).join('');
+  var cols=ed?13:12;
+  return '<div class="mtban"><div><b>Manuten\u00e7\u00e3o = rema do per\u00edodo \u00f7 pico do per\u00edodo anterior.</b> Pico = rema + matr\u00edculas do per\u00edodo. As setas comparam com o mesmo semestre do ano anterior, em pontos percentuais.</div></div>'+
+    '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><h3>Semestre a semestre</h3>'+
+    '<span class="sub"><span class="mthsem">Abr\u2013Set</span> <span class="mthsem p1">Out\u2013Mar</span></span></div>'+
+    '<div class="rtabw"><table class="mttab mthist"><thead>'+
+    '<tr class="grp"><th rowspan="2" class="per">Per\u00edodo</th><th class="g1">Matr\u00edcula</th><th colspan="3" class="g2">Rematr\u00edcula</th><th colspan="3" class="g3">Base de rema</th><th colspan="4" class="g4">\u00cdndices</th>'+(ed?'<th rowspan="2"></th>':'')+'</tr>'+
+    '<tr><th class="n g1">Novas</th><th class="n g2">Autom.</th><th class="n">Contrat.</th><th class="n">Total</th><th class="n g3">Autom.</th><th class="n">Contrat.</th><th class="n">Total</th>'+
+    '<th class="n g4">Pico</th><th class="n">Manuten\u00e7\u00e3o</th><th class="n">Rema \u00f7 base</th><th class="n">Contratual</th></tr></thead><tbody>'+
+    (rows||'<tr><td colspan="'+cols+'" class="mtgray">Sem hist\u00f3rico.</td></tr>')+'</tbody></table></div></section>';
 }
 function mtSemEditar(inicio){
   var s=inicio?mtSem(inicio):null,S=MT.d.semestres||[];
