@@ -1543,6 +1543,108 @@ input,textarea,select{caret-color:var(--red)}
 .tnjaha b{display:block;font-size:14px;color:var(--ink);margin-bottom:3px}
 .tnjaha span{font-size:12.5px;color:var(--gray)}
 @media(max-width:700px){.tnlay{grid-template-columns:1fr}}
+/* ===== Metas (matrícula e rema) ===== */
+.mtwrap{display:flex;flex-direction:column;gap:14px;padding:4px 0 24px;width:100%;box-sizing:border-box}
+.mtbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mtbar .l,.mtbar .r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.mtseg{display:flex;background:var(--white);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px;flex-shrink:0}
+.mtseg button{border:0;background:transparent;padding:7px 14px;border-radius:var(--r-pill);font-size:13px;color:var(--ink);white-space:nowrap;cursor:pointer}
+.mtseg button.on{background:var(--red);color:var(--white);font-weight:600}
+.mtsel{height:38px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:13px;background:var(--white);color:var(--ink);max-width:240px}
+.mtbar .btn{white-space:nowrap}
+.mtban{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.45;background:var(--pastelBlue);border:1px solid #c9d6ee;color:var(--blue)}
+.mtban.red{background:var(--pastelRed);border-color:var(--dangerLine);color:var(--redDark)}
+.mtban .dctl{white-space:nowrap}
+.mtgrid{display:grid;gap:14px}
+.mtg2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.mtg3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mtg4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mtgw{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}
+.mtcard{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mtcard h3{font-family:'Poppins';font-size:14px;font-weight:600;color:var(--ink);margin:0}
+.mtcard .sub{font-size:12px;color:var(--gray)}
+.mtlab{font-size:10.5px;letter-spacing:.08em;color:var(--gray);font-weight:600;text-transform:uppercase}
+.mtbig{font-family:'Poppins';font-size:30px;font-weight:700;line-height:1.1}
+.mtkpi{display:flex;flex-direction:column;gap:4px}
+.mtkpi .mtbig{font-size:28px}
+.mtred{color:var(--red)} .mtblue{color:var(--blue)} .mtgray{color:var(--gray)}
+.mttrack{position:relative;height:22px;margin:30px 0 0}
+.mttrack .bg{position:absolute;inset:0;border-radius:999px;overflow:hidden;background:var(--line)}
+.mttrack .bd{position:absolute;top:0;bottom:0}
+.mttrack .fill{position:absolute;top:5px;bottom:5px;left:0;background:var(--red);border-radius:999px}
+.mttrack .tick{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--blue)}
+.mttrack .now{position:absolute;top:-26px;transform:translateX(-50%);font-size:12px;font-weight:700;color:var(--red);white-space:nowrap}
+.mttrack .tick span{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--blue)}
+.mtlabels{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:8px;margin-top:22px}
+.mtlabels .m{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.mtlabels .m b{font-family:'Poppins';font-size:18px;color:var(--blue)}
+.mtlabels .m.ok{background:var(--okBg);border-color:#bfe3cc}
+.mtlabels .m.ok b,.mtlabels .m.ok .mtlab{color:var(--ok)}
+.mtlabels .m span{font-size:11px;color:var(--gray)}
+.mttab{width:100%;border-collapse:collapse;font-size:13px}
+.mttab th{font-size:10.5px;letter-spacing:.06em;color:var(--gray);font-weight:600;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.mttab td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mttab tr:last-child td{border-bottom:0}
+.mttab .n{text-align:right;font-variant-numeric:tabular-nums}
+.mttab tfoot td{font-weight:700;border-top:1px solid var(--line)}
+.mttab input.mtin{width:84px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 8px;text-align:right;font-size:13px}
+.mttab input.mtin.adj{border-color:var(--blue);background:var(--pastelBlue)}
+.mtfx{display:flex;flex-direction:column;gap:8px}
+.mtfx .f{display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:var(--surface);font-size:13px}
+.mtfx .f.ok{background:var(--pastelBlue);color:var(--blue)}
+.mtfx .f.prox{background:var(--pastelRed);color:var(--redDark)}
+.mtfx .f b.n{font-family:'Poppins'}
+.mtpan{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--blue);background:var(--pastelBlue)}
+.mtpan.tot{border-top-color:var(--redDark);background:var(--pastelRed)}
+.mtpan .tt{font-family:'Poppins';font-weight:600;font-size:14px;color:var(--blue)}
+.mtpan.tot .tt{color:var(--redDark)}
+.mtpan .tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mtpan .tiers>div{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.mtpan .tiers b{font-family:'Poppins';font-size:18px}
+.mthbar{height:12px;background:var(--line);border-radius:999px;overflow:hidden}
+.mthbar>div{height:12px;border-radius:999px}
+.mtlist .top{display:flex;align-items:center;gap:10px;position:relative}
+.mtlist input.q{flex:1;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:13px;min-width:0}
+.mtfbadge{background:var(--red);color:var(--white);border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 7px;margin-left:4px}
+.mtfpan{position:absolute;top:46px;right:0;width:320px;max-width:calc(100vw - 32px);background:var(--white);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.14);padding:14px;display:flex;flex-direction:column;gap:12px;z-index:20}
+.mtfpan fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.mtfpan fieldset+fieldset{border-top:1px solid var(--line);padding-top:10px}
+.mtfpan label.o{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;cursor:pointer}
+.mtfpan label.o span{display:flex;gap:8px;align-items:center}
+.mtfpan select{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:13px;width:100%}
+.mtpills{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mtpill{display:inline-flex;align-items:center;gap:4px;font-size:12px;background:var(--pastelRed);color:var(--redDark);border-radius:999px;padding:4px 6px 4px 11px}
+.mtpill button{border:0;background:transparent;color:inherit;width:20px;height:20px;border-radius:999px;cursor:pointer;font-size:13px;line-height:1}
+.mtst{font-size:11.5px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap;display:inline-block}
+.mtst.pendente{background:var(--pastelRed);color:var(--redDark)}
+.mtst.realizada{background:var(--pastelBlue);color:var(--blue)}
+.mtst.nao_renova,.mtst.trancou{background:var(--surface);color:var(--gray);border:1px solid var(--line)}
+.mtst.negociacao{background:var(--warnBg);color:var(--warn)}
+.mtact{display:flex;gap:6px}
+.mtact button{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--line);background:var(--white);color:var(--gray)}
+.mtact button.up{border-color:#c9d6ee;background:var(--pastelBlue);color:var(--blue)}
+.mtact button.dn{border-color:var(--dangerLine);background:var(--pastelRed);color:var(--redDark)}
+.mtact button:disabled{opacity:.45;cursor:default}
+.mtact svg{width:17px;height:17px}
+.mtempty{border:2px dashed #c9d6ee;background:var(--pastelBlue);border-radius:14px;padding:22px;text-align:center;color:var(--blue);font-size:13px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.mtform{display:flex;flex-direction:column;gap:14px}
+.mtform .sec{font-family:'Poppins';font-weight:600;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.mtform .sec span{font-family:inherit;font-weight:400;font-size:12px;color:var(--gray)}
+.mtfxrow{display:grid;grid-template-columns:60px 90px 1fr 110px 34px;gap:8px;align-items:center}
+.mtfxrow input{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:13px;min-width:0}
+.mtfxrow .x{height:34px;border:1px solid var(--line);background:var(--white);border-radius:8px;cursor:pointer;color:var(--gray)}
+.mtmes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.mtmes label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--gray)}
+.mtmes input{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 6px;font-size:13px;text-align:center}
+.mtok{display:flex;gap:8px;font-size:13px;line-height:1.45;color:var(--blue)}
+.mtok.bad{color:var(--redDark)}
+@media (max-width:900px){
+  .mtg2,.mtg3,.mtg4,.mtgw{grid-template-columns:minmax(0,1fr)}
+  .mtpan .tiers{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mtmes{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mtlabels .m b{font-size:15px}
+}
+
 </style>
 </head>
 <body>
@@ -1604,6 +1706,7 @@ input,textarea,select{caret-color:var(--red)}
       <button class="sgh" type="button" data-g="gestao">Gest&atilde;o<span class="chev"></span></button>
       <div class="sgi">
       <a data-t="relatorios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 20.4h16.8"/><path d="M7.6 20.4v-6.2M12 20.4V5.6M16.4 20.4v-9.4"/></svg><span>Relatórios</span></a>
+      <a data-t="metas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg><span>Metas</span></a>
       <a data-t="equipe" id="tabEquipe" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="8.4" r="3"/><path d="M3.4 19.6c.5-3.2 3-4.9 6-4.9s5.5 1.7 6 4.9"/><path d="M15.8 6.1a3 3 0 0 1 0 5.9"/><path d="M17.3 14.8c2 .6 3.2 2.2 3.5 4.6"/></svg><span>Equipe</span></a>
       </div>
     </div>
@@ -4543,6 +4646,7 @@ function setTab(t){
   $('q').placeholder=(t==='leads')?'Buscar por nome ou número...':'Buscar por nome, decisor, bairro...';
   if(t==='inicio'){openInicio();return;}
   if(t==='relatorios'){RVIEW=RGO||relHome();RGO=null;openReports();return;}
+  if(t==='metas'){openMetas();return;}
   if(t==='equipe'){openTeam();return;}
   if(t==='mural'){openMural();return;}
   if(t==='faq'){openFaq();return;}
@@ -4569,10 +4673,10 @@ document.querySelectorAll('#snav .sgh').forEach(function(b){
 const NAVGRP={inicio:'',leads:'comercial',escolas:'comercial',empresas:'comercial',acoes:'comercial',
   conversas:'atendimento',calc:'atendimento',
   turmas:'operacao',calendario:'operacao',testes:'operacao',mural:'operacao',faq:'operacao',atas:'operacao',demandas:'operacao',
-  relatorios:'gestao',equipe:'gestao'};
+  relatorios:'gestao',metas:'gestao',equipe:'gestao'};
 const NAVTIT={inicio:'Início',leads:'Clientes B2C',escolas:'Escolas',empresas:'Empresas',acoes:'Ações comerciais',conversas:'Conversas',
   calc:'Calculadora',turmas:'Turmas',calendario:'Calendário',testes:'Testes de nível',mural:'Mural de avisos',faq:'Dúvidas frequentes',
-  atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',equipe:'Equipe'};
+  atas:'Atas de reunião',demandas:'Demandas',relatorios:'Relatórios',metas:'Metas',equipe:'Equipe'};
 
 /* grupos abrem e fecham so por clique; trocar de tela nunca fecha nada */
 function salvaGrupos(){
@@ -4739,6 +4843,7 @@ async function tryLogin(){
     }
     $('pin').value='';
     safeSet('crmUltimoEmail',r.email||email);
+    mtSetToken(alvo,r.token||null);
     safeSet('crmUnidade',alvo);
     if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,r.email||email,senha);return;}
     currentUser=r.nome;MEUEMAIL=r.email||email;
@@ -5145,7 +5250,7 @@ function telaKanban(t){return !!KANBAN[t||tab];}
 
 var NAVMOD={inicio:'inicio',leads:'leads',escolas:'escolas',empresas:'empresas',acoes:'acoes',conversas:'conversas',
   calc:'calc',turmas:'turmas',calendario:'calendario',testes:'testes',mural:'mural',faq:'mural',atas:'atas',demandas:'tarefas',
-  relatorios:'rel_meudia',equipe:'equipe'};
+  relatorios:'rel_meudia',metas:'metas',equipe:'equipe'};
 
 async function loadPerms(){
   try{
@@ -5368,6 +5473,7 @@ $('unidSw').onchange=function(){trocarUnidade(this.value);};
 $('unidSwM').onchange=function(){closeDrawer();trocarUnidade(this.value);};
 
 $('logout').onclick=function(){
+  safeSet('crmTokens','');MT.d=null;MT.pid=null;MT.lista=[];MT.listaPid=null;
   currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
   safeSet('crmUnidade','');fecharUnidade();
   ['unidSw','unidSwM'].forEach(function(id){if($(id)){$(id).classList.add('off');$(id).innerHTML='';}});
@@ -13017,6 +13123,553 @@ async function acAgendaRemover(a){
   try{var r=await api('/crm_agenda_eventos?select=*&id=eq.'+a.agenda_evento_id);ev=r&&r[0];}catch(e){}
   try{await api('/crm_agenda_eventos?id=eq.'+a.agenda_evento_id,{method:'DELETE'});}catch(e){}
   if(ev&&ev.gcal_id){try{agdSyncEvento(ev,'delete');}catch(e){}}
+}
+
+
+/* ================= Metas (matrícula e rematrícula) =================
+   Tudo passa por RPC com token de sessão (crm_login devolve o token). As tabelas
+   crm_metas_* e crm_rema_aluno não têm policy para anon: sem token, nada sai.
+   Número realizado é um só: matrícula soma os leads em fechado, com ajuste manual
+   por mês; rema soma o status de cada aluno (upload do Box + marcação da secretaria). */
+var MT={d:null,pid:null,view:'matricula',lista:[],listaPid:null,fOpen:false,
+  f:{q:'',tipo:'',st:{pendente:1,negociacao:1},prof:'',curso:''},up:null};
+var MTMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+var MTST={pendente:'Pendente',realizada:'Rematriculado',nao_renova:'N\u00e3o vai renovar',trancou:'Trancou',negociacao:'Em negocia\u00e7\u00e3o'};
+var MTIND={matricula:'Matr\u00edcula',rema_contratual:'Rema contratual',rema_total:'Rema total'};
+var MTQUEM={matricula:'comercial',rema_contratual:'secretaria',rema_total:'pedag\u00f3gico'};
+
+function mtTokens(){try{return JSON.parse(safeGet('crmTokens')||'{}')||{};}catch(e){return {};}}
+function mtSetToken(un,t){var o=mtTokens();if(t)o[un]=t;else delete o[un];safeSet('crmTokens',JSON.stringify(o));}
+function mtTok(){return mtTokens()[UNIDADE]||null;}
+async function mtRpc(fn,args){
+  return api('/rpc/'+fn,{method:'POST',body:JSON.stringify(Object.assign({p_token:mtTok()},args||{}))});
+}
+function mtErro(e){
+  var m=String(e&&e.message||e);
+  if(m.indexOf('sessao_invalida')>-1)return 'sessao';
+  if(m.indexOf('sem_permissao')>-1)return 'permissao';
+  if(m.indexOf('PGRST202')>-1||m.indexOf('Could not find the function')>-1)return 'indisponivel';
+  if(m.indexOf('empresa_diferente')>-1)return 'empresa';
+  return m;
+}
+function mtMsgErro(k){
+  if(k==='sessao')return 'Sua sess\u00e3o expirou para esta tela. Saia e entre de novo para liberar as metas.';
+  if(k==='permissao')return 'Voc\u00ea n\u00e3o tem permiss\u00e3o para essa a\u00e7\u00e3o.';
+  if(k==='indisponivel')return 'Metas ainda n\u00e3o est\u00e1 dispon\u00edvel nesta unidade.';
+  if(k==='empresa')return 'Este relat\u00f3rio \u00e9 de outra unidade. Confira a empresa no topo do arquivo.';
+  return 'Erro: '+k;
+}
+function mtRotulo(inicio){
+  var y=+inicio.slice(0,4),m=+inicio.slice(5,7);
+  return m===4?('Abr a Set/'+y):('Out/'+y+' a Mar/'+(y+1));
+}
+function mtN(v){return v==null||v===''?'\u00b7':Number(v).toLocaleString('pt-BR');}
+function mtP(v,c){return v==null||!isFinite(v)?'\u00b7':(v*100).toFixed(c==null?1:c).replace('.',',')+'%';}
+function mtRS(v){return v==null||v===''?'[R$]':'R$ '+Number(v).toLocaleString('pt-BR');}
+function mtDBR(d){return d?String(d).slice(8,10)+'/'+String(d).slice(5,7):'';}
+function mtPer(){return (MT.d&&MT.d.periodos||[]).find(function(p){return p.id===MT.pid;})||null;}
+function mtInd(p,n){return p&&(p.indicadores||[]).find(function(i){return i.indicador===n;})||null;}
+function mtSem(inicio){return (MT.d.semestres||[]).find(function(s){return s.inicio===inicio;})||null;}
+function mtSemAnt(inicio){var l=(MT.d.semestres||[]).filter(function(s){return s.inicio<inicio;});return l.length?l[l.length-1]:null;}
+function mtPico(s){return s?(s.rema_auto||0)+(s.rema_contratual||0)+(s.matriculas||0):null;}
+function mtPodeMetas(){return MT.d&&MT.d.eu.metas>=2;}
+function mtPodeRema(){return MT.d&&MT.d.eu.rema>=2;}
+function mtRealMat(p){return (p.meses||[]).reduce(function(a,m){return a+(m.ajuste!=null?m.ajuste:(m.crm||0));},0);}
+
+async function openMetas(){
+  $('stats').innerHTML='';
+  if(!mtTok()){
+    $('board').innerHTML='<div class="mtwrap"><div class="mtban red"><div>'+mtMsgErro('sessao')+'</div></div></div>';return;
+  }
+  $('board').innerHTML='<div class="loading">Carregando metas...</div>';
+  try{await mtCarregar();}
+  catch(e){$('board').innerHTML='<div class="mtwrap"><div class="mtban red"><div>'+esc(mtMsgErro(mtErro(e)))+'</div></div></div>';return;}
+  if(!MT.pid||!mtPer()){
+    var hoje=hojeISO(),ps=MT.d.periodos||[];
+    var at=ps.find(function(p){return p.inicio<=hoje&&p.fim>=hoje;});
+    MT.pid=at?at.id:(ps.length?ps[ps.length-1].id:null);
+  }
+  if(MT.view==='rema')await mtCarregarLista();
+  mtRender();
+}
+async function mtCarregar(){MT.d=await mtRpc('metas_carregar');}
+async function mtCarregarLista(force){
+  if(!MT.pid){MT.lista=[];return;}
+  if(!force&&MT.listaPid===MT.pid)return;
+  MT.lista=(await mtRpc('rema_lista',{p_periodo:MT.pid}))||[];MT.listaPid=MT.pid;
+}
+async function mtRecarregar(){
+  try{await mtCarregar();if(MT.view==='rema')await mtCarregarLista(true);mtRender();}
+  catch(e){toast(mtMsgErro(mtErro(e)));}
+}
+async function mtVer(v){MT.view=v;MT.fOpen=false;if(v==='rema'){try{await mtCarregarLista();}catch(e){toast(mtMsgErro(mtErro(e)));}}mtRender();}
+async function mtPeriodo(v){
+  if(v==='__novo'){await mtNovoPeriodo();return;}
+  MT.pid=v;MT.fOpen=false;if(MT.view==='rema'){try{await mtCarregarLista();}catch(e){toast(mtMsgErro(mtErro(e)));}}mtRender();
+}
+
+function mtBarra(){
+  var p=mtPer(),ps=MT.d.periodos||[];
+  var op=ps.map(function(x){return '<option value="'+x.id+'"'+(x.id===MT.pid?' selected':'')+'>'+mtRotulo(x.inicio)+(x.status==='rascunho'?' \u00b7 rascunho':'')+'</option>';}).join('');
+  if(mtPodeMetas())op+='<option value="__novo">+ Novo per\u00edodo</option>';
+  var tabs=[['matricula','Matr\u00edcula'],['rema','Rematr\u00edcula'],['historico','Hist\u00f3rico']].map(function(t){
+    return '<button type="button" class="'+(MT.view===t[0]?'on':'')+'" onclick="mtVer(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
+  var dir='';
+  if(mtPodeMetas()&&MT.view==='rema')dir+='<button class="btn" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button>';
+  if(mtPodeMetas()&&MT.view!=='historico'&&p)dir+='<button class="btn primary" type="button" onclick="mtConfigurar()">Configurar</button>';
+  if(mtPodeMetas()&&MT.view==='historico')dir+='<button class="btn primary" type="button" onclick="mtSemEditar(null)">+ Semestre</button>';
+  return '<div class="mtbar"><div class="l"><div class="mtseg">'+tabs+'</div>'+
+    (MT.view!=='historico'?'<select class="mtsel" aria-label="Per\u00edodo" onchange="mtPeriodo(this.value)">'+op+'</select>':'')+
+    '</div><div class="r">'+dir+'</div></div>';
+}
+function mtRender(){
+  var h='<div class="mtwrap">'+mtBarra();
+  var p=mtPer();
+  if(MT.view==='historico')h+=mtHistorico();
+  else if(!p)h+='<div class="mtempty">Nenhum per\u00edodo de metas cadastrado ainda.</div>';
+  else if(MT.view==='rema')h+=mtRema(p);
+  else h+=mtMatricula(p);
+  $('board').innerHTML=h+'</div>';
+  if(MT.view==='rema')mtRenderLista();
+}
+
+/* ---- régua das metas 1..N ---- */
+function mtTrack(real,faixas,unid){
+  faixas=(faixas||[]).slice().sort(function(a,b){return a.nivel-b.nivel;});
+  if(!faixas.length)return '<div class="sub">Metas deste indicador ainda n\u00e3o definidas.</div>';
+  var ult=faixas[faixas.length-1].alvo,max=Math.max(ult*1.08,(real||0)*1.04,1);
+  var cores=['#E4E4E7','#EAF0FA','#d3dff3','#b7cbec','#8fadde','#6f94d2'];
+  var ed=[0].concat(faixas.map(function(f){return f.alvo/max*100;})).concat([100]),bd='';
+  for(var i=0;i<ed.length-1;i++)bd+='<div class="bd" style="left:'+ed[i].toFixed(1)+'%;width:'+(ed[i+1]-ed[i]).toFixed(1)+'%;background:'+cores[Math.min(i,cores.length-1)]+'"></div>';
+  var tk=faixas.map(function(f){return '<div class="tick" style="left:'+(f.alvo/max*100).toFixed(1)+'%"><span>'+f.nivel+'</span></div>';}).join('');
+  var rp=Math.min(100,(real||0)/max*100);
+  var lb=faixas.map(function(f){var ok=real!=null&&real>=f.alvo;
+    return '<div class="m'+(ok?' ok':'')+'"><span class="mtlab">Meta '+f.nivel+(ok?' \u00b7 batida':'')+'</span><b>'+mtN(f.alvo)+'</b><span>'+mtRS(f.valor_rs)+(f.regra?' \u00b7 '+esc(f.regra):'')+'</span></div>';}).join('');
+  return '<div class="mttrack"><div class="bg">'+bd+'<div class="fill" style="width:'+rp.toFixed(1)+'%"></div></div>'+tk+
+    '<div class="now" style="left:'+Math.max(3,rp).toFixed(1)+'%">'+mtN(real)+(unid||'')+'</div></div><div class="mtlabels" style="--n:'+faixas.length+'">'+lb+'</div>';
+}
+function mtProxima(real,faixas){
+  faixas=(faixas||[]).slice().sort(function(a,b){return a.nivel-b.nivel;});
+  if(!faixas.length)return '';
+  var f=faixas.find(function(x){return (real||0)<x.alvo;});
+  if(!f)return 'todas as metas batidas';
+  return 'faltam <b>'+mtN(f.alvo-(real||0))+'</b> para a Meta '+f.nivel;
+}
+
+/* ---- Matrícula ---- */
+function mtMatricula(p){
+  var ind=mtInd(p,'matricula'),fx=ind?ind.faixas:[],real=mtRealMat(p),ed=mtPodeMetas();
+  var semAnt=mtSem((+p.inicio.slice(0,4)-1)+p.inicio.slice(4));
+  var h='';
+  if(p.status==='rascunho')h+='<div class="mtban"><div><b>Metas em rascunho.</b> S\u00f3 passam a valer quando forem ativadas em Configurar.</div></div>';
+  h+='<div class="mtgrid mtgw"><section class="mtcard"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
+    '<div class="mtkpi"><span class="mtlab">Realizado \u00b7 '+mtRotulo(p.inicio)+'</span><span class="mtbig mtred">'+mtN(real)+'</span>'+
+    '<span class="sub">matr\u00edculas \u00b7 soma dos leads em fechado, com ajuste manual por m\u00eas</span></div>'+
+    '<div class="mtkpi" style="text-align:right"><span class="mtlab">Pr\u00f3xima meta</span><span style="font-size:14px">'+mtProxima(real,fx)+'</span></div></div>'+
+    mtTrack(real,fx)+'</section>'+
+    '<section class="mtcard"><div class="mtkpi"><span class="mtlab">'+(semAnt?mtRotulo(semAnt.inicio):'Ano anterior')+'</span><span class="mtbig">'+mtN(semAnt&&semAnt.matriculas)+'</span>'+
+    '<span class="sub">mesmo per\u00edodo do ano anterior'+(ind&&ind.base_media?' \u00b7 m\u00e9dia de 3 anos '+String(ind.base_media).replace('.',','):'')+'</span></div></section></div>';
+  var ult=fx.length?fx[fx.length-1].nivel:null;
+  var rows=(p.meses||[]).map(function(m){
+    var v=m.ajuste!=null?m.ajuste:(m.crm||0),mes=m.mes,lb=MTMES[+mes.slice(5,7)-1]+'/'+mes.slice(0,4);
+    var cel=ed?'<input class="mtin'+(m.ajuste!=null?' adj':'')+'" type="number" min="0" value="'+v+'" title="CRM: '+(m.crm||0)+'" aria-label="Realizado '+lb+'" onchange="mtAjuste(\''+mes+'\',this.value)">':mtN(v);
+    return '<tr><td><b>'+lb+'</b></td><td class="n">'+mtN(m.ritmo_1)+'</td><td class="n mtgray">'+mtN(m.ritmo_ult)+'</td><td class="n">'+cel+
+      (m.ajuste!=null&&m.ajuste!==m.crm?'<div class="sub" style="font-size:11px;color:var(--gray)">CRM '+(m.crm||0)+'</div>':'')+'</td></tr>';}).join('');
+  var t1=(p.meses||[]).reduce(function(a,m){return a+(m.ritmo_1||0);},0),tu=(p.meses||[]).reduce(function(a,m){return a+(m.ritmo_ult||0);},0);
+  h+='<div class="mtgrid mtg2"><section class="mtcard"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>M\u00eas a m\u00eas</h3>'+
+    '<span class="sub">ritmo s\u00f3 para acompanhar \u00b7 realizado edit\u00e1vel'+(ed?'':' por gest\u00e3o')+'</span></div>'+
+    '<div class="rtabw"><table class="mttab"><thead><tr><th>M\u00eas</th><th class="n">Ritmo Meta 1</th><th class="n">Ritmo Meta '+(ult||'')+'</th><th class="n">Realizado</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td>Total</td><td class="n">'+mtN(t1)+'</td><td class="n mtgray">'+(tu?mtN(tu):'\u00b7')+'</td><td class="n">'+mtN(real)+'</td></tr></tfoot></table></div></section>';
+  var fxh=fx.map(function(f){var ok=real>=f.alvo;return '<div class="f'+(ok?' ok':'')+'"><b class="n">Meta '+f.nivel+'</b><span><b>'+mtN(f.alvo)+'</b> <span class="mtgray" style="font-size:12px">'+esc(f.regra||'')+'</span></span><span>'+mtRS(f.valor_rs)+'</span></div>';}).join('')||'<div class="sub">Sem metas definidas.</div>';
+  var cons=(p.por_consultor||[]).map(function(c){return '<tr><td>'+esc(c.responsavel)+'</td><td class="n">'+mtN(c.n)+'</td></tr>';}).join('')||'<tr><td colspan="2" class="mtgray">Nenhum lead em fechado no per\u00edodo.</td></tr>';
+  h+='<div style="display:flex;flex-direction:column;gap:14px"><section class="mtcard"><h3>Metas do per\u00edodo</h3><div class="mtfx">'+fxh+'</div>'+
+    '<div class="sub">Comiss\u00e3o paga pela meta atingida no per\u00edodo.</div></section>'+
+    '<section class="mtcard"><h3>Matr\u00edculas por consultor</h3><table class="mttab"><tbody>'+cons+'</tbody></table><div class="sub">S\u00f3 acompanhamento, pelos leads em fechado no CRM.</div></section></div></div>';
+  h+=mtAnoAno(p);
+  return h;
+}
+function mtAnoAno(p){
+  var mes=p.inicio.slice(4);
+  var l=(MT.d.semestres||[]).filter(function(s){return s.inicio.slice(4)===mes&&s.inicio<p.inicio&&s.matriculas!=null;});
+  if(!l.length)return '';
+  var max=Math.max.apply(null,l.map(function(s){return s.matriculas;}).concat([mtRealMat(p)]));
+  var bar=function(lb,v,cor,b){return '<div style="display:grid;grid-template-columns:150px 1fr 60px;gap:10px;align-items:center;font-size:13px"><span'+(b?' style="font-weight:600;color:var(--red)"':' class="mtgray"')+'>'+lb+'</span><div class="mthbar"><div style="width:'+(v/max*100).toFixed(1)+'%;background:'+cor+'"></div></div><b style="text-align:right">'+mtN(v)+'</b></div>';};
+  var h=l.map(function(s){return bar(mtRotulo(s.inicio),s.matriculas,'#b7cbec');}).join('')+bar(mtRotulo(p.inicio),mtRealMat(p),'var(--red)',1);
+  return '<section class="mtcard"><h3>Mesmo semestre, ano a ano</h3><div style="display:flex;flex-direction:column;gap:9px">'+h+'</div></section>';
+}
+async function mtAjuste(mes,val){
+  var p=mtPer();if(!p)return;
+  var m=(p.meses||[]).find(function(x){return x.mes===mes;});
+  var n=val===''?null:parseInt(val,10);
+  var aj=(n==null||n===(m&&m.crm||0))?null:n;
+  try{
+    await mtRpc('metas_salvar_periodo',{p:{inicio:p.inicio,fim:p.fim,status:p.status,meses:[{mes:mes,ritmo_1:m&&m.ritmo_1,ritmo_ult:m&&m.ritmo_ult,ajuste:aj}]}});
+    toast(aj==null?'Realizado volta a seguir o CRM.':'Realizado ajustado.');
+    await mtRecarregar();
+  }catch(e){toast(mtMsgErro(mtErro(e)));}
+}
+
+/* ---- Rematrícula ---- */
+function mtRemaNums(p){
+  var r=p.rema||{};
+  if(r.total>0)return {fonte:'lista',base:r.total,auto:r.auto,contr:r.contr,autoReal:r.auto_real,contrReal:r.contr_real,
+    pendA:r.pend_auto,pendC:r.pend_contr,nao:r.nao_renova,tr:r.trancou};
+  var s=mtSem(p.inicio);
+  if(s&&s.base_auto!=null)return {fonte:'historico',base:(s.base_auto||0)+(s.base_contratual||0),auto:s.base_auto,contr:s.base_contratual,
+    autoReal:s.rema_auto,contrReal:s.rema_contratual,pendA:null,pendC:null};
+  return null;
+}
+function mtRema(p){
+  var n=mtRemaNums(p),h='';
+  var ic=mtInd(p,'rema_contratual'),it=mtInd(p,'rema_total');
+  var hoje=hojeISO(),atual=p.inicio<=hoje&&p.fim>=hoje;
+  if(!n){
+    h+='<div class="mtempty"><b>A lista de rema deste per\u00edodo ainda n\u00e3o foi importada.</b><span>Suba o Relat\u00f3rio de \u00cdndice de Rematr\u00edcula do Box.</span>'+
+      (mtPodeMetas()?'<button class="btn primary" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button>':'')+'</div>';
+    return h+mtProximo(p,null);
+  }
+  var tot=(n.autoReal||0)+(n.contrReal||0),pend=(n.pendA||0)+(n.pendC||0);
+  var ant=mtSemAnt(p.inicio),pico=mtPico(ant);
+  if(n.fonte==='historico')h+='<div class="mtban"><div>N\u00fameros do hist\u00f3rico. A lista por aluno aparece quando o relat\u00f3rio do Box for importado.</div></div>';
+  if(atual&&pend>0){
+    var fx=(ic&&ic.faixas||[]).slice().sort(function(a,b){return a.alvo-b.alvo;}),prox=fx.find(function(f){return f.alvo>(n.contrReal||0);});
+    h+='<div class="mtban red"><div><b>'+mtN(pend)+' remas pendentes</b> ('+mtN(n.pendC)+' contratuais, '+mtN(n.pendA)+' autom\u00e1ticas) at\u00e9 '+mtDBR(p.fim)+'/'+p.fim.slice(0,4)+'.'+
+      (prox?' Contratual: faltam <b>'+mtN(prox.alvo-(n.contrReal||0))+'</b> para a Meta '+prox.nivel+'.':'')+'</div></div>';
+  }
+  h+='<div class="mtgrid mtg4">'+
+    '<section class="mtcard mtkpi"><span class="mtlab">Base do per\u00edodo</span><span class="mtbig">'+mtN(n.base)+'</span><span class="sub">'+mtN(n.auto)+' autom\u00e1tica + '+mtN(n.contr)+' contratual</span></section>'+
+    '<section class="mtcard mtkpi"><span class="mtlab">Rema total</span><span class="mtbig mtred">'+mtN(tot)+'</span><span class="sub">'+mtP(tot/n.base)+' da base'+(pico?' \u00b7 manuten\u00e7\u00e3o '+mtP(tot/pico):'')+'</span></section>'+
+    '<section class="mtcard mtkpi"><span class="mtlab">Contratual</span><span class="mtbig mtblue">'+mtN(n.contrReal)+'</span><span class="sub">de '+mtN(n.contr)+' \u00b7 '+mtP((n.contrReal||0)/(n.contr||1))+'</span></section>'+
+    '<section class="mtcard mtkpi"><span class="mtlab">Pendentes</span><span class="mtbig">'+(n.pendA==null?'\u2014':mtN(pend))+'</span><span class="sub">'+(n.pendA==null?'sem lista':mtN(n.pendC)+' contratuais \u00b7 '+mtN(n.pendA)+' autom\u00e1ticas')+'</span></section></div>';
+  h+='<div class="mtgrid mtg2">'+
+    '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>Secretaria \u00b7 rema contratual</h3><span class="sub">'+mtProxima(n.contrReal,ic&&ic.faixas)+'</span></div>'+mtTrack(n.contrReal,ic&&ic.faixas)+(ic&&ic.obs?'<div class="sub">'+esc(ic.obs)+'</div>':'')+'</section>'+
+    '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>Pedag\u00f3gico \u00b7 rema total</h3><span class="sub">'+mtProxima(tot,it&&it.faixas)+'</span></div>'+mtTrack(tot,it&&it.faixas)+(it&&it.obs?'<div class="sub">'+esc(it.obs)+'</div>':'')+'</section></div>';
+  if(n.fonte==='lista'){
+    var imp=p.ultimo_import;
+    h+='<section class="mtcard mtlist"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>Lista de rema \u00b7 '+mtRotulo(p.inicio)+'</h3>'+
+      '<span class="sub">'+(imp?'relat\u00f3rio do Box '+esc(imp.gerado||'')+' \u00b7 importado por '+esc(imp.por||''):'')+'</span></div>'+
+      '<div class="top"><input class="q" type="search" id="mtQ" placeholder="Buscar aluno, turma ou professor" aria-label="Buscar aluno, turma ou professor" value="'+esc(MT.f.q)+'" oninput="MT.f.q=this.value;mtRenderLista()">'+
+      '<button class="btn" type="button" onclick="mtToggleFiltro()">Filtros<span class="mtfbadge" id="mtFN"></span></button><div id="mtFP"></div></div>'+
+      '<div class="mtpills" id="mtPills"></div><div id="mtLista"></div></section>';
+  }else if(mtPodeMetas()){
+    h+='<div class="mtempty"><span>Para trabalhar aluno a aluno, suba o relat\u00f3rio do Box deste per\u00edodo.</span><button class="btn primary" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button></div>';
+  }
+  return h+mtProximo(p,n);
+}
+function mtProximo(p,n){
+  var ps=MT.d.periodos||[],i=ps.findIndex(function(x){return x.id===p.id;}),q=ps[i+1];
+  if(!q)return '';
+  var ic=mtInd(q,'rema_contratual'),it=mtInd(q,'rema_total');
+  var baseC=n?n.autoReal:null,baseA=n?(n.contrReal||0)+mtRealMat(p):null;
+  var tier=function(ind,cls,tt,quem,base){
+    var fx=(ind&&ind.faixas||[]).map(function(f){return '<div><span class="mtlab">Meta '+f.nivel+'</span><b>'+mtN(f.alvo)+'</b><span class="sub">'+esc(f.regra||'')+'</span></div>';}).join('');
+    return '<div class="mtpan'+cls+'"><div style="display:flex;justify-content:space-between;gap:8px"><span class="tt">'+tt+'</span><span class="sub">'+quem+'</span></div><div class="sub">'+base+'</div><div class="tiers">'+(fx||'<div class="sub">Sem metas</div>')+'</div></div>';
+  };
+  return '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>Pr\u00f3ximo per\u00edodo \u00b7 '+mtRotulo(q.inicio)+'</h3>'+
+    '<button class="dctl" type="button" onclick="mtPeriodo(\''+q.id+'\')">Abrir per\u00edodo</button></div>'+
+    '<div class="mtgrid mtg3"><div class="mtkpi"><span class="mtlab">Base projetada</span><span class="mtbig">'+mtN(baseC==null?null:baseC+baseA)+'</span>'+
+    '<span class="sub">Contratual '+mtN(baseC)+' = autom\u00e1ticas realizadas agora<br>Autom\u00e1tica '+mtN(baseA)+' = contratuais renovadas + matr\u00edculas do per\u00edodo<br>Antes de trancamentos. A lista oficial substitui.</span></div>'+
+    tier(ic,'','Rema contratual','secretaria',ic&&ic.base_ref?'Sobre base contratual de '+mtN(ic.base_ref)+(ic.base_media?' \u00b7 m\u00e9dia '+String(ic.base_media).replace('.',',')+'%':''):'')+
+    tier(it,' tot','Rema total','pedag\u00f3gico',it&&it.base_ref?'Sobre o pico anterior de '+mtN(it.base_ref)+(it.base_media?' \u00b7 m\u00e9dia '+String(it.base_media).replace('.',',')+'%':''):'')+
+    '</div></section>';
+}
+
+/* lista com filtro em botão */
+function mtFiltrada(){
+  var f=MT.f,q=(f.q||'').trim().toLowerCase(),temSt=Object.keys(f.st).length>0;
+  return MT.lista.filter(function(a){
+    if(f.tipo&&a.tipo!==f.tipo)return false;
+    if(temSt&&!f.st[a.status])return false;
+    if(f.prof&&a.professor!==f.prof)return false;
+    if(f.curso&&a.curso!==f.curso)return false;
+    if(q&&((a.aluno||'')+' '+(a.turma||'')+' '+(a.professor||'')).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+}
+function mtNFiltros(){var f=MT.f;return (f.tipo?1:0)+(Object.keys(f.st).length?1:0)+(f.prof?1:0)+(f.curso?1:0);}
+function mtToggleFiltro(){MT.fOpen=!MT.fOpen;mtRenderLista();}
+function mtFiltroSet(k,v,on){
+  if(k==='st'){if(on)MT.f.st[v]=1;else delete MT.f.st[v];}else MT.f[k]=v;
+  mtRenderLista();
+}
+function mtRenderLista(){
+  if(!$('mtLista'))return;
+  var L=MT.lista,cnt=function(fn){return L.filter(fn).length;};
+  var uniq=function(k){var o={};L.forEach(function(a){if(a[k])o[a[k]]=1;});return Object.keys(o).sort();};
+  $('mtFN').textContent=mtNFiltros()||'';$('mtFN').style.display=mtNFiltros()?'':'none';
+  if(MT.fOpen){
+    var rt=function(v,lb){return '<label class="o"><span><input type="radio" name="mtft"'+(MT.f.tipo===v?' checked':'')+' onchange="mtFiltroSet(\'tipo\',\''+v+'\')">'+lb+'</span><span class="mtgray">'+(v?cnt(function(a){return a.tipo===v;}):L.length)+'</span></label>';};
+    var ck=function(v){return '<label class="o"><span><input type="checkbox"'+(MT.f.st[v]?' checked':'')+' onchange="mtFiltroSet(\'st\',\''+v+'\',this.checked)">'+MTST[v]+'</span><span class="mtgray">'+cnt(function(a){return a.status===v;})+'</span></label>';};
+    var sl=function(k,fk,lb){return '<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">'+lb+'<select onchange="mtFiltroSet(\''+fk+'\',this.value)"><option value="">Todos</option>'+
+      uniq(k).map(function(v){return '<option'+(MT.f[fk]===v?' selected':'')+'>'+esc(v)+'</option>';}).join('')+'</select></label>';};
+    $('mtFP').innerHTML='<div class="mtfpan"><fieldset><span class="mtlab">Tipo</span>'+rt('','Todos')+rt('automatica','Autom\u00e1tica')+rt('contratual','Contratual')+'</fieldset>'+
+      '<fieldset><span class="mtlab">Status</span>'+['pendente','negociacao','realizada','nao_renova','trancou'].map(ck).join('')+'</fieldset>'+
+      '<fieldset><span class="mtlab">Mais</span>'+sl('professor','prof','Professor')+sl('curso','curso','Curso')+'</fieldset>'+
+      '<div style="display:flex;justify-content:space-between;gap:8px"><button class="btn" type="button" onclick="MT.f={q:MT.f.q,tipo:\'\',st:{},prof:\'\',curso:\'\'};mtRenderLista()">Limpar</button>'+
+      '<button class="btn primary" type="button" onclick="mtToggleFiltro()">Aplicar</button></div></div>';
+  }else $('mtFP').innerHTML='';
+  var pills=[];
+  if(MT.f.tipo)pills.push(['tipo','Tipo: '+(MT.f.tipo==='automatica'?'Autom\u00e1tica':'Contratual')]);
+  Object.keys(MT.f.st).forEach(function(s){pills.push(['st:'+s,'Status: '+MTST[s]]);});
+  if(MT.f.prof)pills.push(['prof','Professor: '+MT.f.prof]);
+  if(MT.f.curso)pills.push(['curso','Curso: '+MT.f.curso]);
+  var R=mtFiltrada();
+  $('mtPills').innerHTML=pills.map(function(x){return '<span class="mtpill">'+esc(x[1])+'<button type="button" aria-label="Remover filtro '+esc(x[1])+'" onclick="mtTiraFiltro(\''+x[0]+'\')">\u00d7</button></span>';}).join('')+
+    '<span class="sub mtgray" style="font-size:12px">'+mtN(R.length)+' de '+mtN(L.length)+' alunos</span>';
+  var up='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7v7H2.5V7zM5 7l2.6-4.6c.9 0 1.6.8 1.4 1.7L8.6 6H12.6c.9 0 1.5.8 1.3 1.6l-1.1 5.1c-.2.7-.8 1.3-1.5 1.3H5"/></svg>';
+  var dn=up.replace('<svg ','<svg style="transform:rotate(180deg)" ');
+  var mais='<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></svg>';
+  var pode=mtPodeRema();
+  var rows=R.slice(0,600).map(function(a){
+    var ult=a.alterado_por?esc(a.alterado_por)+(a.alterado_em?' \u00b7 '+mtDBR(a.alterado_em):''):'\u00b7';
+    return '<tr><td><b>'+esc(a.aluno)+'</b></td><td>'+esc(a.turma||'')+'</td><td>'+esc(a.estagio||'')+'</td><td>'+esc(a.professor||'')+'</td>'+
+      '<td>'+(a.tipo==='contratual'?'Contratual':'Autom\u00e1tica')+'</td><td><span class="mtst '+a.status+'">'+MTST[a.status]+'</span>'+(a.motivo?'<div class="sub" style="font-size:11px;color:var(--gray)">'+esc(a.motivo)+'</div>':'')+'</td>'+
+      '<td class="mtgray" style="font-size:12px">'+ult+'</td>'+
+      '<td><div class="mtact"><button type="button" class="up" title="Rematr\u00edcula realizada" aria-label="Rematr\u00edcula realizada"'+(pode&&a.status!=='realizada'?'':' disabled')+' onclick="mtMarcar(\''+a.id+'\',\'realizada\')">'+up+'</button>'+
+      '<button type="button" class="dn" title="N\u00e3o vai renovar" aria-label="N\u00e3o vai renovar"'+(pode?'':' disabled')+' onclick="mtNaoRenova(\''+a.id+'\')">'+dn+'</button>'+
+      '<button type="button" title="Mais op\u00e7\u00f5es" aria-label="Mais op\u00e7\u00f5es"'+(pode?'':' disabled')+' onclick="mtMais(\''+a.id+'\')">'+mais+'</button></div></td></tr>';}).join('');
+  $('mtLista').innerHTML='<div class="rtabw"><table class="mttab"><thead><tr><th>Aluno</th><th>Turma</th><th>Est\u00e1gio</th><th>Professor</th><th>Tipo</th><th>Status</th><th>\u00daltima altera\u00e7\u00e3o</th><th>A\u00e7\u00e3o</th></tr></thead><tbody>'+
+    (rows||'<tr><td colspan="8" class="mtgray" style="text-align:center">Nenhum aluno com esses filtros.</td></tr>')+'</tbody></table></div>';
+}
+function mtTiraFiltro(k){
+  if(k.indexOf('st:')===0)delete MT.f.st[k.slice(3)];else MT.f[k]='';
+  mtRenderLista();
+}
+async function mtMarcarRpc(id,status,motivo,data,obs){
+  try{
+    await mtRpc('rema_marcar',{p_id:id,p_status:status,p_motivo:motivo||null,p_data:data||null,p_obs:obs||null});
+    var a=MT.lista.find(function(x){return x.id===id;});
+    if(a){a.status=status;a.motivo=status==='nao_renova'?motivo:null;a.alterado_por=currentUser;a.alterado_em=new Date().toISOString();}
+    await mtCarregar();mtRender();
+    return true;
+  }catch(e){toast(mtMsgErro(mtErro(e)));return false;}
+}
+async function mtMarcar(id,st){if(await mtMarcarRpc(id,st))toast('Rematr\u00edcula registrada.');}
+function mtMotivosHTML(sel){
+  return '<option value="">Escolha o motivo</option>'+(MT.d.motivos||[]).map(function(m){return '<option'+(m===sel?' selected':'')+'>'+esc(m)+'</option>';}).join('');
+}
+function mtNaoRenova(id){
+  var a=MT.lista.find(function(x){return x.id===id;});if(!a)return;
+  uiModal('N\u00e3o vai renovar \u00b7 '+a.aluno,(a.turma||'')+' \u00b7 '+(a.tipo==='contratual'?'contratual':'autom\u00e1tica'),
+    '<div class="grid"><div class="f full"><label>Motivo <b class="req">*</b></label><select id="mtMot">'+mtMotivosHTML(a.motivo)+'</select></div>'+
+    '<div class="f"><label>Data</label><input type="date" id="mtDt" value="'+hojeISO()+'"></div>'+
+    '<div class="f full"><label>Observa\u00e7\u00e3o</label><textarea id="mtObs" rows="3">'+esc(a.obs||'')+'</textarea></div></div>',
+    '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtSv">Salvar</button>');
+  $('mtSv').onclick=async function(){
+    var m=$('mtMot').value;
+    if(!m){$('mtMot').classList.add('need');toast('Escolha o motivo.');return;}
+    this.disabled=true;this.textContent='Salvando\u2026';
+    if(await mtMarcarRpc(id,'nao_renova',m,$('mtDt').value,$('mtObs').value)){uiModalClose();toast('Registrado: n\u00e3o vai renovar.');}
+    else{this.disabled=false;this.textContent='Salvar';}
+  };
+  uiFoco('mtMot');
+}
+function mtMais(id){
+  var a=MT.lista.find(function(x){return x.id===id;});if(!a)return;
+  var op=['realizada','negociacao','nao_renova','trancou','pendente'].map(function(s){
+    return '<label style="display:flex;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px"><input type="radio" name="mtSt" value="'+s+'"'+(a.status===s?' checked':'')+' onchange="$(\'mtMotW\').style.display=this.value===\'nao_renova\'?\'\':\'none\'">'+MTST[s]+'</label>';}).join('');
+  uiModal('Rema \u00b7 '+a.aluno,(a.turma||'')+' \u00b7 status atual: '+MTST[a.status],
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">'+op+'</div><div class="grid">'+
+    '<div class="f full" id="mtMotW" style="'+(a.status==='nao_renova'?'':'display:none')+'"><label>Motivo <b class="req">*</b></label><select id="mtMot">'+mtMotivosHTML(a.motivo)+'</select></div>'+
+    '<div class="f"><label>Data</label><input type="date" id="mtDt" value="'+hojeISO()+'"></div>'+
+    '<div class="f full"><label>Observa\u00e7\u00e3o</label><textarea id="mtObs" rows="3">'+esc(a.obs||'')+'</textarea></div></div>',
+    '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtSv">Salvar</button>');
+  $('mtSv').onclick=async function(){
+    var r=document.querySelector('input[name=mtSt]:checked'),st=r?r.value:a.status,m=$('mtMot').value;
+    if(st==='nao_renova'&&!m){$('mtMot').classList.add('need');toast('Escolha o motivo.');return;}
+    this.disabled=true;this.textContent='Salvando\u2026';
+    if(await mtMarcarRpc(id,st,m,$('mtDt').value,$('mtObs').value)){uiModalClose();toast('Status atualizado.');}
+    else{this.disabled=false;this.textContent='Salvar';}
+  };
+}
+
+/* ---- upload do Relatório de Índice de Rematrícula (Box) ---- */
+function mtXlsx(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  return new Promise(function(ok,no){
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=function(){ok(window.XLSX);};s.onerror=function(){no(new Error('N\u00e3o foi poss\u00edvel carregar o leitor de planilha.'));};
+    document.head.appendChild(s);
+  });
+}
+function mtUpload(){
+  var p=mtPer();if(!p)return;
+  MT.up=null;
+  var op=(MT.d.periodos||[]).map(function(x){return '<option value="'+x.id+'"'+(x.id===p.id?' selected':'')+'>'+mtRotulo(x.inicio)+'</option>';}).join('');
+  uiModal('Subir relat\u00f3rio de rema do Box','Relat\u00f3rio de \u00cdndice de Rematr\u00edcula (.xlsx)',
+    '<div class="mtform"><div class="grid"><div class="f"><label>Per\u00edodo</label><select id="mtUpP">'+op+'</select></div>'+
+    '<div class="f"><label>Arquivo</label><input type="file" id="mtUpF" accept=".xlsx"></div></div><div id="mtUpPrev"></div></div>',
+    '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtUpGo" disabled>Importar</button>');
+  $('mtUpF').onchange=function(){mtLerArquivo(this.files&&this.files[0]);};
+  $('mtUpGo').onclick=mtImportar;
+}
+async function mtLerArquivo(file){
+  if(!file)return;
+  $('mtUpPrev').innerHTML='<div class="sub">Lendo arquivo\u2026</div>';$('mtUpGo').disabled=true;
+  try{
+    var X=await mtXlsx(),buf=await file.arrayBuffer(),wb=X.read(buf,{type:'array',cellDates:true});
+    var ws=wb.Sheets[wb.SheetNames[0]],M=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+    var achar=function(rot){for(var i=0;i<Math.min(M.length,10);i++){var r=M[i];for(var j=0;j<r.length-1;j++){if(String(r[j]).trim().toLowerCase().indexOf(rot)===0)return String(r[j+1]||'').trim();}}return '';};
+    var empresa=achar('empresa'),gerado=achar('relat\u00f3rio gerado em');
+    var hi=M.findIndex(function(r){return String(r[0]).trim()==='Aluno';});
+    if(hi<0)throw new Error('N\u00e3o achei o cabe\u00e7alho "Aluno". Confira se \u00e9 o Relat\u00f3rio de \u00cdndice de Rematr\u00edcula.');
+    var H=M[hi].map(function(x){return String(x).trim();}),col=function(n){return H.indexOf(n);};
+    var need=['Aluno','Turma','Tipo Rematr\u00edcula','StatusRematricula'],falta=need.filter(function(n){return col(n)<0;});
+    if(falta.length)throw new Error('Colunas n\u00e3o encontradas: '+falta.join(', '));
+    var g=function(r,n){var i=col(n);return i<0?'':String(r[i]==null?'':r[i]).trim();};
+    var rows=M.slice(hi+1).filter(function(r){return g(r,'Aluno');}).map(function(r){return {
+      aluno:g(r,'Aluno'),turma:g(r,'Turma'),idioma:g(r,'Idioma'),curso:g(r,'Curso'),estagio:g(r,'Est\u00e1gio'),
+      professor:g(r,'Professor / Instrutor'),formato:g(r,'FormatoAula'),horario:g(r,'Hor\u00e1rio'),
+      tipo:g(r,'Tipo Rematr\u00edcula'),status:g(r,'StatusRematricula')};});
+    var c=function(fn){return rows.filter(fn).length;},ct=function(r){return /contratual/i.test(r.tipo);};
+    var norm=function(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();};
+    var okUn=norm(empresa).indexOf(norm(UN().curto))>-1;
+    MT.up={empresa:empresa,gerado:gerado,arquivo:file.name,rows:rows};
+    var st=function(l,v){return '<div class="mtcard mtkpi" style="padding:10px 12px"><span class="mtlab">'+l+'</span><b style="font-family:Poppins;font-size:20px">'+mtN(v)+'</b></div>';};
+    $('mtUpPrev').innerHTML=
+      '<div class="mtok'+(okUn?'':' bad')+'">'+(okUn?'\u2713 ':'\u26a0 ')+'Empresa: '+esc(empresa||'n\u00e3o encontrada')+(okUn?'':' \u00b7 n\u00e3o parece ser '+esc(UN().nome))+'</div>'+
+      '<div class="mtok">\u2713 Cabe\u00e7alho na linha '+(hi+1)+' \u00b7 '+rows.length+' alunos \u00b7 gerado em '+esc(gerado)+'</div>'+
+      '<div class="mtgrid mtg3" style="margin-top:6px">'+st('Autom\u00e1tica',c(function(r){return !ct(r);}))+st('Contratual',c(ct))+st('Realizadas',c(function(r){return /^realizada$/i.test(r.status);}))+
+      st('Pendentes',c(function(r){return /^pendente$/i.test(r.status);}))+st('N\u00e3o realizadas',c(function(r){return /n.o realizada/i.test(r.status);}))+st('Linhas',rows.length)+'</div>'+
+      '<div class="sub" style="margin-top:8px">O upload atualiza o status de cada aluno. Um "Pendente" do Box n\u00e3o desfaz uma marca\u00e7\u00e3o j\u00e1 feita no CRM. Quem saiu da lista deixa de contar.</div>';
+    $('mtUpGo').disabled=!rows.length;
+  }catch(e){MT.up=null;$('mtUpPrev').innerHTML='<div class="mtok bad">\u26a0 '+esc(e.message||e)+'</div>';}
+}
+async function mtImportar(){
+  if(!MT.up)return;
+  var bt=$('mtUpGo');bt.disabled=true;bt.textContent='Importando\u2026';
+  try{
+    var pid=$('mtUpP').value;
+    var r=await mtRpc('rema_importar',{p_periodo:pid,p_empresa:MT.up.empresa,p_gerado:MT.up.gerado,p_arquivo:MT.up.arquivo,p_rows:MT.up.rows});
+    uiModalClose();MT.pid=pid;MT.listaPid=null;MT.view='rema';
+    toast(r.linhas+' alunos: '+r.novos+' novos, '+r.atualizados+' atualizados, '+r.sairam+' sa\u00edram da lista.');
+    await mtRecarregar();
+  }catch(e){bt.disabled=false;bt.textContent='Importar';toast(mtMsgErro(mtErro(e)));}
+}
+
+/* ---- Configurar metas do período ---- */
+function mtSugerir(p){
+  var mes=p.inicio.slice(4),S=MT.d.semestres||[];
+  var mesmos=S.filter(function(s){return s.inicio.slice(4)===mes&&s.inicio<p.inicio;}).slice(-3);
+  var avg=function(a){a=a.filter(function(x){return x!=null&&isFinite(x);});return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;};
+  var out={};
+  var mats=mesmos.map(function(s){return s.matriculas;}),mm=avg(mats),last=mesmos.length?mesmos[mesmos.length-1].matriculas:null;
+  if(mm!=null)out.matricula={base_media:+mm.toFixed(1),base_ref:last,faixas:[
+    {nivel:1,alvo:Math.round((last||mm)*1.05),regra:'\u00faltimo ano + 5%'},{nivel:2,alvo:Math.round(mm),regra:'m\u00e9dia de 3 anos'},
+    {nivel:3,alvo:Math.round(mm*1.1),regra:'m\u00e9dia + 10%'},{nivel:4,alvo:Math.round(mm*1.2),regra:'m\u00e9dia + 20%'}]};
+  var ant=mtSemAnt(p.inicio);
+  var pc=avg(mesmos.map(function(s){return s.base_contratual?s.rema_contratual/s.base_contratual:null;}));
+  var baseC=ant?ant.rema_auto:null;
+  var pf=function(pct,base,lbl){return [-1.5,1.5,4.5,7.5].map(function(d,i){var v=pct*100+d;return {nivel:i+1,alvo:Math.round(v/100*base),regra:v.toFixed(1).replace('.',',')+'%'+(i===0?' \u00b7 '+lbl:'')};});};
+  if(pc!=null&&baseC)out.rema_contratual={base_media:+(pc*100).toFixed(2),base_ref:baseC,faixas:pf(pc,baseC,'m\u00e9dia \u2212 1,5 pt')};
+  var man=avg(mesmos.map(function(s){var a=mtSemAnt(s.inicio),pk=mtPico(a);return pk?((s.rema_auto||0)+(s.rema_contratual||0))/pk:null;}));
+  var pico=mtPico(ant);
+  if(man!=null&&pico)out.rema_total={base_media:+(man*100).toFixed(2),base_ref:pico,faixas:pf(man,pico,'m\u00e9dia \u2212 1,5 pt')};
+  return out;
+}
+function mtFxRow(ind,f){
+  f=f||{};
+  return '<div class="mtfxrow" data-ind="'+ind+'"><input type="number" class="fn" value="'+(f.nivel||'')+'" aria-label="N\u00edvel" placeholder="N\u00ba">'+
+    '<input type="number" class="fa" value="'+(f.alvo==null?'':f.alvo)+'" aria-label="Alvo" placeholder="Alvo">'+
+    '<input type="text" class="fr" value="'+esc(f.regra||'')+'" aria-label="Regra" placeholder="Regra (ex.: m\u00e9dia + 10%)">'+
+    '<input type="number" class="fv" value="'+(f.valor_rs==null?'':f.valor_rs)+'" aria-label="Comiss\u00e3o em reais" placeholder="R$">'+
+    '<button type="button" class="x" aria-label="Remover meta" onclick="this.parentNode.remove()">\u00d7</button></div>';
+}
+function mtIndForm(p,nome){
+  var ind=mtInd(p,nome)||{faixas:[]};
+  var ref=nome==='matricula'?'\u00daltimo ano':(nome==='rema_contratual'?'Base contratual':'Pico anterior');
+  return '<div class="sec">'+MTIND[nome]+' \u00b7 '+MTQUEM[nome]+'<span>Meta 1 \u00e9 a mais alcan\u00e7\u00e1vel</span></div>'+
+    '<div class="grid"><div class="f"><label>M\u00e9dia de 3 anos</label><input type="number" step="0.01" id="mtBm_'+nome+'" value="'+(ind.base_media==null?'':ind.base_media)+'"></div>'+
+    '<div class="f"><label>'+ref+'</label><input type="number" id="mtBr_'+nome+'" value="'+(ind.base_ref==null?'':ind.base_ref)+'"></div>'+
+    '<div class="f full"><label>Observa\u00e7\u00e3o</label><input type="text" id="mtOb_'+nome+'" value="'+esc(ind.obs||'')+'"></div></div>'+
+    '<div id="mtFx_'+nome+'" style="display:flex;flex-direction:column;gap:6px">'+(ind.faixas||[]).map(function(f){return mtFxRow(nome,f);}).join('')+'</div>'+
+    '<button type="button" class="dctl" style="align-self:flex-start" onclick="mtAddFx(\''+nome+'\')">+ Meta</button>';
+}
+function mtAddFx(nome){var c=$('mtFx_'+nome),n=c.children.length+1;c.insertAdjacentHTML('beforeend',mtFxRow(nome,{nivel:n}));}
+function mtConfigurar(){
+  var p=mtPer();if(!p)return;
+  var meses=(p.meses||[]).map(function(m){var lb=MTMES[+m.mes.slice(5,7)-1];
+    return '<label>'+lb+' \u00b7 1<input type="number" class="r1" data-mes="'+m.mes+'" value="'+(m.ritmo_1==null?'':m.ritmo_1)+'"></label>';}).join('')+
+    (p.meses||[]).map(function(m){var lb=MTMES[+m.mes.slice(5,7)-1];
+    return '<label>'+lb+' \u00b7 \u00falt.<input type="number" class="ru" data-mes="'+m.mes+'" value="'+(m.ritmo_ult==null?'':m.ritmo_ult)+'"></label>';}).join('');
+  uiModal('Configurar metas \u00b7 '+mtRotulo(p.inicio),'Edit\u00e1vel por quem tem permiss\u00e3o de metas',
+    '<div class="mtform"><div class="grid"><div class="f"><label>Status</label><select id="mtStP">'+
+    [['rascunho','Rascunho'],['ativa','Ativa'],['fechada','Fechada']].map(function(s){return '<option value="'+s[0]+'"'+(p.status===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('')+'</select></div>'+
+    '<div class="f" style="justify-content:flex-end"><label>&nbsp;</label><button type="button" class="btn" onclick="mtAplicarSugestao()">Sugerir pelas m\u00e9dias</button></div></div>'+
+    mtIndForm(p,'matricula')+mtIndForm(p,'rema_contratual')+mtIndForm(p,'rema_total')+
+    '<div class="sec">Ritmo mensal de matr\u00edcula<span>s\u00f3 acompanhamento \u00b7 Meta 1 e \u00faltima meta</span></div><div class="mtmes">'+meses+'</div></div>',
+    '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtCfSv">Salvar</button>');
+  $('mtCfSv').onclick=mtSalvarConfig;
+}
+function mtAplicarSugestao(){
+  var p=mtPer(),s=mtSugerir(p),n=0;
+  ['matricula','rema_contratual','rema_total'].forEach(function(k){
+    var x=s[k];if(!x)return;n++;
+    $('mtBm_'+k).value=x.base_media;$('mtBr_'+k).value=x.base_ref;
+    $('mtFx_'+k).innerHTML=x.faixas.map(function(f){return mtFxRow(k,f);}).join('');
+  });
+  toast(n?'Metas sugeridas pelas m\u00e9dias. Revise antes de salvar.':'Sem hist\u00f3rico suficiente para sugerir.');
+}
+async function mtSalvarConfig(){
+  var p=mtPer(),bt=$('mtCfSv');bt.disabled=true;bt.textContent='Salvando\u2026';
+  var inds=['matricula','rema_contratual','rema_total'].map(function(k){
+    var fx=Array.prototype.map.call($('mtFx_'+k).querySelectorAll('.mtfxrow'),function(r,i){return {
+      nivel:r.querySelector('.fn').value||String(i+1),alvo:r.querySelector('.fa').value,regra:r.querySelector('.fr').value,valor_rs:r.querySelector('.fv').value};})
+      .filter(function(f){return f.alvo!=='';});
+    return {indicador:k,base_media:$('mtBm_'+k).value,base_ref:$('mtBr_'+k).value,obs:$('mtOb_'+k).value,faixas:fx};
+  });
+  var meses=(p.meses||[]).map(function(m){
+    var r1=document.querySelector('.r1[data-mes="'+m.mes+'"]'),ru=document.querySelector('.ru[data-mes="'+m.mes+'"]');
+    return {mes:m.mes,ritmo_1:r1?r1.value:'',ritmo_ult:ru?ru.value:'',ajuste:m.ajuste==null?'':String(m.ajuste)};
+  });
+  try{
+    await mtRpc('metas_salvar_periodo',{p:{inicio:p.inicio,fim:p.fim,status:$('mtStP').value,indicadores:inds,meses:meses}});
+    uiModalClose();toast('Metas salvas.');await mtRecarregar();
+  }catch(e){bt.disabled=false;bt.textContent='Salvar';toast(mtMsgErro(mtErro(e)));}
+}
+async function mtNovoPeriodo(){
+  var ps=MT.d.periodos||[],ult=ps.length?ps[ps.length-1]:null,ini,fim;
+  if(ult){var y=+ult.inicio.slice(0,4);if(+ult.inicio.slice(5,7)===4){ini=y+'-10-01';fim=(y+1)+'-03-31';}else{ini=(y+1)+'-04-01';fim=(y+1)+'-09-30';}}
+  else{var h=hojeISO(),yy=+h.slice(0,4),mm=+h.slice(5,7);if(mm>=4&&mm<=9){ini=yy+'-04-01';fim=yy+'-09-30';}else{var b=mm<=3?yy-1:yy;ini=b+'-10-01';fim=(b+1)+'-03-31';}}
+  try{
+    var id=await mtRpc('metas_salvar_periodo',{p:{inicio:ini,fim:fim,status:'rascunho'}});
+    await mtCarregar();MT.pid=id;mtRender();toast('Per\u00edodo '+mtRotulo(ini)+' criado em rascunho.');mtConfigurar();
+  }catch(e){toast(mtMsgErro(mtErro(e)));mtRender();}
+}
+
+/* ---- Histórico ---- */
+function mtHistorico(){
+  var S=MT.d.semestres||[],ed=mtPodeMetas();
+  var rows=S.map(function(s,i){
+    var ant=i>0?S[i-1]:null,pk=mtPico(ant),rema=(s.rema_auto||0)+(s.rema_contratual||0),base=(s.base_auto||0)+(s.base_contratual||0);
+    return '<tr><td><b>'+mtRotulo(s.inicio)+'</b>'+(s.obs?'<div class="sub" style="font-size:11px;color:var(--gray)">'+esc(s.obs)+'</div>':'')+'</td>'+
+      '<td class="n">'+mtN(s.matriculas)+'</td><td class="n">'+mtN(s.rema_auto)+'</td><td class="n">'+mtN(s.rema_contratual)+'</td><td class="n">'+mtN(rema)+'</td>'+
+      '<td class="n">'+mtN(mtPico(s))+'</td><td class="n">'+(pk?mtP(rema/pk):'\u00b7')+'</td><td class="n">'+mtN(base)+'</td><td class="n">'+(base?mtP(rema/base):'\u00b7')+'</td>'+
+      '<td class="n">'+(s.base_contratual?mtP(s.rema_contratual/s.base_contratual):'\u00b7')+'</td>'+
+      (ed?'<td><button class="dctl" type="button" onclick="mtSemEditar(\''+s.inicio+'\')">Editar</button></td>':'')+'</tr>';}).join('');
+  return '<div class="mtban"><div><b>Manuten\u00e7\u00e3o = rema do per\u00edodo \u00f7 pico do per\u00edodo anterior.</b> Pico = rema + matr\u00edculas do per\u00edodo.</div></div>'+
+    '<section class="mtcard"><h3>Semestre a semestre</h3><div class="rtabw"><table class="mttab"><thead><tr><th>Per\u00edodo</th><th class="n">Matr\u00edc.</th><th class="n">Rema aut.</th><th class="n">Rema contr.</th><th class="n">Rema total</th>'+
+    '<th class="n">Pico</th><th class="n">Manuten\u00e7\u00e3o</th><th class="n">Base</th><th class="n">Rema \u00f7 base</th><th class="n">Contr. %</th>'+(ed?'<th></th>':'')+'</tr></thead><tbody>'+
+    (rows||'<tr><td colspan="11" class="mtgray">Sem hist\u00f3rico.</td></tr>')+'</tbody></table></div></section>';
+}
+function mtSemEditar(inicio){
+  var s=inicio?mtSem(inicio):null,S=MT.d.semestres||[];
+  if(!s){var u=S.length?S[S.length-1]:null,y,ini,fim;
+    if(u){y=+u.inicio.slice(0,4);if(+u.inicio.slice(5,7)===4){ini=y+'-10-01';fim=(y+1)+'-03-31';}else{ini=(y+1)+'-04-01';fim=(y+1)+'-09-30';}}
+    else{ini='2022-04-01';fim='2022-09-30';}
+    s={inicio:ini,fim:fim};}
+  var fld=function(k,l){return '<div class="f"><label>'+l+'</label><input type="number" id="mtSe_'+k+'" value="'+(s[k]==null?'':s[k])+'"></div>';};
+  uiModal((inicio?'Editar ':'Novo semestre \u00b7 ')+mtRotulo(s.inicio),'Hist\u00f3rico usado nas m\u00e9dias, no pico e na manuten\u00e7\u00e3o',
+    '<div class="grid">'+fld('matriculas','Matr\u00edculas')+fld('base_auto','Base autom\u00e1tica')+fld('rema_auto','Rema autom\u00e1tica')+fld('base_contratual','Base contratual')+fld('rema_contratual','Rema contratual')+
+    '<div class="f full"><label>Observa\u00e7\u00e3o</label><input type="text" id="mtSe_obs" value="'+esc(s.obs||'')+'"></div></div>',
+    '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtSeSv">Salvar</button>');
+  $('mtSeSv').onclick=async function(){
+    this.disabled=true;this.textContent='Salvando\u2026';
+    var p={inicio:s.inicio,fim:s.fim,obs:$('mtSe_obs').value};
+    ['matriculas','base_auto','rema_auto','base_contratual','rema_contratual'].forEach(function(k){p[k]=$('mtSe_'+k).value;});
+    try{await mtRpc('metas_salvar_semestre',{p:p});uiModalClose();toast('Semestre salvo.');await mtRecarregar();}
+    catch(e){this.disabled=false;this.textContent='Salvar';toast(mtMsgErro(mtErro(e)));}
+  };
 }
 
 </script>
