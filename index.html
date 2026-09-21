@@ -1668,6 +1668,20 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
 .mthv.up{color:var(--ok)} .mthv.dn{color:var(--redDark)}
 .mthed{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mthist td.ac{width:1%}
+.mthome{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px}
+.mthh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mthh h3{font-family:'Poppins';font-size:13.5px;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin:0}
+.mthtag{font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--warn);background:var(--warnBg);border-radius:999px;padding:2px 8px}
+.mthg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mthc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.mthc.clik{cursor:pointer}.mthc.clik:hover{border-color:var(--blue)}
+.mthn{font-family:'Poppins';font-size:30px;font-weight:700;line-height:1.1}
+.mths{font-size:12px;color:var(--gray)}
+.mthok{color:var(--ok);font-weight:700}
+.mthb{position:relative;height:10px;background:var(--line);border-radius:999px;margin:6px 0 2px}
+.mthb>div{height:10px;border-radius:999px}
+.mthb i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+@media (max-width:900px){.mthg{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -5309,6 +5323,7 @@ function tabLiberada(t){
   var m=NAVMOD[t];
   if(!m)return true;
   if(t==='relatorios')return podeVer('rel_meudia')||podeVer('rel_funil')||podeVer('rel_unidade');
+  if(t==='metas')return podeVer('metas')||podeVer('metas_mat')||podeVer('rema');
   return podeVer(m);
 }
 function primeiraTabPermitida(){
@@ -5496,7 +5511,7 @@ $('unidSw').onchange=function(){trocarUnidade(this.value);};
 $('unidSwM').onchange=function(){closeDrawer();trocarUnidade(this.value);};
 
 $('logout').onclick=function(){
-  safeSet('crmTokens','');MT.d=null;MT.pid=null;MT.lista=[];MT.listaPid=null;
+  safeSet('crmTokens','');MT.d=null;MTH.d=null;MT.pid=null;MT.lista=[];MT.listaPid=null;
   currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
   safeSet('crmUnidade','');fecharUnidade();
   ['unidSw','unidSwM'].forEach(function(id){if($(id)){$(id).classList.add('off');$(id).innerHTML='';}});
@@ -7990,11 +8005,12 @@ function renderUnidade(){
       '<span class="isub">'+diaSemana(hoje)+', '+brDate(hoje)+' · visão da unidade</span>'+
       '<span class="ibtn" style="margin-left:auto;display:inline-flex;gap:9px;align-items:center;flex-wrap:wrap">'+
         iniToggle()+freshTag(UNI.ts,'ufresh')+'<button class="dctl" id="unirec">↻ Atualizar</button></span></div>'+
-    avisos+kpis+
+    '<div id="mtHome"></div>'+avisos+kpis+
     '<div class="rgrid">'+cardEquipe+cardMes+cardPerda+'</div>'+
   '</div></div>';
   drawCharts();
   bindIniToggle();
+  mtHomeFill();
   document.querySelectorAll('#uniwrap [data-uv]').forEach(function(b){
     b.onclick=function(){RGO=b.dataset.uv;setTab('relatorios');};
   });
@@ -8226,11 +8242,12 @@ function renderInicio(){
       '<span class="ibtn" style="margin-left:auto;display:inline-flex;gap:9px;align-items:center;flex-wrap:wrap">'+
         (veTodaEquipe()?iniToggle():'')+
         freshTag(INI.ts,'ifresh')+'<button class="dctl" id="inirec" title="Atualizar os números">↻ Atualizar</button></span></div>'+
-    avisos+meta+kpis+
+    '<div id="mtHome"></div>'+avisos+meta+kpis+
     '<div class="rgrid">'+cardAtras+cardHoje+cardEvo+cardPres+cardAg+cardPv+'</div>'+
   '</div></div>';
   drawCharts();
   bindIniToggle();
+  mtHomeFill();
 
   document.querySelectorAll('#iniwrap .drow.clik').forEach(function(el){
     el.onclick=function(e){
@@ -13194,7 +13211,7 @@ function mtPer(){return (MT.d&&MT.d.periodos||[]).find(function(p){return p.id==
 function mtInd(p,n){return p&&(p.indicadores||[]).find(function(i){return i.indicador===n;})||null;}
 function mtSem(inicio){return (MT.d.semestres||[]).find(function(s){return s.inicio===inicio;})||null;}
 function mtSemAnt(inicio){var l=(MT.d.semestres||[]).filter(function(s){return s.inicio<inicio;});return l.length?l[l.length-1]:null;}
-function mtPico(s){return s?(s.rema_auto||0)+(s.rema_contratual||0)+(s.matriculas||0):null;}
+function mtPico(s){return s?(s.pico!=null?s.pico:(s.rema_auto||0)+(s.rema_contratual||0)+(s.matriculas||0)):null;}
 function mtPodeMetas(){return MT.d&&MT.d.eu.metas>=2;}
 function mtPodeRema(){return MT.d&&MT.d.eu.rema>=2;}
 function mtRealMat(p){return (p.meses||[]).reduce(function(a,m){return a+(m.ajuste!=null?m.ajuste:(m.crm||0));},0);}
@@ -13212,10 +13229,11 @@ async function openMetas(){
     var at=ps.find(function(p){return p.inicio<=hoje&&p.fim>=hoje;});
     MT.pid=at?at.id:(ps.length?ps[ps.length-1].id:null);
   }
+  var vv=mtVistas().map(function(x){return x[0];});if(vv.indexOf(MT.view)<0)MT.view=vv[0]||'matricula';
   if(MT.view==='rema')await mtCarregarLista();
   mtRender();
 }
-async function mtCarregar(){MT.d=await mtRpc('metas_carregar');}
+async function mtCarregar(){MT.d=await mtRpc('metas_carregar');MTH.ts=0;}
 async function mtCarregarLista(force){
   if(!MT.pid){MT.lista=[];return;}
   if(!force&&MT.listaPid===MT.pid)return;
@@ -13231,11 +13249,18 @@ async function mtPeriodo(v){
   MT.pid=v;MT.fOpen=false;if(MT.view==='rema'){try{await mtCarregarLista();}catch(e){toast(mtMsgErro(mtErro(e)));}}mtRender();
 }
 
+function mtVistas(){
+  var e=MT.d&&MT.d.eu||{},v=[];
+  if(e.mat>=1)v.push(['matricula','Matr\u00edcula']);
+  if(e.remav>=1)v.push(['rema','Rematr\u00edcula']);
+  if(e.metas>=1)v.push(['historico','Hist\u00f3rico']);
+  return v;
+}
 function mtBarra(){
   var p=mtPer(),ps=MT.d.periodos||[];
   var op=ps.map(function(x){return '<option value="'+x.id+'"'+(x.id===MT.pid?' selected':'')+'>'+mtRotulo(x.inicio)+(x.status==='rascunho'?' \u00b7 rascunho':'')+'</option>';}).join('');
   if(mtPodeMetas())op+='<option value="__novo">+ Novo per\u00edodo</option>';
-  var tabs=[['matricula','Matr\u00edcula'],['rema','Rematr\u00edcula'],['historico','Hist\u00f3rico']].map(function(t){
+  var tabs=mtVistas().map(function(t){
     return '<button type="button" class="'+(MT.view===t[0]?'on':'')+'" onclick="mtVer(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
   var dir='';
   if(mtPodeMetas()&&MT.view==='rema')dir+='<button class="btn" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button>';
@@ -13383,7 +13408,8 @@ function mtProximo(p,n){
   var ps=MT.d.periodos||[],i=ps.findIndex(function(x){return x.id===p.id;}),q=ps[i+1];
   if(!q)return '';
   var ic=mtInd(q,'rema_contratual'),it=mtInd(q,'rema_total');
-  var baseC=n?n.autoReal:null,baseA=n?(n.contrReal||0)+mtRealMat(p):null;
+  var bp=(n&&n.fonte==='lista')?p.base_proj:null;
+  var baseC=bp?bp.contr:(n?n.autoReal:null),baseA=bp?bp.auto:(n?(n.contrReal||0)+mtRealMat(p):null);
   var tier=function(ind,cls,tt,quem,base){
     var fx=(ind&&ind.faixas||[]).map(function(f){return '<div><span class="mtlab">Meta '+f.nivel+'</span><b>'+mtN(f.alvo)+'</b><span class="sub">'+esc(f.regra||'')+'</span></div>';}).join('');
     return '<div class="mtpan'+cls+'"><div style="display:flex;justify-content:space-between;gap:8px"><span class="tt">'+tt+'</span><span class="sub">'+quem+'</span></div><div class="sub">'+base+'</div><div class="tiers">'+(fx||'<div class="sub">Sem metas</div>')+'</div></div>';
@@ -13712,6 +13738,39 @@ function mtSemEditar(inicio){
     try{await mtRpc('metas_salvar_semestre',{p:p});uiModalClose();toast('Semestre salvo.');await mtRecarregar();}
     catch(e){this.disabled=false;this.textContent='Salvar';toast(mtMsgErro(mtErro(e)));}
   };
+}
+
+
+/* ---- Big numbers da tela inicial: andamento do período para todos ---- */
+var MTH={d:null,ts:0};
+function mtHomeCard(tit,real,sub,metas,cor,view,base){
+  metas=(metas||[]).slice();
+  var prox=null,niv=0;for(var i=0;i<metas.length;i++){if(real<metas[i]){prox=i;break;}niv=i+1;}
+  var max=metas.length?Math.max(metas[metas.length-1]*1.06,real):Math.max(base||real,1);
+  var tk=metas.map(function(a,i){return '<i style="left:'+(a/max*100).toFixed(1)+'%" title="Meta '+(i+1)+': '+a+'"></i>';}).join('');
+  var st=!metas.length?'metas n\u00e3o definidas':(prox==null?'<b>todas as metas batidas</b>':'faltam <b>'+(metas[prox]-real)+'</b> para a Meta '+(prox+1));
+  var pode=view==='matricula'?(podeVer('metas')||podeVer('metas_mat')):(podeVer('metas')||podeVer('rema'));
+  return '<div class="mthc'+(pode?' clik':'')+'"'+(pode?' onclick="MT.view=\''+view+'\';setTab(\'metas\')"':'')+'>'+
+    '<span class="mtlab">'+tit+'</span><div class="mthn" style="color:'+cor+'">'+real.toLocaleString('pt-BR')+'</div><div class="mths">'+sub+'</div>'+
+    '<div class="mthb"><div style="width:'+Math.min(100,real/max*100).toFixed(1)+'%;background:'+cor+'"></div>'+tk+'</div>'+
+    '<div class="mths">'+(niv?'<span class="mthok">Meta '+niv+' batida</span> \u00b7 ':'')+st+'</div></div>';
+}
+async function mtHomeFill(){
+  var el=$('mtHome');if(!el)return;
+  if(!mtTok()){el.innerHTML='';return;}
+  try{
+    if(!MTH.d||Date.now()-MTH.ts>60000){MTH.d=await mtRpc('metas_resumo');MTH.ts=Date.now();}
+  }catch(e){el.innerHTML='';return;}
+  var d=MTH.d;el=$('mtHome');if(!el||!d){if(el)el.innerHTML='';return;}
+  var r=d.rema||{},tot=(r.auto_real||0)+(r.contr_real||0);
+  var man=d.pico_ant?(tot/d.pico_ant*100).toFixed(1).replace('.',',')+'%':null;
+  el.innerHTML='<div class="mthome"><div class="mthh"><h3>Andamento \u00b7 '+mtRotulo(d.inicio)+'</h3>'+
+    (d.status==='rascunho'?'<span class="mthtag">metas em rascunho</span>':'')+
+    (r.pend?'<span class="mths">'+r.pend+' remas pendentes at\u00e9 '+mtDBR(d.fim)+'</span>':'')+'</div><div class="mthg">'+
+    mtHomeCard('Matr\u00edculas',d.mat_real||0,'novas no per\u00edodo',d.mat_metas,'var(--red)','matricula')+
+    mtHomeCard('Rema contratual',r.contr_real||0,'de '+(r.contr||0)+' contratos que venceram',d.contr_metas,'var(--blue)','rema',r.contr)+
+    mtHomeCard('Rema total',tot,'de '+(r.total||0)+' alunos'+(man?' \u00b7 manuten\u00e7\u00e3o '+man:''),d.total_metas,'var(--redDark)','rema',r.total)+
+    '</div></div>';
 }
 
 </script>
