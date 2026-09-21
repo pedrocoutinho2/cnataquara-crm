@@ -13674,7 +13674,7 @@ function mtHistorico(){
     var x=ind(s),aa=mtSem((+s.inicio.slice(0,4)-1)+s.inicio.slice(4)),xa=aa?ind(aa):null;
     var p2=+s.inicio.slice(5,7)===4,atual=s.inicio<=hoje&&s.fim>=hoje;
     return '<tr class="'+(p2?'p2':'p1')+(atual?' now':'')+'">'+
-      '<td class="per"><span class="mthsem">'+(p2?'Abr\u2013Set':'Out\u2013Mar')+'</span><b>'+mtRotulo(s.inicio)+'</b>'+(atual?'<span class="mthnow">em andamento</span>':'')+
+      '<td class="per"><span class="mthsem">'+(p2?'P2':'P1')+'</span><b>'+mtRotulo(s.inicio)+'</b>'+(atual?'<span class="mthnow">em andamento</span>':'')+
         (s.obs?'<small>'+esc(s.obs)+'</small>':'')+'</td>'+
       '<td class="n g1 strong">'+mtN(s.matriculas)+'</td>'+
       '<td class="n g2">'+mtN(s.rema_auto)+'</td><td class="n">'+mtN(s.rema_contratual)+'</td><td class="n strong">'+mtN(x.rema)+'</td>'+
@@ -13687,7 +13687,7 @@ function mtHistorico(){
   var cols=ed?13:12;
   return '<div class="mtban"><div><b>Manuten\u00e7\u00e3o = rema do per\u00edodo \u00f7 pico do per\u00edodo anterior.</b> Pico = rema + matr\u00edculas do per\u00edodo. As setas comparam com o mesmo semestre do ano anterior, em pontos percentuais.</div></div>'+
     '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><h3>Semestre a semestre</h3>'+
-    '<span class="sub"><span class="mthsem">Abr\u2013Set</span> <span class="mthsem p1">Out\u2013Mar</span></span></div>'+
+    '<span class="sub"><span class="mthsem p1">P1</span> Out a Mar \u00b7 <span class="mthsem">P2</span> Abr a Set</span></div>'+
     '<div class="rtabw"><table class="mttab mthist"><thead>'+
     '<tr class="grp"><th rowspan="2" class="per">Per\u00edodo</th><th class="g1">Matr\u00edcula</th><th colspan="3" class="g2">Rematr\u00edcula</th><th colspan="3" class="g3">Base de rema</th><th colspan="4" class="g4">\u00cdndices</th>'+(ed?'<th rowspan="2"></th>':'')+'</tr>'+
     '<tr><th class="n g1">Novas</th><th class="n g2">Autom.</th><th class="n">Contrat.</th><th class="n">Total</th><th class="n g3">Autom.</th><th class="n">Contrat.</th><th class="n">Total</th>'+
