@@ -228,7 +228,7 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .dot.p1{background:var(--red)}.dot.p2{background:var(--blue)}.dot.p3{background:#B9B9BE}
 .card h3{font-size:13.5px;font-weight:600;line-height:1.25;flex:1}
 .avatar{width:22px;height:22px;border-radius:50%;color:var(--white);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:'Poppins'}
-.unidSw{border:1px solid var(--line);border-radius:var(--r-md);background:var(--white);color:var(--blue);font-family:'Poppins';font-size:12px;font-weight:600;padding:5px 8px;max-width:150px;cursor:pointer}
+.unidSw{border:1px solid var(--line);border-radius:var(--r-md);background:var(--white);color:var(--blue);font-family:'Poppins';font-size:12px;font-weight:600;padding:5px 8px;max-width:150px;cursor:pointer;white-space:nowrap}
 .unidSw:focus{outline:none;border-color:var(--blue)}
 .unidSw:disabled{opacity:.55;cursor:progress}
 .unidSw.off{display:none}
@@ -344,11 +344,16 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .lform input{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;font-size:15px;width:100%;font-family:'Poppins';color:var(--ink)}
 .lform input:focus{outline:none;border-color:var(--blue)}
 .lform .btn{width:100%;justify-content:center;padding:11px}
-.lunid{display:flex;flex-direction:column;gap:5px;text-align:left}
-.lunid.off{display:none}
-.lunid label{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:.2px}
-.lunid select{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;font-size:15px;width:100%;font-family:'Poppins';color:var(--ink);background:var(--white)}
-.lunid select:focus{outline:none;border-color:var(--blue)}
+.lform.off{display:none}
+/* escolha da unidade: aparece depois do login para quem tem 2+ vinculos */
+.lescolha{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.lescolha.off{display:none}
+.lunids{display:flex;flex-direction:column;gap:8px}
+.lunids .btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:12px 14px;font-size:14px;text-align:left}
+.lunids .btn:disabled{opacity:.55;cursor:progress}
+.lunids .tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:var(--surface);color:var(--blue);border:1px solid var(--line);border-radius:var(--r-pill);padding:2.5px 8px;white-space:nowrap}
+.lunids .btn.primary .tag{background:transparent;color:var(--white);border-color:rgba(255,255,255,.55)}
+.lescolha .lsair{width:100%;justify-content:center;padding:9px}
 .lerr{color:var(--redDark);font-size:12.5px;min-height:16px;margin-top:10px;font-weight:600}
 
 /* ===== Tela de relatórios ===== */
@@ -1694,7 +1699,7 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
     <button class="abtn" id="abtn" title="Meus agendamentos" style="display:none">&#128276;<b id="acount">0</b></button>
     <div class="stats" id="stats"></div>
     <div class="userbox">
-      <select class="unidSw off" id="unidSw" title="Trocar de unidade" aria-label="Unidade"></select>
+      <button class="unidSw off" id="unidSw" type="button" title="Trocar unidade">Trocar unidade</button>
       <span class="avatar" id="uav" style="background:#5A5A5A">?</span>
       <b id="unome" style="font-size:13px;color:var(--blue)"></b>
       <button class="btn" id="logout">Sair</button>
@@ -1751,7 +1756,7 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
   <div class="sfoot">
     <span class="avatar" id="sav" style="background:#5A5A5A">?</span>
     <b id="snome"></b>
-    <select class="unidSw off" id="unidSwM" title="Trocar de unidade" aria-label="Unidade"></select>
+    <button class="unidSw off" id="unidSwM" type="button" title="Trocar unidade">Trocar unidade</button>
     <button class="btn" id="ssenha" type="button" title="Trocar minha senha">Senha</button>
     <button class="btn" id="slogout" type="button">Sair</button>
   </div>
@@ -1859,14 +1864,11 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
     <div class="lform" id="lform">
       <input id="lmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="E-mail">
       <input id="pin" type="password" autocomplete="current-password" placeholder="Senha">
-      <div id="lunid" class="lunid off">
-        <label for="lunidsel">Unidade</label>
-        <select id="lunidsel">
-          <option value="taquara">CNA Taquara</option>
-          <option value="queimados">CNA Queimados</option>
-        </select>
-      </div>
       <button class="btn primary" id="entrar">Entrar</button>
+    </div>
+    <div class="lescolha off" id="lescolha">
+      <div class="lunids" id="lunids"></div>
+      <button class="btn lsair" id="lesc_sair" type="button">Sair</button>
     </div>
     <p class="lerr" id="lerr"></p>
   </div>
@@ -1979,61 +1981,99 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
 /* ================= Supabase ================= */
 const LOGO='data:image/png;base64,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';
 document.querySelectorAll('.logoImg').forEach(function(i){i.src=LOGO;});
-/* ===== Unidades =====
-   Um app, dois bancos. Cada unidade tem projeto Supabase proprio: nao existe
-   tabela compartilhada nem coluna de unidade. Quem escolhe o backend e o
-   e-mail digitado no login. Ver crm_login e abrirUnidade abaixo. */
-const UNIDADES={
-  taquara:{
-    nome:'CNA Taquara', curto:'Taquara',
-    email:'taquara@cna.com.br',
-    bairros:'Taquara e bairros vizinhos',
-    url:'https://gpnwmsnayrqjcmhqrtpx.supabase.co',
-    key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwbndtc25heXJxamNtaHFydHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNjY4NTEsImV4cCI6MjEwMDg0Mjg1MX0.xQARkaQ9kPmVwqMM5ixfUCHP6cmEHOtI2eqVWFEjlrw'
-  },
-  queimados:{
-    nome:'CNA Queimados', curto:'Queimados',
-    email:'queimados@cna.com.br',
-    bairros:'Queimados e bairros vizinhos',
-    url:'https://jdbzmcwagczxthkcclgk.supabase.co',
-    key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkYnptY3dhZ2N6eHRoa2NjbGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTA2NzMsImV4cCI6MjEwNDYyNjY3M30.WsNykxU3PEwZxuzp4or0vKR-WlHnQTlz04wl9jfL32M'
-  }
+/* ===== Base unica multiunidade =====
+   Um projeto Supabase para a rede toda. Tabela de unidade tem coluna `unidade`
+   e o api() aplica o filtro sozinho: leitura, update e delete ganham
+   unidade=eq.<ativa>, insert e upsert levam o campo. Globais (crm_unidades,
+   crm_modulos, crm_papel_permissoes, crm_usuarios, crm_sessoes) passam direto.
+   A unidade ativa vem da sessao (crm_sessao_escolher_unidade) e o nome dela
+   vem de crm_unidades. Comportamento por unidade vem do banco, nunca de if. */
+const SUPA_URL='https://gpnwmsnayrqjcmhqrtpx.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwbndtc25heXJxamNtaHFydHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNjY4NTEsImV4cCI6MjEwMDg0Mjg1MX0.xQARkaQ9kPmVwqMM5ixfUCHP6cmEHOtI2eqVWFEjlrw';
+const SUPA=SUPA_URL+'/rest/v1';
+const TAB_UNIDADE={};
+('crm_acoes crm_acoes_materiais crm_agenda_categorias crm_agenda_config crm_agenda_eventos crm_avisos '+
+ 'crm_configs crm_demanda_anexos crm_demanda_itens crm_demandas crm_empresas crm_escolas crm_faq '+
+ 'crm_interacoes crm_leads crm_leads_etapas crm_leads_interacoes crm_metas crm_metas_config crm_metas_faixa '+
+ 'crm_metas_indicador crm_metas_mes crm_metas_periodo crm_metas_semestre crm_precos_certificacoes '+
+ 'crm_precos_materiais crm_precos_niveis crm_relatorio_diario crm_rema_aluno crm_rema_import '+
+ 'crm_respostas_rapidas crm_reuniao_assinaturas crm_reuniao_participantes crm_reunioes crm_tarefas '+
+ 'crm_tn_agendamentos crm_tn_avulsos crm_tn_grade crm_turmas crm_wa_contas crm_wa_conversas crm_wa_eventos '+
+ 'crm_wa_fila crm_wa_mensagens crm_wa_optout crm_wa_regras crm_wa_templates escape_jogadores escape_salas '+
+ 'escape_sessao_salas escape_sessoes escape_temporadas escape_variantes leads_teste_nivel')
+  .split(' ').forEach(function(t){TAB_UNIDADE[t]=1;});
+/* alvo de conflito dos upserts (merge-duplicates) nas tabelas com unidade */
+const ON_CONFLICT_UNIDADE={crm_configs:'unidade,chave',crm_metas_config:'unidade,chave',crm_agenda_config:'unidade,id',
+  crm_relatorio_diario:'unidade,data,consultor',crm_metas_periodo:'unidade,inicio',crm_metas_semestre:'unidade,inicio',
+  crm_precos_materiais:'unidade,ano,codigo',crm_precos_niveis:'unidade,ano,codigo',crm_wa_optout:'unidade,wa_chave',
+  crm_wa_regras:'unidade,chave',crm_wa_templates:'unidade,nome,idioma',crm_acoes_materiais:'unidade,nome',
+  escape_jogadores:'unidade,wa_chave',escape_salas:'unidade,slug',escape_temporadas:'unidade,slug',escape_variantes:'unidade,slug'};
+/* RPCs que recebem a unidade por parametro (as de token pegam da sessao) */
+const RPC_UNIDADE={crm_painel:1,crm_painel_equipe:1,crm_relatorio_dia:1,crm_fechar_dia:1,crm_tn_disponibilidade:1,escape_iniciar:1};
+const ERROS_UNIDADE={
+  unidade_nao_escolhida:'A unidade desta sessão não foi escolhida. Saia e entre de novo.',
+  unidade_nao_permitida:'Você não tem acesso ativo a essa unidade.',
+  periodo_de_outra_unidade:'Este período de metas é de outra unidade. Recarregue a página.',
+  usuario_de_outra_unidade:'Essa pessoa não faz parte da equipe desta unidade.'
 };
+function erroUnidade(k){const e=new Error(ERROS_UNIDADE[k]||k);e.code=k;return e;}
 
-/* E-mails que enxergam as duas unidades. Lista fechada: ser admin numa unidade
-   nao da acesso a outra. */
-const MULTI_UNIDADE=['taquara@cna.com.br','queimados@cna.com.br','eliane@cna.com.br'];
-
-/* nome.queimados@cna.com.br -> queimados · nome.taquara@cna.com.br -> taquara
-   Quem esta na lista acima devolve null e cai no seletor. */
-function unidadeDoEmail(mail){
-  const e=String(mail||'').trim().toLowerCase();
-  if(MULTI_UNIDADE.indexOf(e)>-1)return null;
-  if(e.slice(-21)==='.queimados@cna.com.br')return 'queimados';
-  if(e.slice(-19)==='.taquara@cna.com.br')return 'taquara';
-  return null;
+let UNIDADE=null;                 /* slug da unidade ativa */
+let UNIDINFO={nome:'',status:''}; /* de crm_unidades, via crm_sessao_escolher_unidade */
+let UNCFG={};                     /* crm_configs da unidade: regiao_anuncio, email_contato */
+let SESS=null;                    /* {v:2,token,id,nome,email,unidades,unidade,vinculo} */
+function UN(){
+  const n=UNIDINFO.nome||'';
+  return {nome:'CNA '+n,curto:n,
+    regiao:String(UNCFG.regiao_anuncio||'').trim()||'a região da unidade',
+    email:String(UNCFG.email_contato||'').trim()};
 }
 
-let SUPA=null, KEY=null, UNIDADE=null;
-function UN(){return UNIDADES[UNIDADE]||UNIDADES.taquara;}
-function abrirUnidade(chave){
-  const u=UNIDADES[chave];
-  if(!u)throw new Error('Unidade desconhecida: '+chave);
-  UNIDADE=chave; SUPA=u.url+'/rest/v1'; KEY=u.key;
-  document.title='CRM '+u.nome+' \u00b7 Escolas, Empresas e Clientes';
-  document.querySelectorAll('.unidadeNome').forEach(function(el){el.textContent='CRM \u00b7 '+u.curto;});
-  return u;
+/* aplica unidade no caminho/corpo. Tabela da lista sem unidade escolhida nao sai. */
+function apiUnidade(path,opt){
+  const q=path.indexOf('?');
+  const base=(q<0?path:path.slice(0,q)).replace(/^\//,'');
+  const m=String(opt.method||'GET').toUpperCase();
+  if(base.indexOf('rpc/')===0){
+    if(RPC_UNIDADE[base.slice(4)]){
+      if(!UNIDADE)throw erroUnidade('unidade_nao_escolhida');
+      const b=opt.body?JSON.parse(opt.body):{};
+      if(b&&typeof b==='object'&&!Array.isArray(b)){b.p_unidade=UNIDADE;opt.body=JSON.stringify(b);}
+    }
+    return path;
+  }
+  if(!TAB_UNIDADE[base])return path;
+  if(!UNIDADE)throw erroUnidade('unidade_nao_escolhida');
+  if(m==='POST'){
+    if(opt.body){
+      const b=JSON.parse(opt.body);
+      const put=function(o){if(o&&typeof o==='object')o.unidade=UNIDADE;};
+      if(Array.isArray(b))b.forEach(put);else put(b);
+      opt.body=JSON.stringify(b);
+    }
+    const pref=String((opt.headers&&opt.headers.Prefer)||'');
+    if(pref.indexOf('merge-duplicates')>-1&&ON_CONFLICT_UNIDADE[base]&&!/[?&]on_conflict=/.test(path)){
+      path+=(q<0?'?':'&')+'on_conflict='+ON_CONFLICT_UNIDADE[base];
+    }
+    return path;
+  }
+  return path+(q<0?'?':'&')+'unidade=eq.'+encodeURIComponent(UNIDADE);
 }
-function fecharUnidade(){UNIDADE=null;SUPA=null;KEY=null;}
 
 async function api(path,opt){
-  opt=opt||{};
+  opt=Object.assign({},opt||{});
+  path=apiUnidade(path,opt);
   const headers=Object.assign({
     'apikey':KEY,'Authorization':'Bearer '+KEY,
     'Content-Type':'application/json','Prefer':'return=representation'
   },opt.headers||{});
   const r=await fetch(SUPA+path,Object.assign({},opt,{headers:headers}));
-  if(!r.ok){const t=await r.text();throw new Error(t||('HTTP '+r.status));}
+  if(!r.ok){
+    const t=await r.text();
+    const k=Object.keys(ERROS_UNIDADE).find(function(c){return String(t).indexOf(c)>-1;});
+    if(k)throw erroUnidade(k);
+    throw new Error(t||('HTTP '+r.status));
+  }
   /* qualquer escrita no funil derruba o cache dos relatorios */
   if(opt.method&&opt.method!=='GET'&&(path.indexOf('/crm_leads')===0||path.indexOf('/crm_interacoes')===0)&&typeof REL==='object')REL.ts=0;
   const t=await r.text();
@@ -2251,6 +2291,7 @@ let DUPWA={};       // whatsapp (só dígitos) -> quantas vezes aparece na base
 
 function safeGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function safeSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function safeDel(k){try{localStorage.removeItem(k);}catch(e){}}
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 var SCROLLY=0;
@@ -3920,14 +3961,16 @@ $('save').onclick=async function(){
   });
   // Checagem de numero duplicado (só na criação de lead)
   if(tab==='leads'&&!editing&&body.whatsapp){
-    const dig=function(v){return String(v||'').replace(/\D/g,'');};
-    const w=dig(body.whatsapp);
-    if(w.length>=8){
-      const dup=(DATA.leads||[]).find(function(x){return dig(x.whatsapp)===w;});
-      /* Regra 2 do vault: duplicidade AVISA, nao impede. O card ja carrega o selo
-         "Nx mesmo numero" e o relatorio de duplicados existe. */
-      if(dup)toast('Aten\u00e7\u00e3o: j\u00e1 existe um lead com esse n\u00famero (\u201c'+dup.nome+'\u201d). Salvando assim mesmo.');
-    }
+    /* Regra 2 do vault: duplicidade AVISA, nao impede. A chave e a do banco
+       (crm_wa_chave, mesma da coluna gerada) e a busca fica na unidade ativa:
+       o mesmo telefone pode ser lead em outra unidade. */
+    try{
+      const ch=await api('/rpc/crm_wa_chave',{method:'POST',body:JSON.stringify({p_num:body.whatsapp})});
+      if(ch){
+        const dup=await api('/crm_leads?wa_chave=eq.'+encodeURIComponent(ch)+'&select=id,nome,etapa&limit=1');
+        if(dup&&dup[0])toast('Atenção: já existe um lead com esse número (“'+dup[0].nome+'”). Salvando assim mesmo.');
+      }
+    }catch(e){}
   }
   if(tab==='leads'){
     const stFin=body.etapa==='fechado'||body.etapa==='perdido';
@@ -4215,7 +4258,7 @@ $('csv').onclick=function(){
 
 
 /* ================= Conversas (WhatsApp) ================= */
-function FUNCS(){return UN().url+'/functions/v1';}
+function FUNCS(){return SUPA_URL+'/functions/v1';}
 const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
 
 function waFn(nome,body){
@@ -4830,22 +4873,58 @@ async function sha256(txt){
   return sha256js(unescape(encodeURIComponent(txt)));
 }
 
+/* ===== Sessao =====
+   localStorage.crmSessao = {v:2,token,id,nome,email,unidades,unidade,vinculo}.
+   O token vem de crm_login; a unidade ativa e confirmada no servidor por
+   crm_sessao_escolher_unidade a cada abertura. */
+function sessTok(){return (SESS&&SESS.token)||null;}
+function sessSalvar(){if(SESS)safeSet('crmSessao',JSON.stringify(SESS));}
+function sessLer(){
+  try{const s=JSON.parse(safeGet('crmSessao')||'null');return (s&&s.v===2&&s.token)?s:null;}catch(e){return null;}
+}
+function sessLimpar(){SESS=null;UNIDADE=null;safeDel('crmSessao');}
+function multiUnidade(){return !!(SESS&&(SESS.unidades||[]).length>1);}
+function vinculoDe(v){return {papel:v.papel,admin:!!v.admin,consultor:!!v.consultor,permissoes:v.permissoes||{}};}
+
+/* pessoas ATIVAS da unidade, com papel/permissoes do vinculo daquela unidade */
 async function loadUsers(){
-  USERS=await api('/crm_usuarios?ativo=eq.true&select=id,nome,email,email_agenda,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+  USERS=(await api('/rpc/crm_usuarios_unidade',{method:'POST',body:JSON.stringify({p_token:sessTok()})}))||[];
+  /* papel, admin, consultor e permissoes de quem esta logado valem pelo vinculo
+     devolvido em crm_sessao_escolher_unidade */
+  const eu=SESS&&SESS.vinculo&&USERS.find(function(u){return u.id===SESS.id;});
+  if(eu)Object.assign(eu,SESS.vinculo);
   RESP=USERS.map(function(u){return u.nome;});
   RESPC={};
   USERS.forEach(function(u,i){RESPC[u.nome]=u.cor||PALETA[i%PALETA.length];});
   await loadPerms();
 }
+async function atualizarVinculo(){
+  try{
+    const v=await api('/rpc/crm_sessao_escolher_unidade',{method:'POST',body:JSON.stringify({p_token:sessTok(),p_unidade:UNIDADE})});
+    if(v&&v.unidade){SESS.vinculo=vinculoDe(v);sessSalvar();}
+  }catch(e){}
+}
+async function carregarCfgUnidade(){
+  UNCFG={};
+  try{
+    const r=await api('/crm_configs?select=chave,valor&chave=in.(regiao_anuncio,email_contato)');
+    (r||[]).forEach(function(x){UNCFG[x.chave]=x.valor;});
+  }catch(e){}
+}
+function aplicarNomeUnidade(){
+  const n=UNIDINFO.nome;
+  document.title='CRM CNA'+(n?' '+n:'')+' · Escolas, Empresas e Clientes';
+  document.querySelectorAll('.unidadeNome').forEach(function(el){el.textContent=n?'CRM · '+n:'CRM';});
+}
 
 function showLogin(){
   $('login').classList.remove('off');
+  $('lform').classList.remove('off');$('lescolha').classList.add('off');
+  $('lmsg').textContent='Entre com o seu e-mail do CNA.';
   $('pin').value='';$('lerr').textContent='';
-  $('lunid').classList.add('off');
   document.querySelectorAll('.unidadeNome').forEach(function(el){el.textContent='CRM';});
   const ult=safeGet('crmUltimoEmail')||'';
   $('lmail').value=ult;
-  if(ult&&MULTI_UNIDADE.indexOf(ult.toLowerCase())>-1)$('lunid').classList.remove('off');
   setTimeout(function(){(ult?$('pin'):$('lmail')).focus();},80);
 }
 
@@ -4856,40 +4935,92 @@ async function tryLogin(){
     const senha=$('pin').value;
     if(!email){$('lerr').textContent='Digite seu e-mail.';$('lmail').focus();return;}
     if(!senha){$('lerr').textContent='Digite sua senha.';$('pin').focus();return;}
-    /* Resolve a unidade ANTES de autenticar: e ela que decide contra qual
-       banco o crm_login vai rodar. */
-    const multi=MULTI_UNIDADE.indexOf(email.toLowerCase())>-1;
-    if(multi&&$('lunid').classList.contains('off')){
-      $('lunid').classList.remove('off');
-      $('lerr').textContent='Escolha a unidade.';
-      $('lunidsel').focus();
-      return;
-    }
-    const alvo=multi?$('lunidsel').value:unidadeDoEmail(email);
-    if(!alvo){$('lerr').textContent='E-mail fora do padrao da rede. Confira o endereco.';$('lmail').focus();return;}
     bt.disabled=true;$('lerr').textContent='';
-    abrirUnidade(alvo);
-    let r=null;
-    try{
-      r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_email:email,p_senha:senha})});
-    }catch(e){fecharUnidade();throw e;}
+    const r=await api('/rpc/crm_login',{method:'POST',body:JSON.stringify({p_email:email,p_senha:senha})});
     bt.disabled=false;
-    if(!r||!r.nome){
-      fecharUnidade();
-      $('lerr').textContent='E-mail ou senha incorretos.';$('pin').value='';$('pin').focus();return;
+    if(!r||!r.nome||!r.token){
+      $('lerr').textContent='E-mail ou senha incorretos, ou acesso sem unidade ativa.';$('pin').value='';$('pin').focus();return;
     }
     $('pin').value='';
     safeSet('crmUltimoEmail',r.email||email);
-    mtSetToken(alvo,r.token||null);
-    safeSet('crmUnidade',alvo);
-    if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,r.email||email,senha);return;}
-    currentUser=r.nome;MEUEMAIL=r.email||email;
-    safeSet('crmAuth',r.nome);safeSet('crmAuthEmail',MEUEMAIL);
-    await loadUsers();
-    entrar();
+    SESS={v:2,token:r.token,id:r.id,nome:r.nome,email:r.email||email,unidades:r.unidades||[],unidade:null,vinculo:null};
+    sessSalvar();
+    if(r.senha_temporaria){abrirTrocaObrigatoria(r.nome,SESS.email,senha);return;}
+    await posLogin();
   }catch(e){
-    bt.disabled=false;fecharUnidade();
+    bt.disabled=false;
     $('lerr').textContent='Erro ao entrar: '+(e&&e.message?e.message:e);
+  }
+}
+
+/* 1 unidade: entra direto (a escolha e feita por baixo, so para receber o
+   vinculo). 2+: tela de escolha. */
+async function posLogin(){
+  const us=(SESS&&SESS.unidades)||[];
+  if(us.length>1){mostrarEscolhaUnidade();return;}
+  try{
+    if(!us.length)throw erroUnidade('unidade_nao_permitida');
+    await abrirUnidadeSessao(us[0].slug);
+  }catch(e){
+    sessLimpar();showLogin();
+    $('lerr').textContent='Não foi possível abrir a unidade: '+(e&&e.message?e.message:e);
+  }
+}
+
+async function abrirUnidadeSessao(slug){
+  const v=await api('/rpc/crm_sessao_escolher_unidade',{method:'POST',body:JSON.stringify({p_token:sessTok(),p_unidade:slug})});
+  if(!v||!v.unidade)throw erroUnidade('unidade_nao_permitida');
+  UNIDADE=v.unidade;
+  UNIDINFO={nome:v.nome||'',status:v.status||''};
+  SESS.unidade=v.unidade;SESS.vinculo=vinculoDe(v);
+  (SESS.unidades||[]).forEach(function(u){if(u.slug===v.unidade){u.nome=v.nome;u.status=v.status;}});
+  sessSalvar();
+  aplicarNomeUnidade();
+  await loadUsers();
+  await carregarCfgUnidade();
+  currentUser=SESS.nome;MEUEMAIL=SESS.email;
+  entrar();
+}
+
+function mostrarEscolhaUnidade(){
+  $('login').classList.remove('off');
+  $('lform').classList.add('off');$('lescolha').classList.remove('off');
+  $('lerr').textContent='';
+  $('lmsg').textContent='Escolha a unidade.';
+  $('lunids').innerHTML=((SESS&&SESS.unidades)||[]).map(function(u){
+    const atual=u.slug===UNIDADE;
+    return '<button class="btn'+(atual?' primary':'')+'" type="button" data-un="'+esc(u.slug)+'">'+
+      '<span>CNA '+esc(u.nome)+'</span>'+
+      (u.status==='implantacao'?'<span class="tag">Em implantação</span>':'')+
+      (atual?'<span class="tag">Atual</span>':'')+
+    '</button>';
+  }).join('');
+  $('lunids').querySelectorAll('[data-un]').forEach(function(b){
+    b.onclick=function(){escolherUnidade(b.dataset.un);};
+  });
+}
+async function escolherUnidade(slug){
+  const bts=$('lunids').querySelectorAll('button');
+  if(currentUser&&UNIDADE){
+    if(slug===UNIDADE){$('login').classList.add('off');return;}
+  }
+  bts.forEach(function(b){b.disabled=true;});$('lerr').textContent='';
+  try{
+    if(currentUser&&UNIDADE){
+      /* troca com o CRM aberto: confirma no servidor e recarrega a pagina,
+         para nenhum dado da unidade anterior sobrar na memoria */
+      const v=await api('/rpc/crm_sessao_escolher_unidade',{method:'POST',body:JSON.stringify({p_token:sessTok(),p_unidade:slug})});
+      if(!v||!v.unidade)throw erroUnidade('unidade_nao_permitida');
+      SESS.unidade=v.unidade;SESS.vinculo=vinculoDe(v);sessSalvar();
+      location.reload();
+      return;
+    }
+    await abrirUnidadeSessao(slug);
+  }catch(e){
+    bts.forEach(function(b){b.disabled=false;});
+    const c=String((e&&(e.code||e.message))||'');
+    if(c.indexOf('sessao_invalida')>-1){sessLimpar();showLogin();$('lerr').textContent='Sua sessão expirou. Entre de novo.';return;}
+    $('lerr').textContent=(e&&e.message)?String(e.message).slice(0,160):'Não foi possível abrir a unidade.';
   }
 }
 
@@ -4923,21 +5054,17 @@ async function salvarTrocaObrigatoria(){
     const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
       body:JSON.stringify({p_email:TROCA.email,p_atual:TROCA.atual,p_nova:nova})});
     if(ok!==true){bt.disabled=false;err.textContent='N\u00e3o foi poss\u00edvel confirmar a senha tempor\u00e1ria. Entre de novo.';return;}
-    const nome=TROCA.nome, mail=TROCA.email;
     fecharTroca();
     bt.disabled=false;
-    currentUser=nome;MEUEMAIL=mail;
-    safeSet('crmAuth',nome);safeSet('crmAuthEmail',mail);
-    await loadUsers();
     toast('Senha criada. Bem-vinda ao CRM.');
-    entrar();
+    await posLogin();
   }catch(e){
     bt.disabled=false;
     err.textContent=(e&&e.message)?String(e.message).slice(0,160):'N\u00e3o foi poss\u00edvel salvar a senha.';
   }
 }
 $('ssalvar').onclick=salvarTrocaObrigatoria;
-$('scancelar').onclick=function(){fecharTroca();showLogin();};
+$('scancelar').onclick=function(){fecharTroca();sessLimpar();showLogin();};
 $('sconf').addEventListener('keydown',function(e){if(e.key==='Enter')salvarTrocaObrigatoria();});
 $('snova').addEventListener('keydown',function(e){if(e.key==='Enter')$('sconf').focus();});
 
@@ -4970,7 +5097,7 @@ async function salvarMinhaSenha(){
   if(nova!==conf){toast('As duas senhas n\u00e3o bateram. Nada foi alterado.');return;}
   var bt=$('ms_ok');bt.disabled=true;
   try{
-    const mail=MEUEMAIL||safeGet('crmAuthEmail')||'';
+    const mail=MEUEMAIL||(SESS&&SESS.email)||'';
     if(!mail){bt.disabled=false;toast('Entre de novo para trocar a senha.');return;}
     const ok=await api('/rpc/crm_trocar_senha',{method:'POST',
       body:JSON.stringify({p_email:mail,p_atual:atual,p_nova:nova})});
@@ -5394,7 +5521,7 @@ async function permSalvar(){
   });
   try{
     if(PMODO.tipo==='usuario'){
-      await api('/crm_usuarios?id=eq.'+PMODO.user.id,{method:'PATCH',body:JSON.stringify({permissoes:vals})});
+      await eqSalvar({id:PMODO.user.id,permissoes:vals});
       toast('Permiss\u00f5es de '+PMODO.user.nome+' salvas.');
     }else{
       var linhas=MODULOS.map(function(m){
@@ -5428,7 +5555,7 @@ function isAdmin(){
 function entrar(){
   somUnlock();pedeNotif();
   $('login').classList.add('off');
-  montarSeletorUnidade();
+  mostrarTrocaUnidade();
   $('unome').textContent=currentUser;
   $('uav').textContent=currentUser[0];
   $('uav').style.background=RESPC[currentUser]||'#5A5A5A';
@@ -5445,100 +5572,42 @@ function entrar(){
 $('entrar').onclick=tryLogin;
 $('pin').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
 $('lmail').addEventListener('keydown',function(e){if(e.key==='Enter')$('pin').focus();});
-$('lmail').addEventListener('input',function(){
-  const m=MULTI_UNIDADE.indexOf(($('lmail').value||'').trim().toLowerCase())>-1;
-  $('lunid').classList.toggle('off',!m);
-});
-/* ===== Troca de unidade com o painel ja aberto =====
-   So aparece para quem esta em MULTI_UNIDADE. Nao ha token de sessao neste
-   app (tudo roda como anon), entao isto e conveniencia de navegacao, nao
-   fronteira de seguranca: quem manda e o RLS de cada projeto. A troca so
-   completa se o mesmo e-mail existir ATIVO no banco de destino. */
-function podeTrocarUnidade(){
-  return MULTI_UNIDADE.indexOf(String(MEUEMAIL||'').trim().toLowerCase())>-1;
+/* "Trocar unidade" so existe para quem tem 2+ unidades: volta para a tela de
+   escolha, que recarrega o CRM inteiro na unidade nova. */
+function mostrarTrocaUnidade(){
+  ['unidSw','unidSwM'].forEach(function(id){const el=$(id);if(el)el.classList.toggle('off',!multiUnidade());});
 }
-function montarSeletorUnidade(){
-  const mostra=podeTrocarUnidade();
-  ['unidSw','unidSwM'].forEach(function(id){
-    const el=$(id); if(!el)return;
-    el.classList.toggle('off',!mostra);
-    if(!mostra){el.innerHTML='';return;}
-    el.innerHTML=Object.keys(UNIDADES).map(function(k){
-      return '<option value="'+k+'">'+esc(UNIDADES[k].nome)+'</option>';
-    }).join('');
-    el.value=UNIDADE;
-    el.disabled=false;
-  });
-}
-function limparEstadoDaUnidade(){
-  DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};
-  window._dcons=null;window._ddata=null;RVIEW='dia';RESPC={};
-  ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};
-  AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
-  TCACHE=null;TSEMMAT={v:null,ok:false};TURMAS=[];tSemestre='';DEMF.turmas=null;ESP.turmas=null;
-}
-async function trocarUnidade(alvo){
-  if(!UNIDADES[alvo]||alvo===UNIDADE){montarSeletorUnidade();return;}
-  if(!podeTrocarUnidade()){montarSeletorUnidade();return;}
-  const anterior=UNIDADE, nomeAnterior=currentUser;
-  ['unidSw','unidSwM'].forEach(function(id){if($(id))$(id).disabled=true;});
-  try{
-    abrirUnidade(alvo);
-    await loadUsers();
-    const eu=USERS.filter(function(u){
-      return String(u.email||'').trim().toLowerCase()===String(MEUEMAIL).trim().toLowerCase();
-    })[0];
-    if(!eu){throw new Error('Voce nao tem acesso ativo em '+UNIDADES[alvo].nome+'.');}
-    currentUser=eu.nome;
-    safeSet('crmAuth',eu.nome);safeSet('crmUnidade',alvo);
-    limparEstadoDaUnidade();
-    entrar();
-    toast('Agora voce esta em '+UNIDADES[alvo].nome+'.');
-  }catch(e){
-    /* volta para onde estava, senao a tela fica apontando para um banco
-       onde a pessoa nao entrou */
-    try{
-      abrirUnidade(anterior);
-      await loadUsers();
-      currentUser=nomeAnterior;
-      safeSet('crmAuth',nomeAnterior);safeSet('crmUnidade',anterior);
-    }catch(e2){}
-    montarSeletorUnidade();
-    toast((e&&e.message)?String(e.message).slice(0,160):'Nao foi possivel trocar de unidade.');
-  }
-}
-$('unidSw').onchange=function(){trocarUnidade(this.value);};
-$('unidSwM').onchange=function(){closeDrawer();trocarUnidade(this.value);};
+$('unidSw').onclick=function(){if(multiUnidade())mostrarEscolhaUnidade();};
+$('unidSwM').onclick=function(){closeDrawer();if(multiUnidade())mostrarEscolhaUnidade();};
 
-$('logout').onclick=function(){
-  safeSet('crmTokens','');MT.d=null;MTH.d=null;MT.pid=null;MT.lista=[];MT.listaPid=null;
-  currentUser=null;MEUEMAIL=null;safeSet('crmAuth','');safeSet('crmAuthEmail','');
-  safeSet('crmUnidade','');fecharUnidade();
-  ['unidSw','unidSwM'].forEach(function(id){if($(id)){$(id).classList.add('off');$(id).innerHTML='';}});
-  DIAAVISADO=false;DIAVEZES=0;INI={dia:null,serie:null,erro:'',sig:''};window._dcons=null;window._ddata=null;RVIEW='dia';
-  ALERTS={atrasados:[],agora:[],hoje:[],posvenda:[],proximos:[],total:0};AGITENS=[];AGVISTOS={};AGBOOT=false;renderAlertBadge();
-  showLogin();
-};
+function sair(){
+  sessLimpar();
+  location.reload();
+}
+$('logout').onclick=sair;
+$('lesc_sair').onclick=sair;
 
 async function BOOT(){
-  /* Sem unidade resolvida nao existe banco para consultar: a tela de login
-     sobe primeiro e loadUsers so roda depois que a unidade estiver aberta. */
-  const un=safeGet('crmUnidade')||'';
-  const saved=safeGet('crmAuth')||'';
-  if(!un||!UNIDADES[un]||!saved){showLogin();return;}
+  /* formato antigo (um token por banco, nome solto): apaga uma vez e pede login novo */
+  ['crmTokens','crmUnidade','crmAuth','crmAuthEmail'].forEach(function(k){if(safeGet(k)!==null)safeDel(k);});
+  const s=sessLer();
+  if(!s){showLogin();return;}
+  SESS=s;
+  if(!s.unidade){
+    if(multiUnidade()){mostrarEscolhaUnidade();return;}
+    sessLimpar();showLogin();return;
+  }
   try{
-    abrirUnidade(un);
-    await loadUsers();
+    await abrirUnidadeSessao(s.unidade);
   }catch(e){
-    fecharUnidade();
+    const c=String((e&&(e.code||e.message))||'');
+    if(c.indexOf('sessao_invalida')>-1||c.indexOf('unidade_nao_permitida')>-1){
+      sessLimpar();showLogin();
+      $('lerr').textContent='Sua sessão expirou. Entre de novo.';
+      return;
+    }
     showLogin();
     $('lerr').textContent='Não foi possível conectar. Verifique a conexão e recarregue a página.';
-    return;
-  }
-  if(RESP.indexOf(saved)>-1){
-    currentUser=saved;MEUEMAIL=safeGet('crmAuthEmail')||null;entrar();
-  }else{
-    showLogin();
   }
 }
 
@@ -6318,7 +6387,7 @@ function buildSugestoes(ctx){
     if(m==='Preço')acao='Antes de falar valor, ancore no que está incluso: material, professor formado na UniCNA, CNA Net e turma pequena.';
     else if(m==='Sem retorno')acao='Monte uma cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.';
     else if(m==='Contato inválido')acao='O problema é de captação. Confira o formulário do anúncio e o preenchimento do WhatsApp no cadastro.';
-    else if(m==='Fora da região')acao='Aperte a segmentação geográfica dos anúncios para '+UN().bairros+'.';
+    else if(m==='Fora da região')acao='Aperte a segmentação geográfica dos anúncios para '+UN().regiao+'.';
     it.push({p:'media',t:'<i>'+esc(m)+'</i> responde por '+pc+' das perdas ('+q+' leads).<em>'+acao+'</em>'});
   }
 
@@ -6814,10 +6883,8 @@ function renderMeuDia(){
         const f=inp.dataset.f;
         const v=f==='consultor'?inp.checked:(inp.value||null);
         try{
-          const body={};body[f]=v;
-          await api('/crm_usuarios?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)});
-          const u=USERS.find(function(x){return String(x.id)===String(id);});
-          if(u)u[f]=v;
+          await salvarPessoa(id,f,v);
+          await loadUsers();
           toast('Equipe atualizada.');
           if(f==='consultor')renderMeuDia();
         }catch(e){toast('Não foi possível salvar. Tente de novo.');}
@@ -7075,7 +7142,7 @@ var ACAO_MOTIVO={
   'Sem retorno':'Cadência fixa de 3 tentativas em canais diferentes antes de dar o lead como perdido.',
   'Preço':'Ancorar valor antes do número: material incluso, professor formado na UniCNA, CNA Net e turma pequena.',
   'Contato inválido':'O problema é de captação. Conferir o formulário do anúncio e a digitação do WhatsApp no cadastro.',
-  'Fora da região':'Apertar a segmentação geográfica dos anúncios para '+UN().bairros+'.',
+  'Fora da região':'Apertar a segmentação geográfica dos anúncios para '+UN().regiao+'.',
   'Só robótica':'Registrar o interesse e oferecer o idioma como segunda porta de entrada.',
   'Sem turma disponível':'Esses leads vão para a fila de espera. Abrir turma ou realocar horário resolve matrícula pronta.',
   'Outro':'Motivo genérico demais para virar ação. Vale detalhar melhor no momento do registro.'
@@ -9108,7 +9175,44 @@ function fallbackCopy(txt){
   document.body.removeChild(ta);
 }
 
-/* ================= Equipe (admin) ================= */
+/* ================= Equipe (admin) =================
+   Tudo por RPC com token: a equipe e a da unidade ativa (vinculo em
+   crm_usuario_unidades). crm_usuarios nao recebe escrita direta do front. */
+var EQ={users:[],unidades:{}};
+async function eqSalvar(p){
+  const id=await api('/rpc/crm_equipe_salvar',{method:'POST',body:JSON.stringify({p_token:sessTok(),p:p})});
+  if(SESS&&(p.id===SESS.id||id===SESS.id))await atualizarVinculo();
+  return id;
+}
+/* Horario, agenda e cor da PROPRIA pessoa vao por crm_meu_perfil_salvar (qualquer
+   papel). Outra pessoa, ou o campo consultor, vai por crm_equipe_salvar. */
+var PERFIL_PROPRIO={hora_inicio:1,hora_fim:1,email_agenda:1,cor:1};
+async function salvarPessoa(id,campo,valor){
+  var p={};p[campo]=valor;
+  if(SESS&&String(id)===String(SESS.id)&&PERFIL_PROPRIO[campo]){
+    return api('/rpc/crm_meu_perfil_salvar',{method:'POST',body:JSON.stringify({p_token:sessTok(),p:p})});
+  }
+  p.id=id;
+  return eqSalvar(p);
+}
+/* e-mail, nome e cor sao da pessoa (valem em todas as unidades dela): o servidor
+   so grava se quem edita tambem tem acesso a todas essas unidades */
+function eqPodePessoa(u){
+  var minhas=((SESS&&SESS.unidades)||[]).map(function(x){return x.slug;});
+  return (u.unidades||[]).every(function(s){return minhas.indexOf(s)>-1;});
+}
+function eqErro(e,padrao){
+  var m=String((e&&e.message)||'');
+  if(m.indexOf('sem_permissao')>-1)return 'Você não tem permissão para alterar a equipe.';
+  if(e&&e.code&&ERROS_UNIDADE[e.code])return e.message;
+  return padrao;
+}
+async function eqCarregarUnidades(){
+  try{
+    var r=await api('/crm_unidades?select=slug,nome');
+    EQ.unidades={};(r||[]).forEach(function(x){EQ.unidades[x.slug]=x.nome;});
+  }catch(e){}
+}
 async function openTeam(){
   if(!podeTotal('equipe')){setTab(primeiraTabPermitida());return;}
   $('stats').innerHTML='';
@@ -9117,7 +9221,9 @@ async function openTeam(){
   let users;
   try{
     await loadPerms();
-    users=await api('/crm_usuarios?select=id,nome,email,email_agenda,cor,admin,ativo,consultor,papel,permissoes,hora_inicio,hora_fim&order=nome.asc');
+    users=(await api('/rpc/crm_equipe_listar',{method:'POST',body:JSON.stringify({p_token:sessTok()})}))||[];
+    EQ.users=users;
+    await eqCarregarUnidades();
   }catch(e){
     board.innerHTML='<div class="loading">N\u00e3o foi poss\u00edvel carregar a equipe.</div>';return;
   }
@@ -9128,7 +9234,8 @@ async function openTeam(){
       const ex=Object.keys(u.permissoes||{}).length;
       return '<div class="eqrow'+(u.ativo?'':' inativo')+'" data-id="'+u.id+'">'+
         '<span class="avatar" style="background:'+(u.cor||'#5A5A5A')+'">'+esc(u.nome[0])+'</span>'+
-        '<span class="en">'+esc(u.nome)+(u.email?'<small style="display:block;font-weight:400;color:var(--gray);font-size:11px">'+esc(u.email)+'</small>':'<small style="display:block;font-weight:600;color:var(--red);font-size:11px">sem e-mail, n\u00e3o entra</small>')+'</span>'+
+        '<span class="en">'+esc(u.nome)+(u.email?'<small style="display:block;font-weight:400;color:var(--gray);font-size:11px">'+esc(u.email)+'</small>':'<small style="display:block;font-weight:600;color:var(--red);font-size:11px">sem e-mail, n\u00e3o entra</small>')+
+          eqOutras(u)+'</span>'+
         '<select class="papelsel" data-a="papel" title="Papel de '+esc(u.nome)+'">'+
           PAPEIS.map(function(p){
             return '<option value="'+p[0]+'"'+(papelDe(u)===p[0]?' selected':'')+'>'+p[1]+'</option>';
@@ -9167,7 +9274,7 @@ async function openTeam(){
       }
       sel.disabled=true;
       try{
-        await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({papel:novo,admin:novo==='admin'})});
+        await eqSalvar({id:u.id,papel:novo,admin:novo==='admin'});
         await loadUsers();
         toast(u.nome+' agora \u00e9 '+labelPapel(novo)+'.');
         aplicarPermsNav();
@@ -9175,7 +9282,7 @@ async function openTeam(){
         openTeam();
       }catch(e){
         sel.disabled=false;sel.value=antigo;
-        toast('N\u00e3o foi poss\u00edvel salvar o papel.');
+        toast(eqErro(e,'N\u00e3o foi poss\u00edvel salvar o papel.'));
       }
     };
     row.querySelectorAll('button').forEach(function(b){
@@ -9185,22 +9292,25 @@ async function openTeam(){
           if(a==='perm'){
             abrirPermUsuario(u);
           }else if(a==='email'){
+            if(!eqPodePessoa(u)){toast('O e-mail de '+u.nome+' vale em outras unidades. Só quem tem acesso a todas elas pode alterar.');return;}
             eqEmail(u);
           }else if(a==='senha'){
             eqSenha(u);
           }else if(a==='cor'){
+            if(!eqPodePessoa(u)){toast('A cor de '+u.nome+' vale em outras unidades. Só quem tem acesso a todas elas pode alterar.');return;}
             const pick=row.querySelector('[data-a=corpick]');
             pick.onchange=async function(){
-              await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({cor:pick.value})});
+              try{await eqSalvar({id:u.id,cor:pick.value});}
+              catch(e){toast(eqErro(e,'Não foi possível salvar a cor.'));return;}
               await loadUsers();openTeam();
             };
             pick.click();
           }else if(a==='ativo'){
-            if(u.ativo&&!window.confirm('Desativar '+u.nome+'? A pessoa perde o acesso na hora; o hist\u00f3rico dela continua registrado.'))return;
-            await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({ativo:!u.ativo})});
+            if(u.ativo&&!window.confirm('Desativar '+u.nome+' nesta unidade? A pessoa perde o acesso a '+UN().nome+' na hora; o hist\u00f3rico continua registrado e as outras unidades dela n\u00e3o mudam.'))return;
+            await eqSalvar({id:u.id,ativo:!u.ativo});
             await loadUsers();openTeam();
           }
-        }catch(e){toast('N\u00e3o foi poss\u00edvel salvar. Tente de novo.');}
+        }catch(e){toast(eqErro(e,'N\u00e3o foi poss\u00edvel salvar. Tente de novo.'));}
       };
     });
   });
@@ -9210,6 +9320,14 @@ async function openTeam(){
   });
 
   board.querySelector('#nuadd').onclick=eqNovaPessoa;
+}
+
+/* outras unidades da pessoa: so leitura */
+function eqOutras(u){
+  var o=(u.unidades||[]).filter(function(s){return s!==UNIDADE;});
+  if(!o.length)return '';
+  return '<small style="display:block;font-weight:400;color:var(--gray);font-size:11px">Também em: '+
+    esc(o.map(function(s){return EQ.unidades[s]||s;}).join(', '))+'</small>';
 }
 
 /* --- adicionar pessoa: modal --- */
@@ -9241,19 +9359,46 @@ async function eqCriarPessoa(){
   var cor=$('nuc').value;
   var papel=$('nupap').value;
   if(!nome){toast('Digite o nome.');return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){toast('Digite um e-mail v\u00e1lido: \u00e9 com ele que a pessoa entra.');return;}
-  if(USERS.some(function(x){return (x.email||'').toLowerCase()===mail;})){toast('J\u00e1 existe algu\u00e9m com esse e-mail.');return;}
-  if(!senhaValida(pin)){toast(SENHAREGRA);return;}
-  if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){toast('J\u00e1 existe algu\u00e9m com esse nome.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){toast('Digite um e-mail válido: é com ele que a pessoa entra.');return;}
+  var aqui=(EQ.users||[]).find(function(x){return (x.email||'').toLowerCase()===mail;});
+  if(aqui){toast(aqui.ativo?(aqui.nome+' já faz parte desta equipe.'):(aqui.nome+' já está nesta equipe, inativa. Use Reativar na linha dela.'));return;}
   btn.disabled=true;
+  /* e-mail que ja existe em outra unidade: vincula a mesma pessoa, nao duplica */
+  var outra=null;
   try{
-    var criado=await api('/crm_usuarios',{method:'POST',body:JSON.stringify({nome:nome,email:mail,cor:cor,papel:papel,admin:papel==='admin'})});
-    var novoId=(criado&&criado[0]&&criado[0].id)||null;
-    if(novoId)await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:novoId,p_senha:pin,p_temporaria:true})});
+    var ex=await api('/crm_usuarios?select=id,nome,email&email=ilike.'+encodeURIComponent(mail));
+    outra=(ex||[]).find(function(x){return String(x.email||'').trim().toLowerCase()===mail;})||null;
+  }catch(e){btn.disabled=false;toast('Não foi possível conferir o e-mail. Tente de novo.');return;}
+  if(outra){btn.disabled=false;eqConfirmaVinculo(outra,mail,papel);return;}
+  if(!senhaValida(pin)){btn.disabled=false;toast(SENHAREGRA);return;}
+  if(USERS.some(function(x){return x.nome.toLowerCase()===nome.toLowerCase();})){btn.disabled=false;toast('Já existe alguém com esse nome.');return;}
+  try{
+    var novoId=await eqSalvar({nome:nome,email:mail,cor:cor,papel:papel,admin:papel==='admin'});
+    if(novoId)await api('/rpc/crm_equipe_definir_senha',{method:'POST',body:JSON.stringify({p_token:sessTok(),p_usuario:novoId,p_senha:pin,p_temporaria:true})});
     uiModalClose();
     toast(nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
     await loadUsers();openTeam();
-  }catch(e){btn.disabled=false;toast('N\u00e3o foi poss\u00edvel adicionar. Tente de novo.');}
+  }catch(e){btn.disabled=false;toast(eqErro(e,'Não foi possível adicionar. Tente de novo.'));}
+}
+
+function eqConfirmaVinculo(p,mail,papel){
+  var body='<div class="mform inmodal"><div class="full"><span style="font-size:13px;line-height:1.6;display:block">'+
+    'Já existe uma pessoa com este e-mail em outra unidade: <b>'+esc(p.nome)+'</b> ('+esc(mail)+'). Vincular a esta unidade?'+
+    '</span></div><div class="full"><span style="font-size:11.5px;color:var(--gray);line-height:1.55;display:block">'+
+    'Ela continua com o mesmo nome e a mesma senha. Aqui na '+esc(UN().nome)+' entra como '+esc(labelPapel(papel))+'.'+
+    '</span></div></div>';
+  uiModal('Vincular pessoa','Equipe · quem acessa o CRM',body,
+    '<button class="btn primary" id="nvok">Vincular</button><button class="btn" id="nvcancel">Cancelar</button>');
+  $('nvcancel').onclick=uiModalClose;
+  $('nvok').onclick=async function(){
+    $('nvok').disabled=true;
+    try{
+      await eqSalvar({email:mail,papel:papel,admin:papel==='admin'});
+      uiModalClose();
+      toast(p.nome+' agora faz parte da equipe como '+labelPapel(papel)+'.');
+      await loadUsers();openTeam();
+    }catch(e){$('nvok').disabled=false;toast(eqErro(e,'Não foi possível vincular. Tente de novo.'));}
+  };
 }
 
 /* --- e-mail de acesso: modal --- */
@@ -9270,11 +9415,11 @@ function eqEmail(u){
     if(lim&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lim)){toast('E-mail inv\u00e1lido.');return;}
     $('eqm_ok').disabled=true;
     try{
-      await api('/crm_usuarios?id=eq.'+u.id,{method:'PATCH',body:JSON.stringify({email:lim||null})});
+      await eqSalvar({id:u.id,email:lim||null});
       uiModalClose();
       await loadUsers();openTeam();
       toast(lim?('E-mail de '+u.nome+' atualizado.'):('E-mail de '+u.nome+' removido. Ela n\u00e3o consegue mais entrar.'));
-    }catch(e){$('eqm_ok').disabled=false;toast('N\u00e3o foi poss\u00edvel salvar.');}
+    }catch(e){$('eqm_ok').disabled=false;toast(eqErro(e,'N\u00e3o foi poss\u00edvel salvar.'));}
   };
   uiFoco('eqm_mail');
 }
@@ -9295,10 +9440,10 @@ function eqSenha(u){
     if(nova!==conf){toast('As duas senhas n\u00e3o bateram.');return;}
     $('eqs_ok').disabled=true;
     try{
-      await api('/rpc/crm_definir_senha',{method:'POST',body:JSON.stringify({p_id:u.id,p_senha:nova,p_temporaria:true})});
+      await api('/rpc/crm_equipe_definir_senha',{method:'POST',body:JSON.stringify({p_token:sessTok(),p_usuario:u.id,p_senha:nova,p_temporaria:true})});
       uiModalClose();
       toast('Senha de '+u.nome+' redefinida. Ela vai ter que criar uma nova no pr\u00f3ximo acesso.');
-    }catch(e){$('eqs_ok').disabled=false;toast('N\u00e3o foi poss\u00edvel redefinir.');}
+    }catch(e){$('eqs_ok').disabled=false;toast(eqErro(e,'N\u00e3o foi poss\u00edvel redefinir.'));}
   };
   uiFoco('eqs_a');
 }
@@ -9783,7 +9928,7 @@ function tPrint(){
     +'<div class="sub">'+esc(UN().nome)+(filtros.length?' · filtros: '+esc(filtros.join(' · ')):'')+'</div></div>'
     +'<div class="meta">'+lista.length+' turmas · '+totAl+' alunos<br>'+comVaga+' turmas com vaga · '+vagasTot+' vagas livres<br>Impresso em '+hoje+'</div></div>'
     +tPrintTabela(lista)
-    +'<div class="foot">'+esc(UN().nome+' · '+UN().email)+'</div>'
+    +(UN().email?'<div class="foot">'+esc(UN().nome+' · '+UN().email)+'</div>':'')
     +'</body></html>';
   var w=window.open('','_blank');
   if(!w){toast('Libere os pop-ups do navegador para imprimir o mapa.');return;}
@@ -10372,7 +10517,12 @@ async function agdAddCat(){
 
 async function agdSalvarCfg(){
   var body={gas_url:$('ag_gasurl').value.trim()||null,gas_token:$('ag_gastoken').value.trim()||null};
-  try{await api('/crm_agenda_config?id=eq.1',{method:'PATCH',body:JSON.stringify(body)});}
+  try{
+    var rc=await api('/crm_agenda_config',{method:'POST',
+      headers:{'Prefer':'return=representation,resolution=merge-duplicates'},
+      body:JSON.stringify(Object.assign({id:1},body))});
+    if(rc&&rc[0])AGD.cfg=rc[0];
+  }
   catch(e){toast('Erro: '+e.message);return;}
   if(AGD.cfg){AGD.cfg.gas_url=body.gas_url;AGD.cfg.gas_token=body.gas_token;}
   toast('Configuração salva.');
@@ -10844,7 +10994,7 @@ async function ataAssinar(r){
   var bt=$('ata_assinar');bt.disabled=true;bt.textContent='Assinando...';
   try{
     var j=await api('/rpc/crm_ata_assinar',{method:'POST',body:JSON.stringify({
-      p_reuniao:r.id,p_email:MEUEMAIL||safeGet('crmAuthEmail')||'',p_senha:s,
+      p_reuniao:r.id,p_email:MEUEMAIL||(SESS&&SESS.email)||'',p_senha:s,
       p_ua:navigator.userAgent.slice(0,300)})});
     if(!j||!j.ok){
       var msgs={credenciais:'Senha incorreta.',nao_participante:'Você não está na lista de quem assina esta ata.',
@@ -10863,7 +11013,7 @@ async function ataAssinar(r){
 
 function ataBaixar(r){
   var L=[];
-  L.push('ATA DE REUNIÃO · CNA TAQUARA');
+  L.push('ATA DE REUNIÃO · '+UN().nome.toUpperCase());
   L.push(r.titulo);
   L.push('');
   L.push('Data: '+brDate(r.data)+(r.hora_inicio?' '+String(r.hora_inicio).slice(0,5):''));
@@ -10902,7 +11052,7 @@ var DEM={lista:[],prog:{},anx:{},cur:null,resps:[],
 var DEMDRAG=null;
 var DEMSTATUS=[['pendente','Pendente','#5A5A5A'],['andamento','Em andamento','#B45309'],
   ['concluida','Conclu\u00edda','#1B7A3D'],['cancelada','Cancelada','#B9B9BE']];
-function DEMSTG(){return UN().url+'/storage/v1';}
+function DEMSTG(){return SUPA_URL+'/storage/v1';}
 var DEMIST=[['pendente','Pendente','ist-p'],['andamento','Em contato','ist-a'],
   ['ok','Resolvido','ist-k'],['sem_sucesso','Sem sucesso','ist-x'],['na','N\u00e3o se aplica','ist-n']];
 function demIst(s,i){var x=DEMIST.find(function(p){return p[0]===s;});return x?x[i]:(i===1?s:'ist-p');}
@@ -11529,7 +11679,8 @@ async function demEnviarArqs(demandaId,arqs){
 }
 async function demUpload(demandaId,file){
   var ext=(String(file.name).match(/\.[A-Za-z0-9]+$/)||[''])[0];
-  var path=demandaId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
+  /* upload novo mora sob a pasta da unidade; caminho antigo continua valido */
+  var path=UNIDADE+'/'+demandaId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
   var r=await fetch(DEMSTG()+'/object/demandas/'+path,{method:'POST',
     headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'x-upsert':'true',
       'Content-Type':file.type||'application/octet-stream'},body:file});
@@ -11545,7 +11696,7 @@ async function demBaixar(a){
       body:JSON.stringify({expiresIn:3600})});
     if(!r.ok)throw new Error('assinatura');
     var j=await r.json(),u=j.signedURL||j.signedUrl||'';
-    if(u.indexOf('http')!==0)u=(u.indexOf('/storage/v1')===0?UN().url:DEMSTG())+u;
+    if(u.indexOf('http')!==0)u=(u.indexOf('/storage/v1')===0?SUPA_URL:DEMSTG())+u;
     window.open(u,'_blank');
   }catch(e){toast('N\u00e3o foi poss\u00edvel abrir o arquivo.');}
 }
@@ -12925,8 +13076,7 @@ async function tnSalvarConvites(){
   try{
     for(var i=0;i<mudou.length;i++){
       var el=mudou[i];
-      await api('/crm_usuarios?id=eq.'+el.dataset.uem,{method:'PATCH',
-        body:JSON.stringify({email_agenda:el.value.trim()||null})});
+      await salvarPessoa(el.dataset.uem,'email_agenda',el.value.trim()||null);
     }
     await loadUsers();
   }catch(e){toast(tnErro(e));b.disabled=false;return;}
@@ -13178,9 +13328,7 @@ var MTST={pendente:'Pendente',realizada:'Rematriculado',nao_renova:'N\u00e3o vai
 var MTIND={matricula:'Matr\u00edcula',rema_contratual:'Rema contratual',rema_total:'Rema total'};
 var MTQUEM={matricula:'comercial',rema_contratual:'secretaria',rema_total:'pedag\u00f3gico'};
 
-function mtTokens(){try{return JSON.parse(safeGet('crmTokens')||'{}')||{};}catch(e){return {};}}
-function mtSetToken(un,t){var o=mtTokens();if(t)o[un]=t;else delete o[un];safeSet('crmTokens',JSON.stringify(o));}
-function mtTok(){return mtTokens()[UNIDADE]||null;}
+function mtTok(){return sessTok();}
 async function mtRpc(fn,args){
   return api('/rpc/'+fn,{method:'POST',body:JSON.stringify(Object.assign({p_token:mtTok()},args||{}))});
 }
@@ -13190,13 +13338,15 @@ function mtErro(e){
   if(m.indexOf('sem_permissao')>-1)return 'permissao';
   if(m.indexOf('PGRST202')>-1||m.indexOf('Could not find the function')>-1)return 'indisponivel';
   if(m.indexOf('empresa_diferente')>-1)return 'empresa';
+  if(e&&e.code&&ERROS_UNIDADE[e.code])return 'u_'+e.code;
   return m;
 }
 function mtMsgErro(k){
   if(k==='sessao')return 'Sua sess\u00e3o expirou para esta tela. Saia e entre de novo para liberar as metas.';
   if(k==='permissao')return 'Voc\u00ea n\u00e3o tem permiss\u00e3o para essa a\u00e7\u00e3o.';
   if(k==='indisponivel')return 'Metas ainda n\u00e3o est\u00e1 dispon\u00edvel nesta unidade.';
-  if(k==='empresa')return 'Este relat\u00f3rio \u00e9 de outra unidade. Confira a empresa no topo do arquivo.';
+  if(k==='empresa')return 'Este relat\u00f3rio \u00e9 de outra unidade: a empresa no topo do arquivo n\u00e3o \u00e9 a da '+UN().nome+'. Confira se baixou o relat\u00f3rio certo.';
+  if(String(k).indexOf('u_')===0)return ERROS_UNIDADE[String(k).slice(2)];
   return 'Erro: '+k;
 }
 function mtRotulo(inicio){
@@ -13572,11 +13722,10 @@ async function mtLerArquivo(file){
       tipo:g(r,'Tipo Rematr\u00edcula'),status:g(r,'StatusRematricula')};});
     var c=function(fn){return rows.filter(fn).length;},ct=function(r){return /contratual/i.test(r.tipo);};
     var norm=function(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();};
-    var okUn=norm(empresa).indexOf(norm(UN().curto))>-1;
     MT.up={empresa:empresa,gerado:gerado,arquivo:file.name,rows:rows};
     var st=function(l,v){return '<div class="mtcard mtkpi" style="padding:10px 12px"><span class="mtlab">'+l+'</span><b style="font-family:Poppins;font-size:20px">'+mtN(v)+'</b></div>';};
     $('mtUpPrev').innerHTML=
-      '<div class="mtok'+(okUn?'':' bad')+'">'+(okUn?'\u2713 ':'\u26a0 ')+'Empresa: '+esc(empresa||'n\u00e3o encontrada')+(okUn?'':' \u00b7 n\u00e3o parece ser '+esc(UN().nome))+'</div>'+
+      '<div class="mtok">Empresa: '+esc(empresa||'n\u00e3o encontrada')+' \u00b7 conferida com a unidade na importa\u00e7\u00e3o</div>'+
       '<div class="mtok">\u2713 Cabe\u00e7alho na linha '+(hi+1)+' \u00b7 '+rows.length+' alunos \u00b7 gerado em '+esc(gerado)+'</div>'+
       '<div class="mtgrid mtg3" style="margin-top:6px">'+st('Autom\u00e1tica',c(function(r){return !ct(r);}))+st('Contratual',c(ct))+st('Realizadas',c(function(r){return /^realizada$/i.test(r.status);}))+
       st('Pendentes',c(function(r){return /^pendente$/i.test(r.status);}))+st('N\u00e3o realizadas',c(function(r){return /n.o realizada/i.test(r.status);}))+st('Linhas',rows.length)+'</div>'+
