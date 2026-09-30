@@ -13,8 +13,8 @@ Usuários reais: duas consultoras comerciais, duas pessoas na secretaria e a
 coordenação pedagógica. É sistema em produção, usado todo dia.
 
 - Produção: https://crm.cnataquara.com.br
-- Supabase: projeto `cnataquara-comercial`, ref `gpnwmsnayrqjcmhqrtpx`,
-  compartilhado com o Escape Room e o Teste de Nível
+- Supabase: projeto "CRM CNA", ref `gpnwmsnayrqjcmhqrtpx`, base única da rede
+  (coluna `unidade`), compartilhado com o Escape Room e o Teste de Nível
 - Nome do repo segue o padrão da unidade: `cnataquara-{subdomínio}`
 
 ## Stack
@@ -24,21 +24,57 @@ GitHub Pages. Sem build, sem framework, sem `package.json`.
 
 ## Arquitetura
 
-Monólito de arquivo único. `index.html` com **10.880 linhas e 570 KB**,
-**um único bloco `<script>`** (linhas 1661 a 10878) e **um único bloco
-`<style>`** (linhas 9 a 1376). HTML, CSS e JS vanilla inline.
+Monólito de arquivo único. `index.html` com ~13.900 linhas, **um único bloco
+`<script>`** e dois blocos `<style>`. HTML, CSS e JS vanilla inline.
+CSS novo entra só dentro do `<style>` principal.
 
-Arquivos do repo: `CLAUDE.md`, `CNAME`, `index.html` e `sql/` (46 migrations).
+Arquivos do repo: `CLAUDE.md`, `CNAME`, `index.html`, `sql/`, `supabase/`,
+`apps-script/` e `qa/`.
+
+### Base única multiunidade (desde 30/09/2026)
+
+Uma base só para a rede inteira: projeto `gpnwmsnayrqjcmhqrtpx` ("CRM CNA").
+O projeto antigo de Queimados não é mais usado pelo front. Cada tabela de dado
+de unidade tem a coluna `unidade` (slug de `crm_unidades`: `taquara`,
+`queimados`, `jardim-america`...).
+
+**Globais, sem coluna `unidade`:** `crm_unidades`, `crm_modulos`,
+`crm_papel_permissoes`, `crm_usuarios`, `crm_sessoes`. O vínculo pessoa ×
+unidade (papel, admin, consultor, permissões, ativo) mora em
+`crm_usuario_unidades`.
 
 Acesso a dados via REST direto no PostgREST, sem `supabase-js`:
 
 ```js
-const SUPA='https://gpnwmsnayrqjcmhqrtpx.supabase.co/rest/v1';   // 1665
-const KEY='eyJhbGciOi...';                                        // 1666, chave anon
-const FUNCS='https://gpnwmsnayrqjcmhqrtpx.supabase.co/functions/v1'; // 3385
-async function api(path,opt)   // 1668, helper único de request REST
-function waFn(nome,body)       // 3388, helper das Edge Functions
+const SUPA_URL='https://gpnwmsnayrqjcmhqrtpx.supabase.co';
+const KEY='eyJhbGciOi...';      // chave anon
+const TAB_UNIDADE={...}         // as 54 tabelas com coluna unidade
+const ON_CONFLICT_UNIDADE={...} // alvo de conflito dos upserts
+const RPC_UNIDADE={...}         // RPCs que recebem p_unidade
+async function api(path,opt)    // helper único de request REST
+function waFn(nome,body)        // helper das Edge Functions
 ```
+
+**A unidade é aplicada num ponto só, dentro do `api()`** (`apiUnidade`):
+leitura, PATCH e DELETE numa tabela de `TAB_UNIDADE` ganham
+`unidade=eq.<ativa>`; POST leva `unidade` no corpo; upsert com
+`merge-duplicates` ganha o `on_conflict` de `ON_CONFLICT_UNIDADE`; as RPCs de
+`RPC_UNIDADE` recebem `p_unidade`. Sem unidade escolhida, a chamada nem sai
+(`unidade_nao_escolhida`). Não monte filtro de unidade na mão nem use `fetch`
+solto para tabela: passe pelo `api()`. Tabela nova com `unidade` entra em
+`TAB_UNIDADE`.
+
+RPCs com token (`metas_*`, `rema_*`, `crm_equipe_*`, `crm_usuarios_unidade`,
+`crm_meu_perfil_salvar`) pegam a unidade da sessão no servidor.
+
+**Proibido `if` por nome ou slug de unidade.** Comportamento por unidade vem do
+banco: `crm_unidades` (nome, status) e configs com coluna `unidade`
+(`crm_configs`: `regiao_anuncio`, `email_contato`, `whatsapp_contato`...).
+Nome exibido vem de `crm_unidades.nome` (`UN().nome` = "CNA " + nome).
+Endereço e telefone da unidade não entram fixos no código.
+
+Upload no bucket `demandas` grava em `<unidade>/<demanda>/...`; caminho antigo
+continua válido.
 
 `api()` derruba o cache dos relatórios (`REL.ts=0`) em qualquer escrita que
 toque `/crm_leads` ou `/crm_interacoes`. Escrita nova no funil que precise
@@ -65,13 +101,44 @@ coisas para a RPC e não faz hash nenhum no cliente:
 
 ```js
 await api('/rpc/crm_login',{method:'POST',
-  body:JSON.stringify({p_email:email,p_senha:senha})});   // 4021
+  body:JSON.stringify({p_email:email,p_senha:senha})});
 ```
 
+**Login por vínculo.** `crm_login` devolve `token`, `unidades` (`{slug, nome,
+status}` das unidades em que a pessoa tem vínculo ativo), `unidade` (só se
+houver 1) e `escolher_unidade`. `null` = credencial inválida ou sem vínculo.
+Depois o front chama `crm_sessao_escolher_unidade(p_token, p_unidade)`, que
+grava a unidade na sessão e devolve papel, admin, consultor e permissões **do
+vínculo daquela unidade**.
+
+- 1 unidade: entra direto; a escolha é feita por baixo, sem tela.
+- 2+ unidades: tela "Escolha a unidade" (`mostrarEscolhaUnidade`), com
+  "Em implantação" para `status = implantacao`. "Trocar unidade" só aparece
+  para quem tem 2+ e recarrega a página inteira na unidade nova.
+- Sessão em `localStorage.crmSessao` (`{v:2, token, id, nome, email,
+  unidades, unidade, vinculo}`). `BOOT()` revalida com
+  `crm_sessao_escolher_unidade`; `sessao_invalida` ou `unidade_nao_permitida`
+  volta ao login. O formato antigo (`crmTokens`, `crmUnidade`, `crmAuth`) é
+  apagado.
+- `USERS` vem de `crm_usuarios_unidade(p_token)`: pessoas ativas da unidade,
+  com papel e permissões do vínculo. Troca obrigatória de senha acontece antes
+  da escolha de unidade.
+
 Usuário sem e-mail não entra, e isso é proposital. Se `r.senha_temporaria`, o
-sistema força a troca antes de deixar entrar (`abrirTrocaObrigatoria`, 4026).
-Regra de senha em `SENHAREGRA` (4088): mínimo 8 caracteres, com pelo menos uma
-letra e um número. RPCs relacionadas: `crm_trocar_senha`, `crm_definir_senha`.
+sistema força a troca antes de deixar entrar (`abrirTrocaObrigatoria`).
+Regra de senha em `SENHAREGRA`: mínimo 8 caracteres, com pelo menos uma letra
+e um número. Troca da própria senha: `crm_trocar_senha`.
+
+**Equipe** usa só RPC com token: `crm_equipe_listar`, `crm_equipe_salvar`
+(manda só o que mudou; e-mail já existente **vincula** a pessoa à unidade
+ativa, não duplica; `{id, ativo:false}` desativa só nesta unidade) e
+`crm_equipe_definir_senha`. Horário, e-mail de agenda e cor da própria pessoa:
+`crm_meu_perfil_salvar`. Dados pessoais e senha de quem está em unidade que o
+editor não tem são recusados pelo servidor (`usuario_com_outras_unidades`).
+O front não escreve direto em `crm_usuarios`.
+
+**`crm_definir_senha` está depreciada.** Não chame: use
+`crm_equipe_definir_senha`.
 
 **Não existe mais login por PIN.** `sha256()` (3987) e `sha256js()` (3945)
 sobraram da versão antiga e são **código morto**: nenhuma chamada no arquivo.
@@ -143,8 +210,15 @@ Antes de "criar metas do zero", leia essas duas migrations: o modelo já está d
 
 ### RPCs chamadas pelo front
 
-`crm_login`, `crm_trocar_senha`, `crm_definir_senha`, `crm_relatorio_dia`,
-`crm_fechar_dia`, `crm_painel_equipe`, `crm_ata_congelar`, `crm_ata_assinar`.
+Sessão e equipe: `crm_login`, `crm_sessao_escolher_unidade`,
+`crm_usuarios_unidade`, `crm_trocar_senha`, `crm_equipe_listar`,
+`crm_equipe_salvar`, `crm_equipe_definir_senha`, `crm_meu_perfil_salvar`.
+
+Com `p_unidade` (posto pelo `api()`): `crm_relatorio_dia`, `crm_fechar_dia`,
+`crm_painel_equipe`, `crm_tn_disponibilidade`.
+
+Outras: `crm_ata_congelar`, `crm_ata_assinar`, `crm_tn_agendar`,
+`crm_wa_chave`, `metas_*` e `rema_*` (token).
 
 ## Padrão de interface
 
@@ -208,8 +282,6 @@ A regra geral é cobrar sem impedir: fechamento de dia é convite, não trava
 
 Mas há **bloqueios reais** no salvamento de lead, que não são bugs:
 
-- **Duplicidade de WhatsApp na criação** (3151): se já existe lead com o mesmo
-  número, `toast` e `return`. Não salva.
 - **Nome e nível obrigatórios** a partir de `experimental` (3107 e 3114).
 - **Hora do agendamento** faltando (3147).
 - **Motivo da perda** ausente quando a etapa é `perdido` (3122).
@@ -238,10 +310,10 @@ salvo sem DDI, porque a checagem de duplicidade não remove o 55.
 wa_chave text generated always as (crm_wa_chave(whatsapp)) stored
 ```
 
-O conserto certo da duplicidade não é uma quarta função em JS: é consultar
-`/crm_leads?wa_chave=eq.<chave>`, que usa `idx_crm_leads_wa_chave` e vale para
-a base inteira. O `dig()` de hoje só compara contra `DATA.leads`, o que já está
-carregado em memória. Antes de escrever qualquer normalização nova, use a coluna.
+A checagem de duplicidade na criação de lead já usa isso: pega a chave em
+`rpc/crm_wa_chave` e consulta `/crm_leads?wa_chave=eq.<chave>` na unidade
+ativa (o mesmo telefone pode ser lead em outra unidade). Só avisa, não impede.
+Antes de escrever qualquer normalização nova, use a coluna.
 
 ### Data
 
@@ -296,8 +368,9 @@ Versionar faz parte do "done"; não é etapa separada para depois.
 Nome do arquivo: `<version>_<name>.sql`, com a version completa do Supabase
 (`YYYYMMDDHHMMSS`), igual à linha em `supabase_migrations.schema_migrations`.
 
-`sql/` tem as 46 migrations aplicadas até 31/08/2026, de `20260730162750` a
-`20260827181315`. Cobrem os três sistemas que gravam neste banco, porque a
+`sql/` tem as migrations aplicadas desde `20260730162750`, incluindo as 20 da
+consolidação multiunidade (`*_consolidacao_*`, de `20260929155916` a
+`20260930182135`). Cobrem os três sistemas que gravam neste banco, porque a
 convenção é versionar o SQL deles aqui: CRM, Escape Room e Teste de Nível.
 
 Para reextrair ou conferir, use `../extrair-migrations.sh`, que
