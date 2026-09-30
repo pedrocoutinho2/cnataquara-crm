@@ -2014,19 +2014,21 @@ const ERROS_UNIDADE={
   unidade_nao_escolhida:'A unidade desta sessão não foi escolhida. Saia e entre de novo.',
   unidade_nao_permitida:'Você não tem acesso ativo a essa unidade.',
   periodo_de_outra_unidade:'Este período de metas é de outra unidade. Recarregue a página.',
-  usuario_de_outra_unidade:'Essa pessoa não faz parte da equipe desta unidade.'
+  usuario_de_outra_unidade:'Essa pessoa não faz parte da equipe desta unidade.',
+  usuario_com_outras_unidades:'Senha s\u00f3 pode ser alterada por quem tem acesso a todas as unidades desta pessoa.'
 };
 function erroUnidade(k){const e=new Error(ERROS_UNIDADE[k]||k);e.code=k;return e;}
 
 let UNIDADE=null;                 /* slug da unidade ativa */
 let UNIDINFO={nome:'',status:''}; /* de crm_unidades, via crm_sessao_escolher_unidade */
-let UNCFG={};                     /* crm_configs da unidade: regiao_anuncio, email_contato */
+let UNCFG={};                     /* crm_configs da unidade: regiao_anuncio, email_contato, whatsapp_contato */
 let SESS=null;                    /* {v:2,token,id,nome,email,unidades,unidade,vinculo} */
 function UN(){
   const n=UNIDINFO.nome||'';
   return {nome:'CNA '+n,curto:n,
     regiao:String(UNCFG.regiao_anuncio||'').trim()||'a região da unidade',
-    email:String(UNCFG.email_contato||'').trim()};
+    email:String(UNCFG.email_contato||'').trim(),
+    whatsapp:String(UNCFG.whatsapp_contato||'').trim()};
 }
 
 /* aplica unidade no caminho/corpo. Tabela da lista sem unidade escolhida nao sai. */
@@ -4907,7 +4909,7 @@ async function atualizarVinculo(){
 async function carregarCfgUnidade(){
   UNCFG={};
   try{
-    const r=await api('/crm_configs?select=chave,valor&chave=in.(regiao_anuncio,email_contato)');
+    const r=await api('/crm_configs?select=chave,valor&chave=in.(regiao_anuncio,email_contato,whatsapp_contato)');
     (r||[]).forEach(function(x){UNCFG[x.chave]=x.valor;});
   }catch(e){}
 }
@@ -9022,7 +9024,7 @@ function calcCampos(R){
     validade:brDate(CALC.validade),
     consultor:currentUser||'',
     unidade:UN().nome,
-    whatsapp:'(21) 97719-3899'
+    whatsapp:UN().whatsapp
   };
 }
 
@@ -9050,6 +9052,8 @@ function calcMontarMsg(tpl,R){
   /* bloco removido nao deve deixar linha vazia sobrando */
   t=t.replace(/\u0000\n?/g,'');
   const V=calcCampos(R);
+  /* sem whatsapp_contato cadastrado na unidade, a linha do telefone sai inteira */
+  if(!V.whatsapp)t=t.replace(/^.*\{whatsapp\}.*(\n|$)/gm,'');
   t=t.replace(/\{([a-z0-9_]+)\}/g,function(m,k){
     return Object.prototype.hasOwnProperty.call(V,k)?V[k]:m;
   });
@@ -9246,7 +9250,8 @@ async function openTeam(){
         '<span class="ebtns">'+
           '<button class="btn" data-a="perm">Permiss\u00f5es</button>'+
           '<button class="btn" data-a="email">E-mail</button>'+
-          '<button class="btn" data-a="senha">Redefinir senha</button>'+
+          (eqPodePessoa(u)?'<button class="btn" data-a="senha">Redefinir senha</button>':
+            '<small style="font-size:11px;color:var(--gray);line-height:1.4;max-width:220px">'+'Senha s\u00f3 pode ser alterada por quem tem acesso a todas as unidades desta pessoa.'+'</small>')+
           '<button class="btn" data-a="cor">Cor</button>'+
           (u.nome!==currentUser?'<button class="btn" data-a="ativo">'+(u.ativo?'Desativar':'Reativar')+'</button>':'')+
         '</span>'+
@@ -13338,6 +13343,7 @@ function mtErro(e){
   if(m.indexOf('sem_permissao')>-1)return 'permissao';
   if(m.indexOf('PGRST202')>-1||m.indexOf('Could not find the function')>-1)return 'indisponivel';
   if(m.indexOf('empresa_diferente')>-1)return 'empresa';
+  if(m.indexOf('usuario_com_outras_unidades')>-1)return 'u_usuario_com_outras_unidades';
   if(e&&e.code&&ERROS_UNIDADE[e.code])return 'u_'+e.code;
   return m;
 }
