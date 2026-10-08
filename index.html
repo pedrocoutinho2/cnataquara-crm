@@ -1641,6 +1641,20 @@ input,textarea,select{caret-color:var(--red)}
 .mtfxrow{display:grid;grid-template-columns:60px 90px 1fr 110px 34px;gap:8px;align-items:center}
 .mtfxrow input{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:13px;min-width:0}
 .mtfxrow .x{height:34px;border:1px solid var(--line);background:var(--white);border-radius:8px;cursor:pointer;color:var(--gray)}
+.mtfxrow.pc{grid-template-columns:50px 92px 84px 1fr 90px 34px}
+.mtfxrow.pc .fp{font-weight:600;color:var(--blue)}
+.mtfxhd{display:grid;grid-template-columns:50px 92px 84px 1fr 90px 34px;gap:8px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);font-weight:600}
+.mtfxhd.mt{grid-template-columns:60px 90px 1fr 110px 34px}
+.mtcurva{display:flex;flex-direction:column;gap:8px;background:var(--surface);border-radius:10px;padding:10px 12px}
+.mtcurva .t{font-size:12px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mtcurva .t span{font-weight:400;color:var(--gray)}
+.mtcurva .t span.bad{color:var(--redDark);font-weight:600}
+.mtcurva .pv{font-size:12px;color:var(--gray);line-height:1.5}
+.mttab .mtacc{display:block;color:var(--gray);font-size:11px;font-weight:400}
+@media (max-width:640px){
+  .mtfxrow.pc,.mtfxhd{grid-template-columns:44px 74px 66px 1fr 34px}
+  .mtfxrow.pc .fv,.mtfxhd .hv{display:none}
+}
 .mtmes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .mtmes label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--gray)}
 .mtmes input{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 6px;font-size:13px;text-align:center}
@@ -13448,7 +13462,7 @@ function mtTrack(real,faixas,unid){
   var tk=faixas.map(function(f){return '<div class="tick" style="left:'+(f.alvo/max*100).toFixed(1)+'%"><span>'+f.nivel+'</span></div>';}).join('');
   var rp=Math.min(100,(real||0)/max*100);
   var lb=faixas.map(function(f){var ok=real!=null&&real>=f.alvo;
-    return '<div class="m'+(ok?' ok':'')+'"><span class="mtlab">Meta '+f.nivel+(ok?' \u00b7 batida':'')+'</span><b>'+mtN(f.alvo)+'</b><span>'+mtRS(f.valor_rs)+(f.regra?' \u00b7 '+esc(f.regra):'')+'</span></div>';}).join('');
+    return '<div class="m'+(ok?' ok':'')+'"><span class="mtlab">Meta '+f.nivel+(ok?' \u00b7 batida':'')+'</span><b>'+mtN(f.alvo)+'</b><span>'+mtRS(f.valor_rs)+(mtFxTxt(f)?' \u00b7 '+esc(mtFxTxt(f)):'')+'</span></div>';}).join('');
   return '<div class="mttrack"><div class="bg">'+bd+'<div class="fill" style="width:'+rp.toFixed(1)+'%"></div></div>'+tk+
     '<div class="now" style="left:'+Math.max(3,rp).toFixed(1)+'%">'+mtN(real)+(unid||'')+'</div></div><div class="mtlabels" style="--n:'+faixas.length+'">'+lb+'</div>';
 }
@@ -13530,7 +13544,7 @@ function mtRema(p){
   if(!n){
     h+='<div class="mtempty"><b>A lista de rema deste per\u00edodo ainda n\u00e3o foi importada.</b><span>Suba o Relat\u00f3rio de \u00cdndice de Rematr\u00edcula do Box.</span>'+
       (mtPodeMetas()?'<button class="btn primary" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button>':'')+'</div>';
-    return h+mtProximo(p,null);
+    return h+mtRemaMes(p)+mtProximo(p,null);
   }
   var tot=(n.autoReal||0)+(n.contrReal||0),pend=(n.pendA||0)+(n.pendC||0);
   var ant=mtSemAnt(p.inicio),pico=mtPico(ant);
@@ -13548,6 +13562,7 @@ function mtRema(p){
   h+='<div class="mtgrid mtg2">'+
     '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>Secretaria \u00b7 rema contratual</h3><span class="sub">'+mtProxima(n.contrReal,ic&&ic.faixas)+'</span></div>'+mtTrack(n.contrReal,ic&&ic.faixas)+(ic&&ic.obs?'<div class="sub">'+esc(ic.obs)+'</div>':'')+'</section>'+
     '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>Pedag\u00f3gico \u00b7 rema total</h3><span class="sub">'+mtProxima(tot,it&&it.faixas)+'</span></div>'+mtTrack(tot,it&&it.faixas)+(it&&it.obs?'<div class="sub">'+esc(it.obs)+'</div>':'')+'</section></div>';
+  h+=mtRemaMes(p);
   if(n.fonte==='lista'){
     var imp=p.ultimo_import;
     h+='<section class="mtcard mtlist"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>Lista de rema \u00b7 '+mtRotulo(p.inicio)+'</h3>'+
@@ -13560,6 +13575,31 @@ function mtRema(p){
   }
   return h+mtProximo(p,n);
 }
+/* realizado por mes: historico mensal do Box quando existe; senao a lista (data da marcacao ou da importacao) */
+function mtRemaMes(p){
+  var ic=mtInd(p,'rema_contratual'),it=mtInd(p,'rema_total'),ms=mtMesesPer(p),hoje=hojeISO().slice(0,7)+'-01';
+  if(!(ic&&ic.curva)&&!(it&&it.curva))return '';
+  var s=mtSem(p.inicio),hist=s&&s.mensal&&s.mensal.length?s.mensal:null,rm=p.rema_mes||[];
+  var real=function(k){return ms.map(function(m){
+    if(hist){var x=hist.find(function(h){return h.mes===m;});return x?(k==='c'?(x.contratual||0):(x.contratual||0)+(x.automatica||0)):0;}
+    var y=rm.find(function(r){return String(r.mes).slice(0,10)===m;});if(!y||m>hoje)return null;return k==='c'?(y.contr||0):(y.contr||0)+(y.auto||0);});};
+  var tab=function(ind,k,tt,quem){
+    if(!ind||!ind.curva)return '<section class="mtcard"><h3>'+tt+'</h3><div class="sub">Ritmo mensal ainda n\u00e3o definido em Configurar.</div></section>';
+    var fx=(ind.faixas||[]).slice().sort(function(a,b){return a.nivel-b.nivel;});if(!fx.length)return '';
+    var f1=fx[0],fu=fx[fx.length-1],r1=mtRitmo(f1.alvo,ind.curva),ru=mtRitmo(fu.alvo,ind.curva),rr=real(k);
+    var a1=0,au=0,ar=0,rows=ms.map(function(m,i){a1+=r1[i];au+=ru[i];var v=rr[i];if(v!=null)ar+=v;
+      var cor=v==null?'':(ar>=a1?' style="color:var(--blue);font-weight:600"':' style="color:var(--redDark);font-weight:600"');
+      return '<tr><td><b>'+MTMES[+m.slice(5,7)-1]+'/'+m.slice(0,4)+'</b></td><td class="n mtgray">'+String(ind.curva[i]).replace('.',',')+'%</td>'+
+        '<td class="n">'+r1[i]+'<div class="mtacc">acum. '+a1+'</div></td><td class="n mtgray">'+ru[i]+'<div class="mtacc">acum. '+au+'</div></td>'+
+        '<td class="n">'+(v==null?'\u00b7':mtN(v)+'<div class="mtacc"'+cor+'>acum. '+ar+'</div>')+'</td></tr>';}).join('');
+    return '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>'+tt+' \u00b7 m\u00eas a m\u00eas</h3><span class="sub">'+quem+'</span></div>'+
+      '<div class="rtabw"><table class="mttab"><thead><tr><th>M\u00eas</th><th class="n">Curva</th><th class="n">Meta '+f1.nivel+'</th><th class="n">Meta '+fu.nivel+'</th><th class="n">Realizado</th></tr></thead><tbody>'+rows+
+      '</tbody><tfoot><tr><td>Total</td><td class="n mtgray">100%</td><td class="n">'+mtN(f1.alvo)+'</td><td class="n mtgray">'+mtN(fu.alvo)+'</td><td class="n">'+(ar||rr.some(function(v){return v!=null;})?mtN(ar):'\u00b7')+'</td></tr></tfoot></table></div></section>';
+  };
+  return '<div class="mtgrid mtg2">'+tab(ic,'c','Rema contratual','secretaria')+tab(it,'t','Rema total','pedag\u00f3gico')+'</div>'+
+    '<div class="sub" style="margin-top:-4px">Ritmo s\u00f3 para acompanhar: a comiss\u00e3o continua pela meta do per\u00edodo. '+
+    (hist?'Realizado m\u00eas a m\u00eas do hist\u00f3rico do Box.':'Realizado pela data da marca\u00e7\u00e3o no CRM ou, sem ela, pela data em que o relat\u00f3rio do Box trouxe a rema: aproximado.')+'</div>';
+}
 function mtProximo(p,n){
   var ps=MT.d.periodos||[],i=ps.findIndex(function(x){return x.id===p.id;}),q=ps[i+1];
   if(!q)return '';
@@ -13567,7 +13607,7 @@ function mtProximo(p,n){
   var bp=(n&&n.fonte==='lista')?p.base_proj:null;
   var baseC=bp?bp.contr:(n?n.autoReal:null),baseA=bp?bp.auto:(n?(n.contrReal||0)+mtRealMat(p):null);
   var tier=function(ind,cls,tt,quem,base){
-    var fx=(ind&&ind.faixas||[]).map(function(f){return '<div><span class="mtlab">Meta '+f.nivel+'</span><b>'+mtN(f.alvo)+'</b><span class="sub">'+esc(f.regra||'')+'</span></div>';}).join('');
+    var fx=(ind&&ind.faixas||[]).map(function(f){return '<div><span class="mtlab">Meta '+f.nivel+'</span><b>'+mtN(f.alvo)+'</b><span class="sub">'+esc(mtFxTxt(f))+'</span></div>';}).join('');
     return '<div class="mtpan'+cls+'"><div style="display:flex;justify-content:space-between;gap:8px"><span class="tt">'+tt+'</span><span class="sub">'+quem+'</span></div><div class="sub">'+base+'</div><div class="tiers">'+(fx||'<div class="sub">Sem metas</div>')+'</div></div>';
   };
   return '<section class="mtcard"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>Pr\u00f3ximo per\u00edodo \u00b7 '+mtRotulo(q.inicio)+'</h3>'+
@@ -13764,15 +13804,62 @@ function mtSugerir(p){
   var ant=mtSemAnt(p.inicio);
   var pc=avg(mesmos.map(function(s){return s.base_contratual?s.rema_contratual/s.base_contratual:null;}));
   var baseC=ant?ant.rema_auto:null;
-  var pf=function(pct,base,lbl){return [-1.5,1.5,4.5,7.5].map(function(d,i){var v=pct*100+d;return {nivel:i+1,alvo:Math.round(v/100*base),regra:v.toFixed(1).replace('.',',')+'%'+(i===0?' \u00b7 '+lbl:'')};});};
-  if(pc!=null&&baseC)out.rema_contratual={base_media:+(pc*100).toFixed(2),base_ref:baseC,faixas:pf(pc,baseC,'m\u00e9dia \u2212 1,5 pt')};
+  /* Meta 1 = media - 1 pt, Meta 2 = media, Meta 3 = media + 1,5 pt, Meta 4 = media + 3 pt (Pedro, 08/10/2026) */
+  var pf=function(pct,base){var m=+(pct*100).toFixed(2);return [-1,0,1.5,3].map(function(d,i){var v=Math.round((m+d)*100)/100;return {nivel:i+1,pct:v,alvo:mtAlvoDePct(v,base),regra:mtDeltaTxt(v,m)};});};
+  var cH=mtCurvaHist(p,'rema_contratual'),tH=mtCurvaHist(p,'rema_total');
+  if(pc!=null&&baseC)out.rema_contratual={base_media:+(pc*100).toFixed(2),base_ref:baseC,faixas:pf(pc,baseC),curva:cH&&cH.curva};
   var man=avg(mesmos.map(function(s){var a=mtSemAnt(s.inicio),pk=mtPico(a);return pk?((s.rema_auto||0)+(s.rema_contratual||0))/pk:null;}));
   var pico=mtPico(ant);
-  if(man!=null&&pico)out.rema_total={base_media:+(man*100).toFixed(2),base_ref:pico,faixas:pf(man,pico,'m\u00e9dia \u2212 1,5 pt')};
+  if(man!=null&&pico)out.rema_total={base_media:+(man*100).toFixed(2),base_ref:pico,faixas:pf(man,pico),curva:tH&&tH.curva};
   return out;
 }
-function mtFxRow(ind,f){
+/* rema: % e alunos andam juntos. alvo = teto(% x base); % = alvo / base */
+var MTPCT={rema_contratual:1,rema_total:1};
+function mtNum(v){if(v==null)return null;v=String(v).replace(',','.').trim();if(v==='')return null;var n=+v;return isFinite(n)?n:null;}
+function mtAlvoDePct(p,b){return (p==null||!b)?null:Math.ceil(+(p/100*b).toFixed(6));}
+function mtPctDeAlvo(a,b){return (a==null||!b)?null:Math.round(a/b*10000)/100;}
+function mtPctTxt(p){return p==null?'':String(+(+p).toFixed(2)).replace('.',',')+'%';}
+function mtDeltaTxt(p,m){
+  if(p==null||m==null)return '';
+  var d=Math.round((p-m)*100)/100;
+  if(Math.abs(d)<0.005)return 'm\u00e9dia de 3 anos';
+  return 'm\u00e9dia '+(d>0?'+ ':'\u2212 ')+String(Math.abs(d)).replace('.',',')+' pt';
+}
+function mtFxTxt(f){return [f.pct!=null?mtPctTxt(f.pct):'',f.regra||''].filter(Boolean).join(' \u00b7 ');}
+function mtFxIn(el){
+  var row=el.closest('.mtfxrow');if(!row)return;
+  var k=row.dataset.ind;if(!MTPCT[k])return;
+  var b=mtNum($('mtBr_'+k).value),m=mtNum($('mtBm_'+k).value),fp=row.querySelector('.fp'),fa=row.querySelector('.fa'),fr=row.querySelector('.fr');
+  if(el===fr){row.dataset.auto=fr.value.trim()===''?'1':'0';return;}
+  if(el===fp){var a=mtAlvoDePct(mtNum(fp.value),b);fa.value=a==null?'':a;}
+  else if(el===fa){var p=mtPctDeAlvo(mtNum(fa.value),b);fp.value=p==null?'':p;}
+  if(row.dataset.auto==='1')fr.value=mtDeltaTxt(mtNum(fp.value),m);
+  mtCurvaPrev(k);
+}
+/* base mudou: o % fica, os alunos recalculam. media mudou: so o texto automatico */
+function mtBaseIn(k){
+  if(!MTPCT[k])return;
+  var b=mtNum($('mtBr_'+k).value),m=mtNum($('mtBm_'+k).value);
+  $('mtFx_'+k).querySelectorAll('.mtfxrow').forEach(function(row){
+    var fp=row.querySelector('.fp'),fa=row.querySelector('.fa'),fr=row.querySelector('.fr'),p=mtNum(fp.value);
+    if(p!=null){var a=mtAlvoDePct(p,b);fa.value=a==null?'':a;}
+    else{var q=mtPctDeAlvo(mtNum(fa.value),b);fp.value=q==null?'':q;}
+    if(row.dataset.auto==='1')fr.value=mtDeltaTxt(mtNum(fp.value),m);
+  });
+  mtCurvaPrev(k);
+}
+function mtFxRow(ind,f,media){
   f=f||{};
+  if(MTPCT[ind]){
+    var auto=!f.regra||f.regra===mtDeltaTxt(f.pct,media);
+    return '<div class="mtfxrow pc" data-ind="'+ind+'" data-auto="'+(auto?1:0)+'" oninput="mtFxIn(event.target)">'+
+      '<input type="number" class="fn" value="'+(f.nivel||'')+'" aria-label="N\u00edvel" placeholder="N\u00ba">'+
+      '<input type="number" step="0.01" class="fp" value="'+(f.pct==null?'':f.pct)+'" aria-label="Percentual" placeholder="%">'+
+      '<input type="number" class="fa" value="'+(f.alvo==null?'':f.alvo)+'" aria-label="Alunos" placeholder="Alunos">'+
+      '<input type="text" class="fr" value="'+esc(f.regra||'')+'" aria-label="Regra" placeholder="Regra">'+
+      '<input type="number" class="fv" value="'+(f.valor_rs==null?'':f.valor_rs)+'" aria-label="Comiss\u00e3o em reais" placeholder="R$">'+
+      '<button type="button" class="x" aria-label="Remover meta" onclick="var k=this.parentNode.dataset.ind;this.parentNode.remove();mtCurvaPrev(k)">\u00d7</button></div>';
+  }
   return '<div class="mtfxrow" data-ind="'+ind+'"><input type="number" class="fn" value="'+(f.nivel||'')+'" aria-label="N\u00edvel" placeholder="N\u00ba">'+
     '<input type="number" class="fa" value="'+(f.alvo==null?'':f.alvo)+'" aria-label="Alvo" placeholder="Alvo">'+
     '<input type="text" class="fr" value="'+esc(f.regra||'')+'" aria-label="Regra" placeholder="Regra (ex.: m\u00e9dia + 10%)">'+
@@ -13783,13 +13870,52 @@ function mtIndForm(p,nome){
   var ind=mtInd(p,nome)||{faixas:[]};
   var ref=nome==='matricula'?'\u00daltimo ano':(nome==='rema_contratual'?'Base contratual':'Pico anterior');
   return '<div class="sec">'+MTIND[nome]+' \u00b7 '+MTQUEM[nome]+'<span>Meta 1 \u00e9 a mais alcan\u00e7\u00e1vel</span></div>'+
-    '<div class="grid"><div class="f"><label>M\u00e9dia de 3 anos</label><input type="number" step="0.01" id="mtBm_'+nome+'" value="'+(ind.base_media==null?'':ind.base_media)+'"></div>'+
-    '<div class="f"><label>'+ref+'</label><input type="number" id="mtBr_'+nome+'" value="'+(ind.base_ref==null?'':ind.base_ref)+'"></div>'+
+    '<div class="grid"><div class="f"><label>M\u00e9dia de 3 anos'+(MTPCT[nome]?' (%)':'')+'</label><input type="number" step="0.01" id="mtBm_'+nome+'" value="'+(ind.base_media==null?'':ind.base_media)+'"'+(MTPCT[nome]?' oninput="mtBaseIn(\''+nome+'\')"':'')+'></div>'+
+    '<div class="f"><label>'+ref+'</label><input type="number" id="mtBr_'+nome+'" value="'+(ind.base_ref==null?'':ind.base_ref)+'"'+(MTPCT[nome]?' oninput="mtBaseIn(\''+nome+'\')"':'')+'></div>'+
     '<div class="f full"><label>Observa\u00e7\u00e3o</label><input type="text" id="mtOb_'+nome+'" value="'+esc(ind.obs||'')+'"></div></div>'+
-    '<div id="mtFx_'+nome+'" style="display:flex;flex-direction:column;gap:6px">'+(ind.faixas||[]).map(function(f){return mtFxRow(nome,f);}).join('')+'</div>'+
-    '<button type="button" class="dctl" style="align-self:flex-start" onclick="mtAddFx(\''+nome+'\')">+ Meta</button>';
+    (MTPCT[nome]?'<div class="mtfxhd"><span>N\u00ba</span><span>%</span><span>Alunos</span><span>Regra</span><span class="hv">R$</span><span></span></div>'
+                :'<div class="mtfxhd mt"><span>N\u00ba</span><span>Alvo</span><span>Regra</span><span>R$</span><span></span></div>')+
+    '<div id="mtFx_'+nome+'" style="display:flex;flex-direction:column;gap:6px">'+(ind.faixas||[]).map(function(f){return mtFxRow(nome,f,ind.base_media);}).join('')+'</div>'+
+    '<button type="button" class="dctl" style="align-self:flex-start" onclick="mtAddFx(\''+nome+'\')">+ Meta</button>'+
+    (MTPCT[nome]?mtCurvaForm(p,nome,ind):'');
 }
-function mtAddFx(nome){var c=$('mtFx_'+nome),n=c.children.length+1;c.insertAdjacentHTML('beforeend',mtFxRow(nome,{nivel:n}));}
+function mtAddFx(nome){var c=$('mtFx_'+nome),n=c.children.length+1;c.insertAdjacentHTML('beforeend',mtFxRow(nome,{nivel:n},mtNum($('mtBm_'+nome).value)));}
+/* ---- ritmo mensal da rema: % do periodo que sai em cada mes ---- */
+function mtMesesPer(p){var out=[],y=+p.inicio.slice(0,4),m=+p.inicio.slice(5,7);
+  for(var i=0;i<6;i++){var mm=m+i,yy=y+Math.floor((mm-1)/12);mm=(mm-1)%12+1;out.push(yy+'-'+(mm<10?'0':'')+mm+'-01');}return out;}
+function mtRitmo(alvo,curva){
+  if(alvo==null||!curva||!curva.length)return null;
+  var acc=0,cum=curva.map(function(c){acc+=(+c||0);return Math.round(alvo*acc/100);});
+  return cum.map(function(c,i){return i?c-cum[i-1]:c;});
+}
+function mtCurvaHist(p,k){
+  var mes=p.inicio.slice(4),S=(MT.d.semestres||[]).filter(function(s){return s.inicio.slice(4)===mes&&s.inicio<p.inicio&&s.mensal&&s.mensal.length;}).slice(-3);
+  if(!S.length)return null;
+  var sh=S.map(function(s){var v=s.mensal.map(function(x){return k==='rema_contratual'?(x.contratual||0):(x.contratual||0)+(x.automatica||0);}),t=v.reduce(function(a,b){return a+b;},0);
+    return v.map(function(x){return t?x/t*100:0;});});
+  var avg=[0,1,2,3,4,5].map(function(i){return Math.round(sh.reduce(function(a,s){return a+(s[i]||0);},0)/sh.length*10)/10;});
+  var r=Math.round((100-avg.reduce(function(a,b){return a+b;},0))*10)/10,j=avg.indexOf(Math.max.apply(null,avg));avg[j]=Math.round((avg[j]+r)*10)/10;
+  return {curva:avg,n:S.length,de:S[0].inicio,ate:S[S.length-1].inicio};
+}
+function mtCurvaForm(p,k,ind){
+  var ms=mtMesesPer(p),cv=ind.curva||[];
+  return '<div class="mtcurva"><div class="t">Ritmo mensal<span id="mtCvS_'+k+'"></span></div>'+
+    '<div class="mtmes">'+ms.map(function(m,i){return '<label>'+MTMES[+m.slice(5,7)-1]+' (%)<input type="number" step="0.1" class="cv" data-ind="'+k+'" value="'+(cv[i]==null?'':cv[i])+'" oninput="mtCurvaPrev(\''+k+'\')"></label>';}).join('')+'</div>'+
+    '<div class="pv" id="mtCvP_'+k+'"></div></div>';
+}
+function mtCurvaLer(k){var a=Array.prototype.map.call(document.querySelectorAll('.cv[data-ind="'+k+'"]'),function(i){return mtNum(i.value);});
+  return a.every(function(x){return x==null;})?null:a.map(function(x){return x||0;});}
+function mtCurvaPrev(k){
+  var pv=$('mtCvP_'+k),st=$('mtCvS_'+k);if(!pv)return;
+  var cv=mtCurvaLer(k),ms=mtMesesPer(mtPer());
+  if(!cv){st.textContent='sem curva';st.className='';pv.textContent='Preencha o % de cada m\u00eas ou use Sugerir pelas m\u00e9dias.';return;}
+  var soma=Math.round(cv.reduce(function(a,b){return a+b;},0)*10)/10;
+  st.textContent='soma '+String(soma).replace('.',',')+'%'+(Math.abs(soma-100)>0.05?' \u00b7 precisa fechar 100%':'');st.className=Math.abs(soma-100)>0.05?'bad':'';
+  var fx=Array.prototype.map.call($('mtFx_'+k).querySelectorAll('.mtfxrow'),function(r){return {n:r.querySelector('.fn').value,a:mtNum(r.querySelector('.fa').value)};}).filter(function(f){return f.a!=null;});
+  if(!fx.length){pv.textContent='';return;}
+  var lin=function(f){var r=mtRitmo(f.a,cv);return 'Meta '+f.n+' ('+mtN(f.a)+'): '+ms.map(function(m,i){return MTMES[+m.slice(5,7)-1]+' '+r[i];}).join(' \u00b7 ');};
+  pv.innerHTML=esc(lin(fx[0]))+(fx.length>1?'<br>'+esc(lin(fx[fx.length-1])):'');
+}
 function mtConfigurar(){
   var p=mtPer();if(!p)return;
   var meses=(p.meses||[]).map(function(m){var lb=MTMES[+m.mes.slice(5,7)-1];
@@ -13804,13 +13930,17 @@ function mtConfigurar(){
     '<div class="sec">Ritmo mensal de matr\u00edcula<span>s\u00f3 acompanhamento \u00b7 Meta 1 e \u00faltima meta</span></div><div class="mtmes">'+meses+'</div></div>',
     '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtCfSv">Salvar</button>');
   $('mtCfSv').onclick=mtSalvarConfig;
+  mtCurvaPrev('rema_contratual');mtCurvaPrev('rema_total');
 }
 function mtAplicarSugestao(){
   var p=mtPer(),s=mtSugerir(p),n=0;
   ['matricula','rema_contratual','rema_total'].forEach(function(k){
     var x=s[k];if(!x)return;n++;
     $('mtBm_'+k).value=x.base_media;$('mtBr_'+k).value=x.base_ref;
-    $('mtFx_'+k).innerHTML=x.faixas.map(function(f){return mtFxRow(k,f);}).join('');
+    var vr={};$('mtFx_'+k).querySelectorAll('.mtfxrow').forEach(function(r){var v=r.querySelector('.fv').value;if(v!=='')vr[r.querySelector('.fn').value]=v;});
+    $('mtFx_'+k).innerHTML=x.faixas.map(function(f){if(vr[f.nivel]!=null)f.valor_rs=vr[f.nivel];return mtFxRow(k,f,x.base_media);}).join('');
+    if(x.curva)document.querySelectorAll('.cv[data-ind="'+k+'"]').forEach(function(inp,i){inp.value=x.curva[i]==null?'':x.curva[i];});
+    mtCurvaPrev(k);
   });
   toast(n?'Metas sugeridas pelas m\u00e9dias. Revise antes de salvar.':'Sem hist\u00f3rico suficiente para sugerir.');
 }
@@ -13818,10 +13948,16 @@ async function mtSalvarConfig(){
   var p=mtPer(),bt=$('mtCfSv');bt.disabled=true;bt.textContent='Salvando\u2026';
   var inds=['matricula','rema_contratual','rema_total'].map(function(k){
     var fx=Array.prototype.map.call($('mtFx_'+k).querySelectorAll('.mtfxrow'),function(r,i){return {
-      nivel:r.querySelector('.fn').value||String(i+1),alvo:r.querySelector('.fa').value,regra:r.querySelector('.fr').value,valor_rs:r.querySelector('.fv').value};})
+      nivel:r.querySelector('.fn').value||String(i+1),alvo:r.querySelector('.fa').value,pct:r.querySelector('.fp')?r.querySelector('.fp').value:'',
+      regra:r.querySelector('.fr').value,valor_rs:r.querySelector('.fv').value};})
       .filter(function(f){return f.alvo!=='';});
-    return {indicador:k,base_media:$('mtBm_'+k).value,base_ref:$('mtBr_'+k).value,obs:$('mtOb_'+k).value,faixas:fx};
+    var o={indicador:k,base_media:$('mtBm_'+k).value,base_ref:$('mtBr_'+k).value,obs:$('mtOb_'+k).value,faixas:fx};
+    if(MTPCT[k])o.curva=mtCurvaLer(k);
+    return o;
   });
+  var cvBad=['rema_contratual','rema_total'].filter(function(k){var c=inds.find(function(i){return i.indicador===k;}).curva;
+    return c&&Math.abs(c.reduce(function(a,b){return a+b;},0)-100)>0.05;});
+  if(cvBad.length)toast('Aviso: o ritmo mensal de '+cvBad.map(function(k){return MTIND[k].toLowerCase();}).join(' e ')+' n\u00e3o fecha 100%. Salvo assim mesmo.');
   var meses=(p.meses||[]).map(function(m){
     var r1=document.querySelector('.r1[data-mes="'+m.mes+'"]'),ru=document.querySelector('.ru[data-mes="'+m.mes+'"]');
     return {mes:m.mes,ritmo_1:r1?r1.value:'',ritmo_ult:ru?ru.value:'',ajuste:m.ajuste==null?'':String(m.ajuste)};
