@@ -13341,7 +13341,7 @@ async function acAgendaRemover(a){
    Número realizado é um só: matrícula soma os leads em fechado, com ajuste manual
    por mês; rema soma o status de cada aluno (upload do Box + marcação da secretaria). */
 var MT={d:null,pid:null,view:'matricula',lista:[],listaPid:null,fOpen:false,
-  f:{q:'',tipo:'',st:{pendente:1,negociacao:1},prof:'',curso:''},up:null};
+  f:{q:'',tipo:'',st:{pendente:1,negociacao:1},prof:'',curso:'',resp:''},up:null};
 var MTMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var MTST={pendente:'Pendente',realizada:'Rematriculado',nao_renova:'N\u00e3o vai renovar',trancou:'Trancou',negociacao:'Em negocia\u00e7\u00e3o'};
 var MTIND={matricula:'Matr\u00edcula',rema_contratual:'Rema contratual',rema_total:'Rema total'};
@@ -13569,7 +13569,7 @@ function mtRema(p){
       '<span class="sub">'+(imp?'relat\u00f3rio do Box '+esc(imp.gerado||'')+' \u00b7 importado por '+esc(imp.por||''):'')+'</span></div>'+
       '<div class="top"><input class="q" type="search" id="mtQ" placeholder="Buscar aluno, turma ou professor" aria-label="Buscar aluno, turma ou professor" value="'+esc(MT.f.q)+'" oninput="MT.f.q=this.value;mtRenderLista()">'+
       '<button class="btn" type="button" onclick="mtToggleFiltro()">Filtros<span class="mtfbadge" id="mtFN"></span></button><div id="mtFP"></div></div>'+
-      '<div class="mtpills" id="mtPills"></div><div id="mtLista"></div></section>';
+      '<div id="mtResp" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 4px"></div><div class="mtpills" id="mtPills"></div><div id="mtLista"></div></section>';
   }else if(mtPodeMetas()){
     h+='<div class="mtempty"><span>Para trabalhar aluno a aluno, suba o relat\u00f3rio do Box deste per\u00edodo.</span><button class="btn primary" type="button" onclick="mtUpload()">Subir relat\u00f3rio (.xlsx)</button></div>';
   }
@@ -13627,11 +13627,25 @@ function mtFiltrada(){
     if(temSt&&!f.st[a.status])return false;
     if(f.prof&&a.professor!==f.prof)return false;
     if(f.curso&&a.curso!==f.curso)return false;
-    if(q&&((a.aluno||'')+' '+(a.turma||'')+' '+(a.professor||'')).toLowerCase().indexOf(q)<0)return false;
+    if(f.resp&&(f.resp==='__sem'?!!a.responsavel_id:a.responsavel_id!==f.resp))return false;
+    if(q&&((a.aluno||'')+' '+(a.turma||'')+' '+(a.professor||'')+' '+(a.responsavel||'')).toLowerCase().indexOf(q)<0)return false;
     return true;
   });
 }
-function mtNFiltros(){var f=MT.f;return (f.tipo?1:0)+(Object.keys(f.st).length?1:0)+(f.prof?1:0)+(f.curso?1:0);}
+function mtNFiltros(){var f=MT.f;return (f.tipo?1:0)+(Object.keys(f.st).length?1:0)+(f.prof?1:0)+(f.curso?1:0)+(f.resp?1:0);}
+/* responsáveis pelo contato (divisão da lista em crm_metas_config rema_divisao, gravada por aluno no banco) */
+function mtResps(){var o={},l=[];MT.lista.forEach(function(a){if(a.responsavel_id&&!o[a.responsavel_id]){o[a.responsavel_id]=1;l.push({id:a.responsavel_id,nome:a.responsavel||''});}});return l;}
+function mtRespNome(id){if(id==='__sem')return 'Sem respons\u00e1vel';var r=mtResps().find(function(x){return x.id===id;});return r?r.nome:'';}
+function mtRespSeg(){
+  var el=$('mtResp');if(!el)return;var rs=mtResps();
+  if(!rs.length){el.innerHTML='';return;}
+  var L=MT.lista,pend=function(a){return a.status==='pendente'||a.status==='negociacao';};
+  var b=function(v,lb,fn){var n=L.filter(fn),p=n.filter(pend).length;
+    return '<button type="button" class="'+(MT.f.resp===v?'on':'')+'" onclick="mtFiltroSet(\'resp\',\''+v+'\')" title="'+mtN(p)+' pendentes de '+mtN(n.length)+'">'+esc(lb)+' <span style="opacity:.75">'+mtN(p)+'/'+mtN(n.length)+'</span></button>';};
+  var h=b('','Todos',function(){return true;})+rs.map(function(r){return b(r.id,String(r.nome).split(' ')[0],function(a){return a.responsavel_id===r.id;});}).join('');
+  if(L.some(function(a){return !a.responsavel_id;}))h+=b('__sem','Sem respons\u00e1vel',function(a){return !a.responsavel_id;});
+  el.innerHTML='<span class="mtlab" style="align-self:center">Respons\u00e1vel pelo contato \u00b7 pendentes/total</span><div class="mtseg" style="flex-wrap:wrap">'+h+'</div>';
+}
 function mtToggleFiltro(){MT.fOpen=!MT.fOpen;mtRenderLista();}
 function mtFiltroSet(k,v,on){
   if(k==='st'){if(on)MT.f.st[v]=1;else delete MT.f.st[v];}else MT.f[k]=v;
@@ -13650,7 +13664,7 @@ function mtRenderLista(){
     $('mtFP').innerHTML='<div class="mtfpan"><fieldset><span class="mtlab">Tipo</span>'+rt('','Todos')+rt('automatica','Autom\u00e1tica')+rt('contratual','Contratual')+'</fieldset>'+
       '<fieldset><span class="mtlab">Status</span>'+['pendente','negociacao','realizada','nao_renova','trancou'].map(ck).join('')+'</fieldset>'+
       '<fieldset><span class="mtlab">Mais</span>'+sl('professor','prof','Professor')+sl('curso','curso','Curso')+'</fieldset>'+
-      '<div style="display:flex;justify-content:space-between;gap:8px"><button class="btn" type="button" onclick="MT.f={q:MT.f.q,tipo:\'\',st:{},prof:\'\',curso:\'\'};mtRenderLista()">Limpar</button>'+
+      '<div style="display:flex;justify-content:space-between;gap:8px"><button class="btn" type="button" onclick="MT.f={q:MT.f.q,tipo:\'\',st:{},prof:\'\',curso:\'\',resp:\'\'};mtRenderLista()">Limpar</button>'+
       '<button class="btn primary" type="button" onclick="mtToggleFiltro()">Aplicar</button></div></div>';
   }else $('mtFP').innerHTML='';
   var pills=[];
@@ -13658,6 +13672,8 @@ function mtRenderLista(){
   Object.keys(MT.f.st).forEach(function(s){pills.push(['st:'+s,'Status: '+MTST[s]]);});
   if(MT.f.prof)pills.push(['prof','Professor: '+MT.f.prof]);
   if(MT.f.curso)pills.push(['curso','Curso: '+MT.f.curso]);
+  if(MT.f.resp)pills.push(['resp','Respons\u00e1vel: '+mtRespNome(MT.f.resp)]);
+  mtRespSeg();
   var R=mtFiltrada();
   $('mtPills').innerHTML=pills.map(function(x){return '<span class="mtpill">'+esc(x[1])+'<button type="button" aria-label="Remover filtro '+esc(x[1])+'" onclick="mtTiraFiltro(\''+x[0]+'\')">\u00d7</button></span>';}).join('')+
     '<span class="sub mtgray" style="font-size:12px">'+mtN(R.length)+' de '+mtN(L.length)+' alunos</span>';
@@ -13668,13 +13684,13 @@ function mtRenderLista(){
   var rows=R.slice(0,600).map(function(a){
     var ult=a.alterado_por?esc(a.alterado_por)+(a.alterado_em?' \u00b7 '+mtDBR(a.alterado_em):''):'\u00b7';
     return '<tr><td><b>'+esc(a.aluno)+'</b></td><td>'+esc(a.turma||'')+'</td><td>'+esc(a.estagio||'')+'</td><td>'+esc(a.professor||'')+'</td>'+
-      '<td>'+(a.tipo==='contratual'?'Contratual':'Autom\u00e1tica')+'</td><td><span class="mtst '+a.status+'">'+MTST[a.status]+'</span>'+(a.motivo?'<div class="sub" style="font-size:11px;color:var(--gray)">'+esc(a.motivo)+'</div>':'')+'</td>'+
+      '<td>'+(a.tipo==='contratual'?'Contratual':'Autom\u00e1tica')+'</td><td>'+esc(a.responsavel?String(a.responsavel).split(' ')[0]:'\u00b7')+'</td><td><span class="mtst '+a.status+'">'+MTST[a.status]+'</span>'+(a.motivo?'<div class="sub" style="font-size:11px;color:var(--gray)">'+esc(a.motivo)+'</div>':'')+'</td>'+
       '<td class="mtgray" style="font-size:12px">'+ult+'</td>'+
       '<td><div class="mtact"><button type="button" class="up" title="Rematr\u00edcula realizada" aria-label="Rematr\u00edcula realizada"'+(pode&&a.status!=='realizada'?'':' disabled')+' onclick="mtMarcar(\''+a.id+'\',\'realizada\')">'+up+'</button>'+
       '<button type="button" class="dn" title="N\u00e3o vai renovar" aria-label="N\u00e3o vai renovar"'+(pode?'':' disabled')+' onclick="mtNaoRenova(\''+a.id+'\')">'+dn+'</button>'+
       '<button type="button" title="Mais op\u00e7\u00f5es" aria-label="Mais op\u00e7\u00f5es"'+(pode?'':' disabled')+' onclick="mtMais(\''+a.id+'\')">'+mais+'</button></div></td></tr>';}).join('');
-  $('mtLista').innerHTML='<div class="rtabw"><table class="mttab"><thead><tr><th>Aluno</th><th>Turma</th><th>Est\u00e1gio</th><th>Professor</th><th>Tipo</th><th>Status</th><th>\u00daltima altera\u00e7\u00e3o</th><th>A\u00e7\u00e3o</th></tr></thead><tbody>'+
-    (rows||'<tr><td colspan="8" class="mtgray" style="text-align:center">Nenhum aluno com esses filtros.</td></tr>')+'</tbody></table></div>';
+  $('mtLista').innerHTML='<div class="rtabw"><table class="mttab"><thead><tr><th>Aluno</th><th>Turma</th><th>Est\u00e1gio</th><th>Professor</th><th>Tipo</th><th>Respons\u00e1vel</th><th>Status</th><th>\u00daltima altera\u00e7\u00e3o</th><th>A\u00e7\u00e3o</th></tr></thead><tbody>'+
+    (rows||'<tr><td colspan="9" class="mtgray" style="text-align:center">Nenhum aluno com esses filtros.</td></tr>')+'</tbody></table></div>';
 }
 function mtTiraFiltro(k){
   if(k.indexOf('st:')===0)delete MT.f.st[k.slice(3)];else MT.f[k]='';
