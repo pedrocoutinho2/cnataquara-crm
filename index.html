@@ -13636,6 +13636,21 @@ function mtNFiltros(){var f=MT.f;return (f.tipo?1:0)+(Object.keys(f.st).length?1
 /* responsáveis pelo contato (divisão da lista em crm_metas_config rema_divisao, gravada por aluno no banco) */
 function mtResps(){var o={},l=[];MT.lista.forEach(function(a){if(a.responsavel_id&&!o[a.responsavel_id]){o[a.responsavel_id]=1;l.push({id:a.responsavel_id,nome:a.responsavel||''});}});return l;}
 function mtRespNome(id){if(id==='__sem')return 'Sem respons\u00e1vel';var r=mtResps().find(function(x){return x.id===id;});return r?r.nome:'';}
+function mtRespOpts(sel){
+  var rs=mtResps(),ids={},h='<option value="">Sem respons\u00e1vel</option>';
+  rs.forEach(function(r){ids[r.id]=1;h+='<option value="'+r.id+'"'+(r.id===sel?' selected':'')+'>'+esc(r.nome)+'</option>';});
+  var outros=(USERS||[]).filter(function(u){return !ids[u.id];});
+  if(outros.length)h+='<optgroup label="Outras pessoas da unidade">'+outros.map(function(u){return '<option value="'+u.id+'"'+(u.id===sel?' selected':'')+'>'+esc(u.nome)+'</option>';}).join('')+'</optgroup>';
+  return h;
+}
+async function mtRespRpc(id,resp){
+  try{
+    await mtRpc('rema_responsavel',{p_id:id,p_responsavel:resp||null});
+    var a=MT.lista.find(function(x){return x.id===id;});
+    if(a){a.responsavel_id=resp||null;var u=(USERS||[]).find(function(x){return x.id===resp;})||mtResps().find(function(x){return x.id===resp;});a.responsavel=resp&&u?u.nome:null;}
+    return true;
+  }catch(e){var k=mtErro(e);toast(String(e&&e.message||e).indexOf('responsavel_fora_da_unidade')>-1?'Essa pessoa n\u00e3o est\u00e1 ativa nesta unidade.':mtMsgErro(k));return false;}
+}
 function mtRespSeg(){
   var el=$('mtResp');if(!el)return;var rs=mtResps();
   if(!rs.length){el.innerHTML='';return;}
@@ -13733,13 +13748,21 @@ function mtMais(id){
     '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">'+op+'</div><div class="grid">'+
     '<div class="f full" id="mtMotW" style="'+(a.status==='nao_renova'?'':'display:none')+'"><label>Motivo <b class="req">*</b></label><select id="mtMot">'+mtMotivosHTML(a.motivo)+'</select></div>'+
     '<div class="f"><label>Data</label><input type="date" id="mtDt" value="'+hojeISO()+'"></div>'+
+    '<div class="f"><label>Respons\u00e1vel pelo contato</label><select id="mtResp1">'+mtRespOpts(a.responsavel_id)+'</select></div>'+
     '<div class="f full"><label>Observa\u00e7\u00e3o</label><textarea id="mtObs" rows="3">'+esc(a.obs||'')+'</textarea></div></div>',
     '<button class="btn" type="button" onclick="uiModalClose()">Cancelar</button><button class="btn primary" type="button" id="mtSv">Salvar</button>');
   $('mtSv').onclick=async function(){
     var r=document.querySelector('input[name=mtSt]:checked'),st=r?r.value:a.status,m=$('mtMot').value;
     if(st==='nao_renova'&&!m){$('mtMot').classList.add('need');toast('Escolha o motivo.');return;}
+    var rv=$('mtResp1').value,mudouResp=rv!==(a.responsavel_id||''),ob=$('mtObs').value;
+    /* troca s\u00f3 do respons\u00e1vel n\u00e3o regrava status, data nem \u00faltima altera\u00e7\u00e3o */
+    var mudouSt=st!==a.status||(st==='nao_renova'&&m!==(a.motivo||''))||ob!==(a.obs||'')||$('mtDt').value!==hojeISO();
     this.disabled=true;this.textContent='Salvando\u2026';
-    if(await mtMarcarRpc(id,st,m,$('mtDt').value,$('mtObs').value)){uiModalClose();toast('Status atualizado.');}
+    var ok=true;
+    if(mudouResp)ok=await mtRespRpc(id,rv);
+    if(ok&&mudouSt)ok=await mtMarcarRpc(id,st,m,$('mtDt').value,ob);
+    else if(ok&&mudouResp)mtRender();
+    if(ok){uiModalClose();toast(mudouResp&&!mudouSt?'Respons\u00e1vel atualizado.':(mudouSt?'Status atualizado.':'Nada mudou.'));}
     else{this.disabled=false;this.textContent='Salvar';}
   };
 }
