@@ -387,8 +387,16 @@ Versionadas em `supabase/functions/<nome>/index.ts`, mesmo padrão do repo
 | função | `verify_jwt` | quem chama |
 |---|---|---|
 | `wa-webhook` | **false** | Meta Cloud API |
-| `wa-send` | true | front, 3682 e 3815 |
-| `wa-media` | true | front, 3702 |
+| `wa-evolution-webhook` | **false** | Evolution (header `x-cna-token` = secret `EVO_TOKEN_*` da conta; falha fechado) |
+| `wa-send` | true | front (`waEnviar`, `waFilaEnviar`); v2 exige `token` de sessão no corpo |
+| `wa-media` | true | front (`waMidia`); v2 exige `token` de sessão no corpo |
+
+Desde 03/11/2026 (W3) `waFn` manda o token de sessão (`sessTok()`) no corpo e as Edge Functions
+validam com `crm_wa_sessao` (service role): unidade e autor vêm da sessão, nunca do cliente.
+A caixa de entrada não lê mais as `crm_wa_*` pelo PostgREST: tudo passa por `waRpc` (RPCs do W1b).
+Transporte por conta em `crm_wa_contas.provider`: `evolution` (sem janela de 24h e sem template)
+ou `cloud`. Secrets: `EVO_URL` (opcional, padrão `https://evo.cnataquara.com.br`), `EVO_TOKEN_*`
+e `WA_TOKEN_*` apontados por `token_ref`.
 | `ata-analisar` | **false** | front, 9270 |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud

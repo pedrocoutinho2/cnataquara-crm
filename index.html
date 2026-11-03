@@ -957,6 +957,8 @@ input[type=date].dvazio{color:#C9C9CE}
 .waj{font-size:11px;padding:2px 8px;border-radius:var(--r-pill);white-space:nowrap}
 .waj.ok{background:var(--okBg);color:var(--ok)}
 .waj.off{background:var(--dangerBg);color:var(--danger)}
+.waselo{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:var(--r-pill);background:var(--pastelBlue);color:var(--blue);margin-top:3px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.wacontasel{margin-left:auto;border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:3px 8px;font:inherit;font-size:12px;color:var(--gray);max-width:45%}
 .wamsgs{flex:1;min-height:0;overflow-y:auto;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
 .wam{max-width:74%;padding:8px 11px;border-radius:var(--r-lg);font-size:13.5px;line-height:1.45;box-shadow:var(--shadow-1);word-wrap:break-word;white-space:pre-wrap}
 .wam.ent{background:var(--white);align-self:flex-start;border-top-left-radius:var(--s1)}
@@ -4275,13 +4277,13 @@ $('csv').onclick=function(){
 
 /* ================= Conversas (WhatsApp) ================= */
 function FUNCS(){return SUPA_URL+'/functions/v1';}
-const WA={conta:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
+const WA={contas:[],contaSel:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
 
 function waFn(nome,body){
   return fetch(FUNCS()+'/'+nome,{
     method:'POST',
     headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
-    body:JSON.stringify(body||{})
+    body:JSON.stringify(Object.assign({token:sessTok()},body||{}))
   }).then(function(r){
     return r.text().then(function(t){
       let j={};try{j=t?JSON.parse(t):{};}catch(_){}
@@ -4291,6 +4293,19 @@ function waFn(nome,body){
   });
 }
 function meuId(){const u=USERS.find(function(x){return x.nome===currentUser;});return u?u.id:null;}
+/* caixa de entrada só por RPC com token: a RLS das crm_wa_* não tem policy para anon */
+function waRpc(nome,args){
+  return api('/rpc/'+nome,{method:'POST',body:JSON.stringify(Object.assign({p_token:sessTok()},args||{}))});
+}
+function waErro(e,padrao){
+  const t=String((e&&(e.codigo||e.message))||e||'');
+  if(t.indexOf('sessao_invalida')>-1)return 'Sua sessão expirou. Saia e entre de novo.';
+  if(t.indexOf('sem_permissao')>-1)return 'Seu acesso a Conversas não permite esta ação.';
+  if(t.indexOf('optout')>-1)return 'Este contato pediu para não receber mensagens.';
+  return padrao;
+}
+function waEvo(c){return !!c&&c.conta_provider==='evolution';}
+function waTemCloud(){return WA.contas.some(function(x){return x.provider!=='evolution';});}
 
 function waFmtNum(n){
   const d=String(n==null?'':n).replace(/\D/g,'').replace(/^55/,'');
@@ -4304,6 +4319,7 @@ function waNome(c){
   return waFmtNum(c.numero_e164||c.wa_id);
 }
 function waJanela(c){
+  if(waEvo(c))return {aberta:true,evo:true,txt:''};
   const ms=c.janela_expira_em?(new Date(c.janela_expira_em).getTime()-Date.now()):-1;
   if(ms<=0)return {aberta:false,txt:'Janela fechada'};
   const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);
@@ -4337,20 +4353,22 @@ const WASTATUS={pendente:'enviando...',enviado:'enviado',entregue:'entregue',lid
 async function openConversas(){
   $('stats').innerHTML='';
   $('board').innerHTML='<div class="loading">Carregando conversas...</div>';
-  try{
-    const c=await api('/crm_wa_contas?select=*&ativa=is.true&limit=1');
-    WA.conta=(c&&c[0])||null;
-  }catch(e){WA.conta=null;}
-  if(!WA.conta){
+  let p=null;
+  try{p=await waRpc('crm_wa_painel');}
+  catch(e){
+    $('board').innerHTML='<div class="pane"><div class="loading">'+esc(waErro(e,'Não foi possível abrir as conversas.'))+'</div></div>';
+    return;
+  }
+  WA.contas=(p&&p.contas)||[];
+  WA.templates=(p&&p.templates)||[];
+  if(WA.contaSel&&!WA.contas.some(function(c){return c.id===WA.contaSel;}))WA.contaSel=null;
+  if(!WA.contas.length){
     $('board').innerHTML='<div class="pane"><div class="loading">'
-      +'Nenhum número de WhatsApp cadastrado ainda.<br><br>'
-      +'A integração está pronta no banco e nas funções de envio. Falta registrar o número da Meta Cloud API em <b>crm_wa_contas</b> para as conversas começarem a aparecer aqui.'
+      +'Nenhum número de WhatsApp ativo em '+esc(UN().nome)+'.<br><br>'
+      +'Quando o número da unidade for conectado e ativado, as conversas aparecem aqui.'
       +'</div></div>';
     return;
   }
-  try{
-    WA.templates=await api('/crm_wa_templates?select=*&status=eq.aprovado&order=nome.asc');
-  }catch(e){WA.templates=[];}
   await waFila();
   await waCarregar(true);
   waStartPoll();
@@ -4358,8 +4376,7 @@ async function openConversas(){
 
 async function waCarregar(render){
   try{
-    WA.conversas=await api('/crm_wa_conversas?select=*,lead:crm_leads(id,nome,etapa,responsavel)'
-      +'&order=ultima_mensagem_em.desc.nullslast&limit=300');
+    WA.conversas=(await waRpc('crm_wa_conversas_listar',{p_conta_id:WA.contaSel||null,p_limite:300}))||[];
   }catch(e){
     if(render)$('board').innerHTML='<div class="pane"><div class="loading">Não foi possível carregar as conversas.</div></div>';
     return;
@@ -4375,7 +4392,7 @@ async function waCarregar(render){
 
 async function waMsgs(id){
   try{
-    WA.msgs=await api('/crm_wa_mensagens?select=*&conversa_id=eq.'+id+'&order=wa_timestamp.asc&limit=400');
+    WA.msgs=(await waRpc('crm_wa_mensagens_listar',{p_conversa_id:id,p_limite:400}))||[];
   }catch(e){WA.msgs=[];}
 }
 
@@ -4423,10 +4440,14 @@ function renderConversas(){
       +'</div>';
   }
   h+='<div class="wafiltros">'
-    +['todas|Todas','nao|Não lidas','minhas|Minhas','abertas|Janela aberta'].map(function(o){
+    +['todas|Todas','nao|Não lidas','minhas|Minhas'].concat(waTemCloud()?['abertas|Janela aberta']:[]).map(function(o){
       const p=o.split('|');
       return '<button data-f="'+p[0]+'"'+(WA.filtro===p[0]?' class="on"':'')+'>'+p[1]+'</button>';
-    }).join('')+'</div>';
+    }).join('')
+    +(WA.contas.length>1?'<select class="wacontasel" id="waconta" aria-label="Número"><option value="">Todos os números</option>'
+      +WA.contas.map(function(c){return '<option value="'+esc(c.id)+'"'+(WA.contaSel===c.id?' selected':'')+'>'+esc(c.rotulo||waFmtNum(c.numero_e164))+'</option>';}).join('')
+      +'</select>':'')
+    +'</div>';
   h+='<div class="wascroll">';
   if(!lista.length){
     h+='<div class="wavazio">Nenhuma conversa por aqui ainda.</div>';
@@ -4436,9 +4457,10 @@ function renderConversas(){
       h+='<div class="wai'+(c.id===WA.sel?' on':'')+'" data-c="'+c.id+'">'
         +'<span class="av" style="background:'+waCor(n)+'">'+esc(n[0]||'?').toUpperCase()+'</span>'
         +'<span class="mid"><span class="n">'+esc(n)+'</span>'
-        +'<span class="p">'+esc(c.ultima_previa||'Sem mensagens')+'</span></span>'
+        +'<span class="p">'+esc(c.ultima_previa||'Sem mensagens')+'</span>'
+        +(WA.contas.length>1?'<span class="waselo">'+esc(c.conta_rotulo||waFmtNum(c.conta_numero))+'</span>':'')+'</span>'
         +'<span class="r"><span class="t">'+esc(waQuando(c.ultima_mensagem_em))+'</span>'
-        +(c.nao_lidas?'<span class="nl">'+c.nao_lidas+'</span>':(j.aberta?'<span class="waj ok">24h</span>':''))
+        +(c.nao_lidas?'<span class="nl">'+c.nao_lidas+'</span>':(j.aberta&&!j.evo?'<span class="waj ok">24h</span>':''))
         +'</span></div>';
     });
   }
@@ -4456,7 +4478,7 @@ function renderConversas(){
       +'<button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
       +'<div style="flex:1;min-width:0"><b>'+esc(n)+'</b>'
       +'<div class="sub">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))+'</div></div>'
-      +'<span class="waj '+(j.aberta?'ok':'off')+'">'+esc(j.txt)+'</span>'
+      +(j.evo?(WA.contas.length>1?'<span class="waselo">'+esc(sel.conta_rotulo||'')+'</span>':''):'<span class="waj '+(j.aberta?'ok':'off')+'">'+esc(j.txt)+'</span>')
       +(sel.lead_id?'<button class="walead" id="wafichabtn">Abrir ficha</button>':'<button class="walead" id="wanovolead">Criar lead</button>')
       +'</div>';
     if(sel.lead_ambiguo){
@@ -4488,9 +4510,10 @@ function renderConversas(){
         +'<button class="btn primary" id="wasend">Enviar</button></div>';
     }else{
       h+='<div class="wafechada">A janela de 24 horas fechou. Fora dela o WhatsApp só entrega template aprovado.';
-      if(WA.templates.length){
+      const tpls=WA.templates.filter(function(t){return !t.conta_id||t.conta_id===sel.conta_id;});
+      if(tpls.length){
         h+='<select id="watpl"><option value="">Escolha um template aprovado</option>'
-          +WA.templates.map(function(t){return '<option value="'+esc(t.nome)+'">'+esc(t.nome)+(t.corpo?' · '+esc(t.corpo.slice(0,50)):'')+'</option>';}).join('')
+          +tpls.map(function(t){return '<option value="'+esc(t.nome)+'">'+esc(t.nome)+(t.corpo?' · '+esc(t.corpo.slice(0,50)):'')+'</option>';}).join('')
           +'</select>'
           +'<div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="wasendtpl">Enviar template</button></div>';
       }else{
@@ -4511,6 +4534,8 @@ function waLigar(){
   const sug=$('wasugbar');
   if(sug)sug.onclick=function(){WA.sel='__fila__';WA.msgs=[];renderConversas();};
   waLigarFila();
+  const wc=$('waconta');
+  if(wc)wc.onchange=function(){WA.contaSel=wc.value||null;WA.sel=null;WA.msgs=[];waCarregar(true);};
   document.querySelectorAll('.wafiltros button').forEach(function(b){
     b.onclick=function(){WA.filtro=b.dataset.f;renderConversas();};
   });
@@ -4554,7 +4579,7 @@ async function waAbrir(id){
   const c=WA.conversas.find(function(x){return x.id===id;});
   if(c&&c.nao_lidas){
     c.nao_lidas=0;
-    api('/crm_wa_conversas?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nao_lidas:0,atendente_id:meuId()})}).catch(function(){});
+    waRpc('crm_wa_conversa_abrir',{p_conversa_id:id}).catch(function(){});
     waBadge();
   }
   renderConversas();
@@ -4574,14 +4599,13 @@ async function waEnviar(template){
     await waFn('wa-send',{
       conversa_id:c.id,
       texto:template?null:corpo,
-      template:template||null,
-      autor_id:meuId()
+      template:template||null
     });
     if(txt)txt.value='';
     await waCarregar();
   }catch(e){
     if(e.codigo==='janela_fechada')toast('A janela de 24 horas fechou. Use um template.');
-    else toast('Não foi possível enviar: '+(e.message||e));
+    else toast(waErro(e,'Não foi possível enviar: '+(e.message||e)));
     await waCarregar();
   }finally{
     WA.enviando=false;
@@ -4623,7 +4647,7 @@ async function waCriarLead(){
     })});
     const novo=r&&r[0];
     if(novo){
-      await api('/crm_wa_conversas?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify({lead_id:novo.id})});
+      await waRpc('crm_wa_conversa_vincular_lead',{p_conversa_id:c.id,p_lead_id:novo.id});
       DATA.leads=null;
       await waCarregar(false);
       toast('Lead criado. Complete a ficha.');
@@ -4636,17 +4660,15 @@ async function waCriarLead(){
 /* mantém o contador da aba vivo mesmo fora das Conversas */
 setInterval(function(){
   if(!currentUser||tab==='conversas'||document.hidden)return;
-  api('/crm_wa_conversas?select=nao_lidas&nao_lidas=gt.0').then(function(r){
-    setNavBadge((r||[]).reduce(function(a,c){return a+(c.nao_lidas||0);},0));
-  }).catch(function(){});
+  if(!sessTok())return;
+  waRpc('crm_wa_nao_lidas').then(function(n){setNavBadge(Number(n)||0);}).catch(function(){});
 },60000);
 
 
 /* ---- fila de sugestoes ---- */
 async function waFila(){
   try{
-    WA.fila=await api('/crm_wa_fila?select=*,lead:crm_leads(id,nome,whatsapp),regra:crm_wa_regras(chave,nome,categoria)'
-      +'&status=eq.sugerido&order=agendado_para.asc&limit=100');
+    WA.fila=(await waRpc('crm_wa_fila_listar',{p_limite:100}))||[];
   }catch(e){WA.fila=[];}
 }
 
@@ -4693,9 +4715,9 @@ async function waFilaEnviar(id,btn){
   btn.disabled=true;btn.textContent='Enviando...';
   const ta=$('ft'+id);
   const corpo=ta?ta.value.trim():'';
-  const body={autor_id:meuId()};
+  const body={};
   if(f.conversa_id)body.conversa_id=f.conversa_id;
-  else body.wa_id=(f.lead&&f.lead.whatsapp)||f.wa_chave;
+  else{body.wa_id=(f.lead&&f.lead.whatsapp)||f.wa_chave;if(WA.contaSel)body.conta_id=WA.contaSel;}
   if(f.template_nome){
     body.template=f.template_nome;
     body.variaveis=f.variaveis||[];
@@ -4705,23 +4727,18 @@ async function waFilaEnviar(id,btn){
   }
   try{
     const r=await waFn('wa-send',body);
-    await api('/crm_wa_fila?id=eq.'+id,{method:'PATCH',body:JSON.stringify({
-      status:'enviado',decidido_por:currentUser,decidido_em:new Date().toISOString(),
-      mensagem_id:r.mensagem_id||null
-    })});
+    await waRpc('crm_wa_fila_decidir',{p_id:id,p_status:'enviado',p_mensagem_id:r.mensagem_id||null});
     toast('Mensagem enviada.');
     await waFila();await waCarregar();
   }catch(e){
-    toast('Não foi possível enviar: '+(e.message||e));
+    toast(waErro(e,'Não foi possível enviar: '+(e.message||e)));
     btn.disabled=false;btn.textContent='Enviar';
   }
 }
 
 async function waFilaDescartar(id){
   try{
-    await api('/crm_wa_fila?id=eq.'+id,{method:'PATCH',body:JSON.stringify({
-      status:'descartado',decidido_por:currentUser,decidido_em:new Date().toISOString()
-    })});
+    await waRpc('crm_wa_fila_decidir',{p_id:id,p_status:'descartado'});
     await waFila();renderConversas();
   }catch(e){toast('Não foi possível descartar.');}
 }
