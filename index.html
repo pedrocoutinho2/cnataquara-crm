@@ -426,6 +426,24 @@ body.sideMin .sfoot .btn{width:100%;padding:6px 2px;font-size:11px}
 .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:14px;align-items:start}
 .rgrid>.rcard,.rgrid>.acard,.rgrid>.sug{margin-bottom:0;height:100%}
 .rgrid>.wide{grid-column:1/-1}
+/* repiques B2C no Inicio */
+.repcard>h3 .repcnt{display:inline-block;background:var(--red);color:var(--white);border-radius:var(--r-pill);font-size:11px;padding:1px 8px;margin-left:6px;vertical-align:1px;letter-spacing:0}
+.repgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.repcol{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;max-height:560px;overflow-y:auto}
+.repcol>h4{font-family:'Poppins';font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--blue);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.repcol>h4.late{color:var(--redDark)}
+.repcol>h4 span{color:var(--gray)}
+.repfx{border-top:1px solid var(--line);padding:2px 0}
+.repfx:first-of-type{border-top:none}
+.repfx>summary{cursor:pointer;font-size:11.5px;font-weight:700;color:var(--ink);padding:6px 0}
+.repfx>summary span{color:var(--gray);font-weight:600}
+.repfx.velho>summary{color:var(--gray)}
+.repfx>summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.repdia{font-size:11.5px;font-weight:700;color:var(--ink);padding:8px 0 2px;border-top:1px solid var(--line)}
+.repdia:first-of-type{border-top:none;padding-top:2px}
+.repdia span{color:var(--gray);font-weight:600}
+.reptabs{display:none;margin-bottom:10px;width:max-content;max-width:100%}
+@media(max-width:760px){.reptabs{display:flex}.repgrid{grid-template-columns:1fr}.repcol{display:none;max-height:none}.repcol.on{display:block}}
 @media(max-width:920px){.rgrid{grid-template-columns:1fr}}
 .rkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:10px;margin-bottom:14px}
 .rkpi{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:var(--r-lg);
@@ -5217,11 +5235,11 @@ function somMudo(){
 
 /* ================= Agendamentos e alertas ================= */
 const AGCFG={
-  leads:{table:'crm_leads',nf:'proximo_atendimento',sf:'etapa',rot:'Cliente B2C',tel:false},
+  leads:{table:'crm_leads',nf:'proximo_atendimento',sf:'etapa',rot:'Cliente B2C',tel:false,janela:7,extra:'curso,tentativas_sem_retorno,'},
   escolas:{table:'crm_escolas',nf:'proximo_contato',sf:'status',rot:'Escola',tel:true},
   empresas:{table:'crm_empresas',nf:'proximo_contato',sf:'status',rot:'Empresa',tel:true}
 };
-let ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],posvenda:[],total:0};
+let ALERTS={atrasados:[],agora:[],hoje:[],proximos:[],posvenda:[],adiante:[],total:0};
 let PVTODOS=safeGet('crmPvTodos')==='1';
 let AGITENS=[];      // itens crus, re-agrupados a cada minuto
 let AGVISTOS={};     // chaves ja avisadas nesta sessao
@@ -5236,8 +5254,8 @@ async function loadAlerts(){
   for(var i=0;i<keys.length;i++){
     const k=keys[i],ac=AGCFG[k],cfg=CFG[k];
     try{
-      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+'responsavel,proximo_canal,'+ac.nf+','+ac.nf+'_hora,'+ac.sf
-        +'&'+ac.nf+'=lte.'+limite
+      const rows=await api('/'+ac.table+'?select=id,nome,whatsapp,'+(ac.tel?'telefone,':'')+(ac.extra||'')+'responsavel,proximo_canal,'+ac.nf+','+ac.nf+'_hora,'+ac.sf
+        +'&'+ac.nf+'=lte.'+(ac.janela?addDias(hoje,ac.janela):limite)
         +'&responsavel=eq.'+encodeURIComponent(currentUser)
         +'&order='+ac.nf+'.asc');
       rows.forEach(function(r){
@@ -5246,7 +5264,7 @@ async function loadAlerts(){
         const d=r[ac.nf];
         if(!d)return;
         itens.push({tab:k,id:r.id,nome:r.nome,whatsapp:r.whatsapp||r.telefone,data:d,
-          hora:hhmm(r[ac.nf+'_hora'])||'09:00',rot:ac.rot,etapa:st?st.n:'',canal:r.proximo_canal||''});
+          hora:hhmm(r[ac.nf+'_hora'])||'09:00',rot:ac.rot,etapa:st?st.n:'',canal:r.proximo_canal||'',curso:r.curso||'',tent:r.tentativas_sem_retorno||0});
       });
     }catch(e){}
   }
@@ -5299,17 +5317,17 @@ async function loadAlerts(){
 /* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
 function bucketAlerts(){
   const hoje=hojeISO(),hm=agoraHM();
-  const at=[],ag=[],hj=[],px=[],pv=[];
+  const at=[],ag=[],hj=[],px=[],pv=[],ad=[];
   AGITENS.forEach(function(it){
     const h=it.hora||'09:00';
     if(it.data<hoje)at.push(it);
     else if(it.data===hoje){if(h<=hm)ag.push(it);else hj.push(it);}
-    else if(it.pv&&it.data>addDias(hoje,3))pv.push(it);   /* pos-venda distante tem lista propria */
+    else if(it.data>addDias(hoje,3)){if(it.pv)pv.push(it);else ad.push(it);}   /* pos-venda distante tem lista propria; B2C de D+4 a D+7 so aparece no Inicio */
     else px.push(it);
   });
   const ord=function(a,b){const ka=a.data+' '+(a.hora||'09:00'),kb=b.data+' '+(b.hora||'09:00');return ka<kb?-1:1;};
-  at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);pv.sort(ord);
-  ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,posvenda:pv,total:at.length+ag.length};
+  at.sort(ord);ag.sort(ord);hj.sort(ord);px.sort(ord);pv.sort(ord);ad.sort(ord);
+  ALERTS={atrasados:at,agora:ag,hoje:hj,proximos:px,posvenda:pv,adiante:ad,total:at.length+ag.length};
   renderAlertBadge();
   disparaAlerta(ag,at);
   AGBOOT=true;
@@ -8172,7 +8190,7 @@ async function openInicio(silencioso){
 function iniSync(){
   if(tab!=='inicio')return;
   if(veTodaEquipe()&&iniVista()==='unidade')return;
-  const sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length].join('/');
+  const sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length,(ALERTS.adiante||[]).length].join('/');
   if(sig===INI.sig)return;
   renderInicio();
 }
@@ -8187,6 +8205,66 @@ function iniRow(it,hoje){
     '<span class="dn">'+esc(it.nome||'')+(sub?'<span class="dsub">'+esc(sub)+'</span>':'')+'</span>'+
     (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
   '</div>';
+}
+
+/* ===== Repiques B2C no Inicio: atrasados em faixas, hoje e proximos 7 dias (05/11/2026) ===== */
+var REPTAB='hoje';      /* coluna visivel no celular */
+var REPABERTO={};       /* faixa aberta/fechada sobrevive ao redesenho de 60s */
+function diasEntre(a,b){
+  const p=String(a).split('-'),q=String(b).split('-');
+  return Math.round((Date.UTC(+q[0],+q[1]-1,+q[2])-Date.UTC(+p[0],+p[1]-1,+p[2]))/86400000);
+}
+function repRow(it,hoje,modo){
+  const wa=waLink(it.whatsapp);
+  var quando,late=false,tit='';
+  if(modo==='atr'){const d=diasEntre(it.data,hoje);quando=d+'d';late=true;tit=d+' dia'+(d>1?'s':'')+' de atraso';}
+  else{quando=it.hora||'--:--';late=modo==='hoje'&&(it.hora||'09:00')<=agoraHM();}
+  const sub=[it.etapa,it.curso,it.canal?canalNome(it.canal):'',
+    modo==='atr'?'era '+brDate(it.data).slice(0,5):'',
+    it.tent?it.tent+' sem retorno':''].filter(Boolean).join(' · ');
+  return '<div class="drow clik" data-t="'+it.tab+'" data-id="'+esc(it.id)+'">'+
+    '<span class="dh'+(late?' late':'')+'"'+(tit?' title="'+tit+'"':'')+'>'+esc(quando)+'</span>'+
+    '<span class="dn">'+esc(it.nome||'')+(sub?'<span class="dsub">'+esc(sub)+'</span>':'')+'</span>'+
+    (wa?'<a class="wa" target="_blank" rel="noopener" href="'+wa+'" aria-label="WhatsApp">'+WAICO+'</a>':'<span></span>')+
+  '</div>';
+}
+function repFaixas(arr,hoje){
+  const fx=[['1 a 3 dias',1,3,true],['4 a 7 dias',4,7,true],['8 a 30 dias',8,30,true],['Mais de 30 dias',31,1e9,false]];
+  return fx.map(function(f,i){
+    const l=arr.filter(function(it){const d=diasEntre(it.data,hoje);return d>=f[1]&&d<=f[2];}).reverse();
+    if(!l.length)return '';
+    const aberto=(i in REPABERTO)?REPABERTO[i]:f[3];
+    return '<details class="repfx'+(i===3?' velho':'')+'" data-fx="'+i+'"'+(aberto?' open':'')+'>'+
+      '<summary>'+f[0]+' <span>'+l.length+'</span></summary>'+
+      l.map(function(it){return repRow(it,hoje,'atr');}).join('')+'</details>';
+  }).join('');
+}
+function repProximos(arr,hoje){
+  var dias={},ord=[];
+  arr.forEach(function(it){if(!dias[it.data]){dias[it.data]=[];ord.push(it.data);}dias[it.data].push(it);});
+  ord.sort();
+  return ord.map(function(d){
+    return '<div class="repdia">'+diaSemana(d).slice(0,3)+' '+brDate(d).slice(0,5)+' <span>'+dias[d].length+'</span></div>'+
+      dias[d].map(function(it){return repRow(it,hoje,'prox');}).join('');
+  }).join('');
+}
+function repCard(atr,hj,px,hoje){
+  const atr7=atr.filter(function(it){return diasEntre(it.data,hoje)<=7;}).length;
+  const cont=hj.length+atr7;
+  const col=function(id,tit,n,corpo,cls){
+    return '<div class="repcol'+(REPTAB===id?' on':'')+'" data-rc="'+id+'"><h4 class="'+cls+'">'+tit+' <span>'+n+'</span></h4>'+corpo+'</div>';
+  };
+  const abas=[['atr','Atrasados',atr.length],['hoje','Hoje',hj.length],['prox','Próximos',px.length]];
+  return '<div class="rcard wide repcard"><h3>Repiques · Clientes B2C'+(cont?' <span class="repcnt" title="Hoje + atrasados de até 7 dias">'+cont+'</span>':'')+'</h3>'+
+    '<div class="rsub reptabs">'+abas.map(function(t){
+      return '<button data-rt="'+t[0]+'"'+(REPTAB===t[0]?' class="on"':'')+'>'+t[1]+' ('+t[2]+')</button>';
+    }).join('')+'</div>'+
+    '<div class="repgrid">'+
+      col('atr','Atrasados',atr.length,atr.length?repFaixas(atr,hoje):'<div class="empty">Nenhum repique atrasado.</div>','late')+
+      col('hoje','Hoje',hj.length,hj.length?hj.map(function(it){return repRow(it,hoje,'hoje');}).join(''):'<div class="empty">Nada para hoje.</div>','')+
+      col('prox','Próximos 7 dias',px.length,px.length?repProximos(px,hoje):'<div class="empty">Nada agendado para os próximos 7 dias.</div>','')+
+    '</div>'+
+    '<div class="rnote">O número ao lado do título soma hoje e os atrasados de até 7 dias. O que está atrasado há mais de 30 dias fica recolhido: atualize a agenda desses leads.</div></div>';
 }
 
 function iniLista(arr,hoje,vazio){
@@ -8212,7 +8290,7 @@ function renderInicio(){
   const agMin=(function(){const d=new Date();return d.getHours()*60+d.getMinutes();})();
   const fimMin=minDe(jfim);
 
-  INI.sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length].join('/');
+  INI.sig=[ALERTS.atrasados.length,ALERTS.agora.length,ALERTS.hoje.length,ALERTS.proximos.length,ALERTS.posvenda.length,(ALERTS.adiante||[]).length].join('/');
 
   /* ---- meta do dia ---- */
   const ef=k.efetivos||0;
@@ -8299,14 +8377,17 @@ function renderInicio(){
     '<div class="rkpi"><b>'+(ALERTS.total||0)+'</b><span>Na fila de repique</span></div>'+
   '</div>';
 
-  /* ---- repiques ---- */
-  const repAtras=ALERTS.atrasados||[];
-  const repHoje=(ALERTS.agora||[]).concat(ALERTS.hoje||[]);
-  const cardAtras=repAtras.length
-    ? '<div class="rcard"><h3>Repiques atrasados ('+repAtras.length+')</h3>'+iniLista(repAtras,hoje,'')+'</div>'
+  /* ---- repiques: bloco B2C em tres colunas ---- */
+  const ehB2C=function(it){return it.tab==='leads'&&!it.pv&&!it.agenda;};
+  const repAtras=(ALERTS.atrasados||[]).filter(ehB2C);
+  const repHoje=(ALERTS.agora||[]).concat(ALERTS.hoje||[]).filter(ehB2C);
+  const repProx=(ALERTS.proximos||[]).concat(ALERTS.adiante||[]).filter(ehB2C);
+  const cardRep=repCard(repAtras,repHoje,repProx,hoje);
+  /* pos-venda, escolas, empresas e agenda vencidos ou de hoje continuam no Inicio, fora do bloco B2C */
+  const outros=(ALERTS.atrasados||[]).concat(ALERTS.agora||[],ALERTS.hoje||[]).filter(function(it){return !ehB2C(it);});
+  const cardOutros=outros.length
+    ? '<div class="rcard"><h3>Pós-venda, escolas, empresas e agenda ('+outros.length+')</h3>'+iniLista(outros,hoje,'')+'</div>'
     : '';
-  const cardHoje='<div class="rcard"><h3>Repiques de hoje ('+repHoje.length+')</h3>'+
-    iniLista(repHoje,hoje,'Nenhum contato agendado para hoje.')+'</div>';
 
   /* ---- agendamentos presenciais do dia ---- */
   const presenciais=(AGITENS||[]).filter(function(it){
@@ -8352,11 +8433,21 @@ function renderInicio(){
         (veTodaEquipe()?iniToggle():'')+
         freshTag(INI.ts,'ifresh')+'<button class="dctl" id="inirec" title="Atualizar os números">↻ Atualizar</button></span></div>'+
     '<div id="mtHome"></div>'+avisos+meta+kpis+
-    '<div class="rgrid">'+cardAtras+cardHoje+cardEvo+cardPres+cardAg+cardPv+'</div>'+
+    '<div class="rgrid">'+cardRep+cardOutros+cardEvo+cardPres+cardAg+cardPv+'</div>'+
   '</div></div>';
   drawCharts();
   bindIniToggle();
   mtHomeFill();
+  document.querySelectorAll('#iniwrap .reptabs button').forEach(function(b){
+    b.onclick=function(){
+      REPTAB=b.dataset.rt;
+      document.querySelectorAll('#iniwrap .reptabs button').forEach(function(x){x.classList.toggle('on',x===b);});
+      document.querySelectorAll('#iniwrap .repcol').forEach(function(c){c.classList.toggle('on',c.dataset.rc===REPTAB);});
+    };
+  });
+  document.querySelectorAll('#iniwrap .repfx').forEach(function(d){
+    d.addEventListener('toggle',function(){REPABERTO[d.dataset.fx]=d.open;});
+  });
 
   document.querySelectorAll('#iniwrap .drow.clik').forEach(function(el){
     el.onclick=function(e){
