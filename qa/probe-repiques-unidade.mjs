@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+const W=+process.argv[3]||1440;
+const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:W,height:1400}});
+await ctx.route('**/*supabase.co/**',r=>r.fulfill({status:200,contentType:'application/json',body:'[]'}));
+const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.argv[2]);await p.waitForTimeout(1200);
+await p.evaluate(()=>{
+  document.getElementById('login').classList.add('off');currentUser='Pedro';tab='inicio';
+  const h=hojeISO();
+  const mk=(id,d,q)=>({tab:'leads',id,nome:'Lead '+id,whatsapp:'21999990000',data:addDias(h,d),hora:'10:00',rot:'Cliente B2C',etapa:'Respondeu',canal:'whatsapp',curso:'Inglês',tent:0,quem:q});
+  UNI.dados={unidade:{},consultores:[]};REL.leads=[];
+  UNI.rep=[mk('m1',-1,'Marlon'),mk('m2',-40,'Marlon'),mk('m3',0,'Marlon'),mk('c1',-2,'Camila'),mk('c2',-3,'Camila'),mk('c3',-10,'Camila'),mk('c4',3,'Camila'),mk('s1',-60,'Sem responsável')];
+  renderUnidade();
+});
+const r1=await p.evaluate(()=>({tab:Array.from(document.querySelectorAll('.reptab tr.clik')).map(t=>t.innerText.replace(/\s+/g,' ')),atr:document.querySelector('.repcol[data-rc="atr"] h4 span').textContent}));
+await p.click('.reptab tr[data-rr="Camila"]');
+const r2=await p.evaluate(()=>({h3:document.querySelector('.repcard h3').textContent,atr:document.querySelector('.repcol[data-rc="atr"] h4 span').textContent,prox:document.querySelector('.repcol[data-rc="prox"] h4 span').textContent}));
+await (await p.$('#uniwrap .rgrid')).screenshot({path:'./uni'+W+'.png'});
+await p.click('.repfiltro [data-rr=""]');
+const r3=await p.evaluate(()=>document.querySelector('.repcard h3').textContent);
+console.log(JSON.stringify({r1,r2,r3,errs},null,1));await b.close();
