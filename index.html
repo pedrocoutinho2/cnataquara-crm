@@ -1729,6 +1729,38 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
 .mthb>div{height:10px;border-radius:999px}
 .mthb i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
 @media (max-width:900px){.mthg{grid-template-columns:minmax(0,1fr)}}
+
+/* Integracao CRM -> CNA Box (05/11/2026) */
+.dispgrid{display:grid;grid-template-columns:62px repeat(6,1fr);gap:4px;align-items:center;font-size:12px}
+.dispgrid .dh{color:#5A5A5A;text-align:center;font-weight:600}
+.dispgrid .dt{color:#5A5A5A;font-weight:600}
+.dispgrid label{display:flex;justify-content:center;margin:0}
+.dispgrid input{width:18px;height:18px;margin:0}
+.sxhint{font-size:11px;color:#5A5A5A;margin-top:4px}
+.ichk{display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5A5A;margin:2px 0 6px;cursor:pointer}
+.ichk input{width:auto;margin:0}
+.bxsec{border:1px solid #E4E4E7;border-radius:10px;padding:12px;margin-bottom:14px;background:#F7F7F9}
+.bxsec h4{margin:0 0 6px;font-size:14px}
+.bxsec p{margin:0 0 8px;font-size:12px;color:#5A5A5A}
+.bxcred{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+#bxbody .bxcred label{display:block;font-size:12px;color:#5A5A5A;margin:0 0 4px}
+#bxbody input[type=email],#bxbody input[type=password],#bxbody select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #E4E4E7;border-radius:8px;font:inherit;font-size:13px;background:#fff;color:#1A1A1A}
+#bxbody .bxbar select{width:auto}
+@media (max-width:640px){.bxcred{grid-template-columns:1fr}}
+.bxbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.bxrow{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid #E4E4E7}
+.bxrow:last-child{border-bottom:0}
+.bxnome{font-weight:600;cursor:pointer;color:#19408B}
+.bxmeta{font-size:12px;color:#5A5A5A}
+.bxchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.bxchip{font-size:11px;padding:2px 8px;border-radius:999px;background:#FDECEF;color:#A30E2A}
+.bxst{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#EAF0FA;color:#19408B;white-space:nowrap}
+.bxst.erro,.bxst.aguardando_dados{background:#FDECEF;color:#A30E2A}
+.bxst.enviado{background:#F7F7F9;color:#1E7A46}
+.bxst.ignorado{background:#F7F7F9;color:#8A8A8E}
+.bxfix{display:flex;gap:6px;align-items:center;margin-top:6px}
+.bxfix select{max-width:260px}
+.bxres{font-size:12px;white-space:pre-wrap;background:#fff;border:1px solid #E4E4E7;border-radius:8px;padding:8px;margin-top:8px;max-height:220px;overflow:auto}
 </style>
 </head>
 <body>
@@ -1809,6 +1841,7 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
   <input type="search" id="q" placeholder="Buscar por nome, decisor, bairro...">
   <button class="btn" id="fbtn">Filtro <span class="fbadge" id="fcount" style="display:none">0</span> <span id="fcaret">▾</span></button>
   <select class="persel" id="persel" title="Período de cadastro do lead" style="display:none"></select>
+  <button class="btn" id="boxbtn" style="display:none" title="Envio dos atendimentos ao CNA Box">CNA Box</button>
   <div class="spacer"></div>
   <button class="btn" id="csv"><span class="lg">Exportar </span>CSV</button>
   <button class="btn" id="reload" title="Recarregar dados">↻</button>
@@ -1866,6 +1899,8 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
           <textarea id="iresumo" rows="4" placeholder="O que aconteceu nesse contato? Escreva com detalhe: o que o cliente falou, o que ficou combinado, o que você prometeu retornar."></textarea>
           <div class="nesched"><label>Próximo contato (data e hora)</label><div class="dtwrap"><input type="date" id="iprox" class="ok"><input type="time" step="900" id="iproxh" class="ok"></div></div>
           <div class="nesched"><label>Canal do próximo contato</label><select id="iproxcanal"><option value="whatsapp">WhatsApp</option><option value="ligacao">Ligação</option><option value="email">E-mail</option><option value="visita">Visita</option><option value="reuniao">Reunião</option><option value="teste_nivel">Teste de nível</option><option value="experimental">Aula experimental</option></select></div>
+          <div class="nesched" id="imotrepW" style="display:none"><label>Por que ainda não agendou visita? <span class="hint">(vai para o CNA Box)</span></label><select id="imotrep"><option value="">— escolha —</option><option value="vai_pesquisar">Vai pesquisar antes</option><option value="sem_tempo">Está sem tempo</option><option value="desempregado">Está desempregado(a)</option><option value="nao_quer_agora">Não quer iniciar o curso agora</option></select></div>
+          <label class="ichk" id="iprocW"><input type="checkbox" id="iproc"> O lead me procurou (retomou o contato por conta própria)</label>
           <button class="btn primary" id="iadd">Registrar</button>
         </div>
         <div class="iadd ne" id="paneNe" style="display:none">
@@ -1958,6 +1993,18 @@ tr.p1 .mthsem,.mthsem.p1{background:var(--white);color:var(--gray);border:1px so
       <button class="btn primary" id="ssalvar">Salvar e entrar</button>
       <button class="btn" id="scancelar">Sair</button>
     </div>
+  </div>
+</div>
+
+<div class="ov" id="bxov">
+  <div class="modal" style="max-width:820px">
+    <div class="mhead">
+      <h2>Envio ao CNA Box</h2>
+      <div class="msub" id="bxsub">Atendimentos registrados no CRM que vão para o Box com o login de cada consultor</div>
+      <button class="mx" id="bxx" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div class="mbody" id="bxbody"></div>
+    <div class="mfoot" id="bxfoot"></div>
   </div>
 </div>
 
@@ -2290,6 +2337,10 @@ const CFG={
       {k:'nome_aluno',l:'Nome do aluno',t:'text',full:true},
       {k:'idade',l:'Idade do aluno',t:'number'},
       {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
+      /* exigidos pelo CNA Box (integracao CRM -> Box, 05/11/2026) */
+      {k:'data_nascimento',l:'Nascimento do aluno',t:'date'},
+      {k:'sexo',l:'Sexo do aluno',t:'select',opts:[['','—'],['F','Feminino'],['M','Masculino']]},
+      {k:'disponibilidade',l:'Disponibilidade de horário do aluno',t:'disp',full:true},
       /* data de cadastro: escolhida so na criacao, depois imutavel (trigger crm_leads_trava_cadastro_tg) */
       {k:'data_entrada',l:'Data de cadastro',t:'date',lock:true,def:function(){return hojeISO();}},
       /* nasce vazio de proposito: quem preenche e o registro de contato no historico */
@@ -3102,6 +3153,8 @@ function openModal(id){
         +'<div class="dtwrap"><input type="date" data-k="'+f.k+'" value="'+esc(v)+'">'
         +'<input type="time" step="900" data-k="'+f.hk+'" value="'+esc(hv)
         +'" class="'+(v&&!hv?'need':'')+'"></div>';
+    }else if(f.t==='disp'){
+      inner+=dispHTML(v);
     }else if(f.t==='turmas'){
       inner+='<select data-k="'+f.k+'" class="selturma">'
         +'<option value="'+esc(v)+'" selected>'+esc(v||'— sem turma —')+'</option></select>';
@@ -3128,6 +3181,8 @@ function openModal(id){
     hi.addEventListener('change',marca);
     hi.addEventListener('input',marca);
   });
+  boxIntSync();
+  if(tab==='leads')boxFichaInit(form,s);
   const selEt=form.querySelector('[data-k=etapa]');
   if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();tnSyncBotaoFicha();pcSync();});
   const selMp=form.querySelector('[data-k=motivo_perda]');
@@ -3411,7 +3466,8 @@ function pcHTML(){
     +'<textarea id="pcResumo" rows="3" placeholder="O que o cliente falou, o que ficou combinado, o que voc\u00ea prometeu retornar."></textarea></div>'
     +'<div id="pcProxW"><label>Pr\u00f3ximo contato (data e hora) <b class="req">*</b></label>'
     +'<div class="dtwrap"><input type="date" id="pcProx" value="'+sg.d+'"><input type="time" step="900" id="pcProxH" value="'+sg.h+'"></div>'
-    +'<label>Canal do pr\u00f3ximo contato</label><select id="pcProxCanal">'+op(PC_PROX)+'</select></div>'
+    +'<label>Canal do pr\u00f3ximo contato</label><select id="pcProxCanal">'+op(PC_PROX)+'</select>'
+    +'<label>Por que ainda n\u00e3o agendou visita? <span class="hint">(vai para o CNA Box)</span></label><select id="pcMotRep">'+BOX_MOTREP_OPTS+'</select></div>'
     +'</div></div>';
 }
 function pcModo(){
@@ -3448,7 +3504,8 @@ function pcInit(){
    para registrar com um toque. */
 async function pcRegistrar(id,pc){
   const body={lead_id:id,tipo:pc.tipo,autor:currentUser,efetivo:true,nota:pc.resumo,
-    proximo_contato:pc.prox,proximo_contato_hora:pc.prox?pc.proxh:null,proximo_canal:pc.pcanal};
+    proximo_contato:pc.prox,proximo_contato_hora:pc.prox?pc.proxh:null,proximo_canal:pc.pcanal,
+    motivo_repique:pc.motrep||null};
   const box=$('pcBox');
   try{
     await api('/crm_leads_interacoes',{method:'POST',body:JSON.stringify(body)});
@@ -3931,6 +3988,10 @@ $('iadd').onclick=async function(){
   btn.disabled=true;   // trava anti duplo-envio
   const pcanal=prox?($('iproxcanal').value||null):null;
   const body={tipo:$('itipo').value,autor:currentUser,efetivo:true,proximo_contato:prox,proximo_contato_hora:prox?proxh:null,proximo_canal:pcanal};
+  if(tab==='leads'){
+    body.motivo_repique=($('imotrepW').style.display!=='none'&&$('imotrep').value)||null;
+    body.lead_procurou=!!$('iproc').checked;
+  }
   body[tx]=resumo;
   body[cfg.fk]=editing;
   try{
@@ -3938,6 +3999,7 @@ $('iadd').onclick=async function(){
     await afterContato(editing,prox,proxh,pcanal);
     if($('itipo').value!=='nota')await avancaEtapa(editing,'respondeu');
     $('iresumo').value='';$('iprox').value='';$('iproxh').value='';
+    $('imotrep').value='';$('iproc').checked=false;boxIntSync();
     loadInts(editing);
     /* A21: o contato efetivo nao confirmava nada na tela. Quem registrava nao sabia
        se tinha dado certo e registrava de novo. */
@@ -3999,7 +4061,8 @@ $('save').onclick=async function(){
       /* agenda informada no INSERT: crm_leads_agenda_novo nao aplica os 10 minutos */
       body.proximo_atendimento=prox;body.proximo_atendimento_hora=proxh;body.proximo_canal=pcanal;
     }
-    PC={tipo:$('pcCanal').value,resumo:resumo,prox:prox,proxh:proxh,pcanal:pcanal};
+    PC={tipo:$('pcCanal').value,resumo:resumo,prox:prox,proxh:proxh,pcanal:pcanal,
+        motrep:(!e271&&BOX_AGENDA.indexOf(pcanal)<0&&$('pcMotRep'))?($('pcMotRep').value||null):null};
   }
   /* datetime com data e sem hora: grava a data, marca o campo e cobra depois */
   cfg.fields.forEach(function(f){
@@ -4024,6 +4087,11 @@ $('save').onclick=async function(){
     }catch(e){}
   }
   if(tab==='leads'){
+    /* CNA Box: disponibilidade vai como array de ids do Box; sexo sugerido pelo nome fica marcado */
+    body.disponibilidade=body.disponibilidade?String(body.disponibilidade).split(',').map(Number).filter(function(n){return n>=1&&n<=18;}):null;
+    if(body.disponibilidade&&!body.disponibilidade.length)body.disponibilidade=null;
+    const sxSel=document.querySelector('#form [data-k=sexo]');
+    body.sexo_sugerido=!!(sxSel&&sxSel.value&&sxSel.dataset.sug==='1');
     const stFin=body.etapa==='fechado'||body.etapa==='perdido';
     const cur=editing?(DATA.leads||[]).find(function(x){return x.id===editing;}):null;
     body.data_fechamento=stFin?((cur&&cur.data_fechamento)||new Date().toISOString().slice(0,10)):null;
@@ -4230,6 +4298,7 @@ function buildChips(){
 /* Seletor de periodo: so existe na aba B2C, sempre visivel, para ninguem esquecer que ha recorte */
 function buildPeriodo(){
   const sel=$('persel');
+  if($('boxbtn'))$('boxbtn').style.display=(tab==='leads'&&podeVer('leads'))?'':'none';
   if(!sel)return;
   if(tab!=='leads'){sel.style.display='none';return;}
   sel.style.display='';
@@ -4309,6 +4378,239 @@ $('csv').onclick=function(){
 
 
 /* ================= Conversas (WhatsApp) ================= */
+
+/* ================= Integracao CRM -> CNA Box (05/11/2026) =================
+   Cada contato registrado (fora notas) entra em crm_box_fila pelo trigger do banco.
+   Modo sugestao: o consultor aprova; a Edge Function box-prospect-sync envia com o
+   login do Box do consultor dono do lead. Senha do Box: gravada pelo proprio
+   consultor via RPC direto no Vault do Supabase; o front nunca le de volta.
+   Vault: 10-cna/sistemas/integracao-crm-box.md */
+const BOX_MOTREP_OPTS='<option value="">— escolha —</option><option value="vai_pesquisar">Vai pesquisar antes</option>'
+  +'<option value="sem_tempo">Está sem tempo</option><option value="desempregado">Está desempregado(a)</option>'
+  +'<option value="nao_quer_agora">Não quer iniciar o curso agora</option>';
+/* canal do proximo contato que no Box vira agendamento (visita / teste), nao repique */
+const BOX_AGENDA=['visita','reuniao','teste_nivel','experimental'];
+const BOX_PEND={data_nascimento:'Falta nascimento do aluno',disponibilidade:'Falta disponibilidade de horário',
+  contato:'Falta WhatsApp ou e-mail',motivo_nao_efetivo:'Falta motivo do não efetivo',
+  motivo_repique:'Falta motivo do repique',consultor_sem_box:'Consultor sem login do Box no CRM'};
+const BOX_ST={pendente:'Aguardando aprovação',aguardando_dados:'Faltam dados',aprovado:'Aprovado, aguardando envio',
+  enviado:'Enviado ao Box',erro:'Erro no envio',ignorado:'Ignorado'};
+var BX={itens:[],cred:null,filtro:'abertos',sel:{}};
+
+/* ---- ficha do lead: disponibilidade (grade do Box) e sexo sugerido pelo nome ---- */
+function dispHTML(v){
+  const sel=(Array.isArray(v)?v:String(v||'').replace(/[{}\[\]]/g,'').split(',')).filter(function(x){return String(x).trim()!=='';}).map(Number);
+  const dias=['Seg','Ter','Qua','Qui','Sex','Sáb'],turnos=['Manhã','Tarde','Noite'];
+  let h='<input type="hidden" data-k="disponibilidade" value="'+sel.join(',')+'"><div class="dispgrid"><span></span>'
+    +dias.map(function(d){return '<span class="dh">'+d+'</span>';}).join('');
+  turnos.forEach(function(t,ti){
+    h+='<span class="dt">'+t+'</span>';
+    for(let di=0;di<6;di++){
+      const id=ti*6+di+1;
+      h+='<label><input type="checkbox" class="dispck" value="'+id+'"'+(sel.indexOf(id)>-1?' checked':'')
+        +' aria-label="'+t+' '+dias[di]+'"></label>';
+    }
+  });
+  return h+'</div>';
+}
+const SX_F={beatriz:1,raquel:1,isabel:1,rachel:1,ester:1,esther:1,ruth:1,rute:1,lis:1,liz:1,alice:1,sophie:1,agnes:1,ines:1,ingrid:1,
+  miriam:1,carmen:1,yasmin:1,jasmin:1,evelyn:1,ellen:1,helen:1,karen:1,kelly:1,emily:1,emilly:1,nicole:1,gabrielle:1,isabelle:1,
+  michelle:1,daniele:1,danielle:1,gisele:1,adele:1,louise:1,heloise:1,isis:1,iris:1,thais:1,lais:1,beatrice:1,rosangela:1,
+  raissa:1,maite:1,mirian:1,lucimar:1,deise:1,denise:1,elaine:1,eliane:1,cristiane:1,viviane:1,josiane:1,juliane:1,simone:1,
+  jaqueline:1,jacqueline:1,aline:1,caroline:1,carolina:1,catherine:1,valentine:1,clarice:1,beatris:1,lorraine:1,rayane:1,tamires:1};
+const SX_M={luca:1,lucca:1,luka:1,joshua:1,akira:1,nikita:1,juca:1,joao:1,jose:1,davi:1,levi:1,noah:1,isaac:1,benjamin:1,benjamim:1,caua:1,enzo:1,theo:1,
+  heitor:1,arthur:1,artur:1,bernardo:1,pedro:1,bruno:1,caio:1,yuri:1,ravi:1,henri:1,henry:1,luiz:1,luis:1,carlos:1,andre:1,
+  felipe:1,filipe:1,vitor:1,victor:1,guilherme:1,lucas:1,mateus:1,matheus:1,thomas:1,tomas:1,nicolas:1,jonas:1,elias:1,
+  rafael:1,miguel:1,gabriel:1,samuel:1,daniel:1,emanuel:1,manuel:1,ismael:1,ezequiel:1,joel:1,abel:1,erick:1,eric:1,patrick:1,
+  kaique:1,kaue:1,anderson:1,wellington:1,washington:1,edson:1,nelson:1,cristian:1,christian:1,ian:1,ivan:1,adrian:1,julian:1};
+const SX_AMB={ariel:1,darci:1,darcy:1,jean:1,ali:1,dominique:1,cris:1,alex:1,sam:1,kim:1,sasha:1,francis:1,juracy:1,jaci:1,
+  dara:1,valdeci:1,eli:1,gil:1,lua:1,noa:1};
+function sexoPorNome(n){
+  const p=String(n||'').trim().split(/\s+/)[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  if(!p||SX_AMB[p])return '';
+  if(SX_F[p])return 'F';
+  if(SX_M[p])return 'M';
+  if(/a$/.test(p))return 'F';
+  if(/(o|os|or|son|ton|uel|ique|el|ur)$/.test(p))return 'M';
+  return '';
+}
+function boxFichaInit(form,s){
+  const hid=form.querySelector('input[data-k=disponibilidade]');
+  form.querySelectorAll('.dispck').forEach(function(c){
+    c.addEventListener('change',function(){
+      if(hid)hid.value=[].slice.call(form.querySelectorAll('.dispck:checked')).map(function(x){return x.value;}).join(',');
+    });
+  });
+  const sx=form.querySelector('[data-k=sexo]');
+  if(!sx)return;
+  const hint=document.createElement('div');hint.className='sxhint';sx.parentNode.appendChild(hint);
+  sx.dataset.sug=(s&&s.sexo&&s.sexo_sugerido)?'1':'';
+  const pinta=function(){hint.textContent=sx.dataset.sug==='1'&&sx.value?'Sugerido pelo primeiro nome. Confira.':'';};
+  const sugere=function(){
+    if(sx.value&&sx.dataset.sug!=='1')return;
+    const na=form.querySelector('[data-k=nome_aluno]'),np=form.querySelector('[data-k=nome]');
+    const g=sexoPorNome((na&&na.value.trim())||(np&&np.value)||'');
+    sx.value=g;sx.dataset.sug=g?'1':'';pinta();
+  };
+  ['nome','nome_aluno'].forEach(function(k){
+    const el=form.querySelector('[data-k='+k+']');
+    if(el)el.addEventListener('input',sugere);
+  });
+  sx.addEventListener('change',function(){sx.dataset.sug='';pinta();});
+  if(!s||!s.sexo)sugere();else pinta();
+}
+/* motivo do repique: so quando ha proximo contato que nao e visita/teste, e so no B2C */
+function boxIntSync(){
+  const ehLead=tab==='leads';
+  const w=$('imotrepW'),pw=$('iprocW');
+  if(pw)pw.style.display=ehLead?'':'none';
+  if(!w)return;
+  const mostra=ehLead&&$('itipo').value!=='nota'&&!!$('iprox').value&&BOX_AGENDA.indexOf($('iproxcanal').value)<0;
+  w.style.display=mostra?'':'none';
+}
+['itipo','iprox','iproxcanal'].forEach(function(idf){
+  const el=$(idf);
+  if(el){el.addEventListener('change',boxIntSync);el.addEventListener('input',boxIntSync);}
+});
+
+/* ---- modal da fila ---- */
+function bxRpc(nome,args){
+  return api('/rpc/'+nome,{method:'POST',body:JSON.stringify(Object.assign({p_token:sessTok()},args||{}))});
+}
+function bxErro(e){
+  const m=String((e&&e.message)||e||'');
+  if(m.indexOf('sem_permissao')>-1)return 'Você não tem permissão para isso.';
+  if(m.indexOf('sessao_invalida')>-1)return 'Sua sessão expirou. Entre de novo.';
+  return 'Não foi possível concluir. Tente de novo.';
+}
+async function openBox(){
+  $('bxov').classList.add('open');
+  $('bxbody').innerHTML='<div class="loading">Carregando...</div>';
+  $('bxfoot').innerHTML='';
+  BX.sel={};
+  try{
+    const r=await Promise.all([bxRpc('crm_box_credencial_status'),bxRpc('crm_box_fila_listar',{p_status:null})]);
+    BX.cred=r[0]||{conectado:false};BX.itens=r[1]||[];
+  }catch(e){$('bxbody').innerHTML='<div class="ibox warn"><div class="itx">'+esc(bxErro(e))+'</div></div>';return;}
+  renderBox();
+}
+function closeBox(){$('bxov').classList.remove('open');}
+function bxVisiveis(){
+  return BX.itens.filter(function(x){
+    if(BX.filtro==='abertos')return ['pendente','aguardando_dados','aprovado','erro'].indexOf(x.status)>-1;
+    if(BX.filtro==='todos')return true;
+    return x.status===BX.filtro;
+  });
+}
+function renderBox(){
+  const c=BX.cred||{};
+  let h='<div class="bxsec"><h4>Seu login no CNA Box</h4>';
+  if(c.conectado){
+    h+='<p>Conectado como <b>'+esc(c.email_box)+'</b>.'
+      +(c.ultimo_ok_em?' Último login aceito em '+esc(new Date(c.ultimo_ok_em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}))+'.':' Ainda não testado.')
+      +(c.ultimo_erro?' <b style="color:#A30E2A">O Box recusou o último login: confira a senha.</b>':'')+'</p>';
+  }else{
+    h+='<p>Sem login cadastrado. Seus atendimentos só vão para o Box depois que você informar o e-mail e a senha que usa no Box.</p>';
+  }
+  h+='<p>A senha fica guardada criptografada no servidor e não aparece para ninguém, nem para você.</p>'
+    +'<div class="bxcred"><div><label>E-mail do Box</label><input id="bxemail" type="email" autocomplete="off" value="'+esc(c.email_box||'')+'"></div>'
+    +'<div><label>Senha do Box</label><input id="bxsenha" type="password" autocomplete="new-password" placeholder="'+(c.conectado?'deixe em branco para manter':'')+'"></div>'
+    +'<button class="btn" id="bxcredsave">'+(c.conectado?'Trocar':'Salvar')+'</button></div></div>';
+  const vis=bxVisiveis();
+  const cont=function(f){return BX.itens.filter(function(x){return f(x);}).length;};
+  h+='<div class="bxbar"><select id="bxfiltro">'
+    +[['abertos','Em aberto ('+cont(function(x){return ['pendente','aguardando_dados','aprovado','erro'].indexOf(x.status)>-1;})+')'],
+      ['enviado','Enviados ('+cont(function(x){return x.status==='enviado';})+')'],
+      ['ignorado','Ignorados ('+cont(function(x){return x.status==='ignorado';})+')'],['todos','Todos']]
+      .map(function(o){return '<option value="'+o[0]+'"'+(BX.filtro===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')
+    +'</select><label class="ichk"><input type="checkbox" id="bxall"> Marcar todos</label></div>';
+  if(!vis.length)h+='<p class="bxmeta">Nada aqui.</p>';
+  vis.forEach(function(x){
+    const marcavel=x.status!=='enviado';
+    const pend=(x.pendencias||[]);
+    h+='<div class="bxrow"><div>'+(marcavel?'<input type="checkbox" class="bxck" data-id="'+x.id+'"'+(BX.sel[x.id]?' checked':'')+'>':'')+'</div><div>'
+      +'<div class="bxnome" data-lead="'+x.lead_id+'">'+esc(x.lead_nome||'—')+'</div>'
+      +'<div class="bxmeta">'+esc(brDate(x.interacao_data)||'')+' · '+esc(CANAIS[x.interacao_tipo]||x.interacao_tipo||'')
+      +' · '+(x.efetivo===false?'não efetivo':'efetivo')+' · '+(x.receptivo?'receptivo':'ativo')
+      +' · '+esc(x.consultor||'')+(x.box_id?' · Box '+esc(x.box_id):' · novo no Box')+'</div>'
+      +(pend.length?'<div class="bxchips">'+pend.map(function(p){return '<span class="bxchip">'+esc(BOX_PEND[p]||p)+'</span>';}).join('')+'</div>':'')
+      +(pend.indexOf('motivo_repique')>-1&&x.interacao_id?'<div class="bxfix"><select class="bxmot" data-int="'+x.interacao_id+'">'+BOX_MOTREP_OPTS+'</select></div>':'')
+      +(x.erro&&x.status==='erro'?'<div class="bxmeta" style="color:#A30E2A">'+esc(x.erro)+'</div>':'')
+      +'</div><span class="bxst '+esc(x.status)+'">'+esc(BOX_ST[x.status]||x.status)+'</span></div>';
+  });
+  h+='<div id="bxres"></div>';
+  $('bxbody').innerHTML=h;
+  let f='<button class="btn primary" id="bxaprovar">Aprovar marcados</button><button class="btn" id="bxignorar">Ignorar marcados</button>';
+  if(podeTotal('leads'))f+='<div class="spacer"></div><button class="btn" id="bxsimular">Simular envio</button><button class="btn" id="bxenviar">Enviar aprovados agora</button>';
+  $('bxfoot').innerHTML=f;
+  ligaBox();
+}
+function bxMarcados(){return Object.keys(BX.sel).filter(function(k){return BX.sel[k];});}
+async function bxDecidir(acao){
+  const ids=bxMarcados();
+  if(!ids.length){toast('Marque pelo menos um atendimento.');return;}
+  try{
+    const r=await bxRpc('crm_box_fila_decidir',{p_ids:ids,p_acao:acao});
+    if(acao==='aprovar')toast((r&&r.ok||0)+' aprovado(s).'+((r&&r.aguardando_dados)?' '+r.aguardando_dados+' ficaram aguardando dados: complete a ficha.':''));
+    else toast((r&&r.ok||0)+' ignorado(s).');
+  }catch(e){toast(bxErro(e));}
+  openBox();
+}
+async function bxRodar(enviar){
+  const out=$('bxres');
+  if(out)out.innerHTML='<div class="bxres">'+(enviar?'Enviando ao Box...':'Simulando...')+'</div>';
+  try{
+    const r=await waFn('box-prospect-sync',{enviar:!!enviar,login:true});
+    const ok=(r.relatorio||[]).filter(function(x){return x.ok;}).length;
+    const linhas=(r.relatorio||[]).map(function(x){return (x.ok?'ok ':'falhou ')+(x.box_id?'Box '+x.box_id+' ':'')+(x.erro?'· '+(Array.isArray(x.erro)?x.erro.join(' | '):x.erro):'');});
+    if(out)out.innerHTML='<div class="bxres">'+esc((enviar?'Envio':'Simulação')+': '+ok+' de '+(r.itens||0)+' ok.\n'+linhas.join('\n'))+'</div>';
+    if(enviar)setTimeout(openBox,1500);
+  }catch(e){if(out)out.innerHTML='<div class="bxres">'+esc(bxErro(e))+'</div>';}
+}
+function ligaBox(){
+  $('bxfiltro').onchange=function(){BX.filtro=this.value;BX.sel={};renderBox();};
+  $('bxall').onchange=function(){
+    const v=this.checked;
+    bxVisiveis().forEach(function(x){if(x.status!=='enviado')BX.sel[x.id]=v;});
+    renderBox();
+  };
+  document.querySelectorAll('#bxbody .bxck').forEach(function(c){c.onchange=function(){BX.sel[c.dataset.id]=c.checked;};});
+  document.querySelectorAll('#bxbody .bxnome').forEach(function(n){
+    n.onclick=function(){
+      const id=n.dataset.lead;closeBox();
+      if(tab!=='leads'){toast('Abra a aba de clientes B2C para ver a ficha.');return;}
+      openModal(id);
+    };
+  });
+  document.querySelectorAll('#bxbody .bxmot').forEach(function(sel){
+    sel.onchange=async function(){
+      if(!sel.value)return;
+      try{
+        await api('/crm_leads_interacoes?id=eq.'+sel.dataset.int,{method:'PATCH',body:JSON.stringify({motivo_repique:sel.value})});
+        toast('Motivo do repique registrado.');openBox();
+      }catch(e){toast(bxErro(e));}
+    };
+  });
+  $('bxcredsave').onclick=async function(){
+    const em=$('bxemail').value.trim(),sn=$('bxsenha').value;
+    if(!em){toast('Informe o e-mail que você usa no Box.');return;}
+    if(!sn){toast(BX.cred&&BX.cred.conectado?'Digite a senha nova para trocar.':'Informe a senha do Box.');return;}
+    const b=this;b.disabled=true;
+    try{
+      await bxRpc('crm_box_credencial_salvar',{p_email:em,p_senha:sn});
+      $('bxsenha').value='';
+      toast('Login do Box salvo.');openBox();
+    }catch(e){toast(bxErro(e));b.disabled=false;}
+  };
+  $('bxaprovar').onclick=function(){bxDecidir('aprovar');};
+  $('bxignorar').onclick=function(){bxDecidir('ignorar');};
+  if($('bxsimular'))$('bxsimular').onclick=function(){bxRodar(false);};
+  if($('bxenviar'))$('bxenviar').onclick=function(){bxRodar(true);};
+}
+$('bxx').onclick=closeBox;
+$('bxov').onclick=function(e){if(e.target===$('bxov'))closeBox();};
+$('boxbtn').onclick=openBox;
+
 function FUNCS(){return SUPA_URL+'/functions/v1';}
 const WA={contas:[],contaSel:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
 

@@ -398,6 +398,7 @@ Transporte por conta em `crm_wa_contas.provider`: `evolution` (sem janela de 24h
 ou `cloud`. Secrets: `EVO_URL` (opcional, padrão `https://evo.cnataquara.com.br`), `EVO_TOKEN_*`
 e `WA_TOKEN_*` apontados por `token_ref`.
 | `ata-analisar` | **false** | front, 9270 |
+| `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
 API e renomear derruba o webhook do WhatsApp em produção. Ela valida
@@ -466,3 +467,28 @@ de barra invertida. Antes de escrever, garanta a contagem esperada
   de aluno.
 - Padrão visual compartilhado com adm e ponto: ver `assets/PADRAO.md` no repo
   `cnataquara-ponto`. Este repo é a referência de origem dos tokens.
+
+## Integração CRM → CNA Box (05/11/2026)
+
+Cada contato registrado no B2C (fora notas) entra em `crm_box_fila` pelo trigger
+`z_box_enfileirar` (só em unidade com `crm_box_config.ativo`; falha nunca impede
+salvar o contato). Modo sugestão: item nasce `pendente`, o consultor aprova no
+modal "CNA Box" da aba B2C (`openBox`), e `box-prospect-sync` envia com o login
+do Box do consultor dono do lead (`POST /Prospect/Save` do Box, JSON).
+
+- Senha do Box: o próprio consultor grava pelo modal (`crm_box_credencial_salvar`),
+  direto no Vault. O front nunca lê de volta; só a Edge Function (service role)
+  lê por `crm_box_credencial_ler`.
+- Campos novos: `crm_leads.data_nascimento`, `sexo` (+`sexo_sugerido`, sugerido
+  pelo primeiro nome em `sexoPorNome`), `disponibilidade smallint[]` (ids do Box:
+  manhã 1–6, tarde 7–12, noite 13–18, seg→sáb), `box_id`;
+  `crm_leads_interacoes.motivo_repique`, `lead_procurou`, `box_enviado_em`.
+- Ativo/receptivo: `crm_box_receptivo(interacao_id)` (primeiro contato de origem
+  de campanha = receptivo; demais ativo; `lead_procurou` força receptivo).
+- Pendências: `crm_box_pendencias` (cobra, não bloqueia: item fica
+  `aguardando_dados`).
+- Prospect que já existe no Box: a ficha atual do Box é lida e reenviada inteira,
+  só com o atendimento novo. Nunca apaga dado do Box.
+- No JSON do Box, `Receptivo:true` = receptivo (o rádio da tela é invertido).
+
+Spec completa no vault: `10-cna/sistemas/integracao-crm-box.md`.
