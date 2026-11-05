@@ -676,6 +676,8 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .cf label{display:block;font-size:11px;font-weight:600;color:var(--gray);margin-bottom:4px}
 .cf select,.cf input{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;font-size:13px;background:var(--white)}
 .cf .hint{font-size:11.5px;color:var(--gray);margin-top:4px}
+.f .hint{font-size:11.5px;color:var(--gray);margin-top:4px}
+.f input[readonly]{background:var(--surface);color:var(--gray);cursor:default}
 .cmoney{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-md);background:var(--white);overflow:hidden}
 .cmoney span{padding:0 4px 0 11px;font-size:13px;font-weight:600;color:var(--gray);flex:none}
 .cmoney input{border:none;border-radius:0;padding:9px 11px 9px 4px;width:100%;font-variant-numeric:tabular-nums}
@@ -2264,7 +2266,8 @@ const CFG={
       {k:'nome_aluno',l:'Nome do aluno',t:'text',full:true},
       {k:'idade',l:'Idade do aluno',t:'number'},
       {k:'responsavel_legal',l:'Responsável pelo aluno',t:'text'},
-      {k:'data_entrada',l:'Data de entrada',t:'date',def:function(){return hojeISO();}},
+      /* data de cadastro: escolhida so na criacao, depois imutavel (trigger crm_leads_trava_cadastro_tg) */
+      {k:'data_entrada',l:'Data de cadastro',t:'date',lock:true,def:function(){return hojeISO();}},
       /* nasce vazio de proposito: quem preenche e o registro de contato no historico */
       {k:'ultimo_contato',l:'Último contato',t:'date'},
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
@@ -3060,9 +3063,15 @@ function openModal(id){
       }).join('')+'</select>';
     }else if(f.t==='number'){
       inner+='<input type="number" inputmode="numeric" min="1" max="120" data-k="'+f.k+'" value="'+esc(v)+'">';
+    }else if(f.t==='date'&&f.lock&&s){
+      /* sem data-k de proposito: nao entra no PATCH. O banco tambem trava. */
+      var reg=s.created_at?new Date(s.created_at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+      inner+='<input type="text" readonly tabindex="-1" value="'+esc(brDate(v)||'—')+'">'
+        +'<div class="hint">Não pode ser alterada.'+(reg?' Registrado no sistema em '+esc(reg)+'.':'')+'</div>';
     }else if(f.t==='date'){
       const dv=v||(s?'':(f.def?f.def():''));
-      inner+='<input type="date" class="'+(dv?'':'dvazio')+'" data-k="'+f.k+'" value="'+esc(dv)+'">';
+      inner+='<input type="date" class="'+(dv?'':'dvazio')+'" data-k="'+f.k+'" value="'+esc(dv)+'">'
+        +(f.lock?'<div class="hint">Confira antes de salvar: depois do cadastro esta data não muda mais.</div>':'');
     }else if(f.t==='datetime'){
       const hv=s?(s[f.hk]==null?'':String(s[f.hk]).slice(0,5)):'';
       inner='<label>'+esc(f.l)+' <b class="req">*</b></label>'
