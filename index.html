@@ -2735,6 +2735,8 @@ function cardEl(s,st,showStage){
     var _pend=pendenciasLead(s);
     if(_pv&&_pv.txt==='Definir in\u00edcio das aulas')_pend=_pend.filter(function(x){return x!=='in\u00edcio das aulas';});
     if(_pend.length)pdTag='<span class="agt pend" title="Salvar grava assim mesmo. Complete quando tiver o dado.">&#9888; falta '+esc(_pend.join(', '))+'</span>';
+    var _bx=boxFaltaLead(s);
+    if(_bx.length)pdTag+='<span class="agt pend" title="Vai para o CNA Box com valor provis\u00f3rio. Pergunte ao cliente e preencha na ficha: o pr\u00f3ximo contato corrige o Box.">&#128203; Box: falta '+esc(_bx.join(', '))+'</span>';
     /* A52: tentativas sem retorno. A partir de 3 o card avisa em vermelho \u2014
        e o sinal de que a cadencia nao esta funcionando nesse lead. */
     var _t=tentativasLead(s);
@@ -4299,6 +4301,7 @@ function buildChips(){
 function buildPeriodo(){
   const sel=$('persel');
   if($('boxbtn'))$('boxbtn').style.display=(tab==='leads'&&podeVer('leads'))?'':'none';
+  if(tab==='leads')boxStatusCarrega();
   if(!sel)return;
   if(tab!=='leads'){sel.style.display='none';return;}
   sel.style.display='';
@@ -4390,7 +4393,7 @@ const BOX_MOTREP_OPTS='<option value="">— escolha —</option><option value="v
   +'<option value="nao_quer_agora">Não quer iniciar o curso agora</option>';
 /* canal do proximo contato que no Box vira agendamento (visita / teste), nao repique */
 const BOX_AGENDA=['visita','reuniao','teste_nivel','experimental'];
-const BOX_PEND={data_nascimento:'Falta nascimento do aluno',disponibilidade:'Falta disponibilidade de horário',
+const BOX_PEND={data_nascimento:'Falta nascimento do aluno (vai provisório)',disponibilidade:'Falta disponibilidade de horário (vai provisório)',
   contato:'Falta WhatsApp ou e-mail',motivo_nao_efetivo:'Falta motivo do não efetivo',
   motivo_repique:'Falta motivo do repique',consultor_sem_box:'Consultor sem login do Box no CRM'};
 const BOX_ST={pendente:'Aguardando aprovação',aguardando_dados:'Faltam dados',aprovado:'Aprovado, aguardando envio',
@@ -4474,6 +4477,27 @@ function boxIntSync(){
 });
 
 /* ---- modal da fila ---- */
+/* Box ligado na unidade da sessão (crm_box_config.ativo, via crm_box_credencial_status).
+   null = ainda não consultado. Só com ele ligado o card cobra "falta para o Box". */
+var BOXON=null;
+function boxStatusCarrega(){
+  if(BOXON!==null||!sessTok())return;
+  BOXON=false;
+  bxRpc('crm_box_credencial_status').then(function(r){
+    BOXON=!!(r&&r.box_ativo);
+    if(BOXON&&tab==='leads')render();
+  }).catch(function(){BOXON=null;});
+}
+/* 16/11/2026: o que falta do cliente vai ao Box com valor provisório (01/01/2000, todos os
+   horários) e o card cobra o dado real; preenchido na ficha, o próximo atendimento corrige o Box. */
+function boxFaltaLead(s){
+  if(!BOXON||!s)return [];
+  const f=[];
+  if(!s.data_nascimento)f.push('nascimento');
+  const d=Array.isArray(s.disponibilidade)?s.disponibilidade:String(s.disponibilidade||'').replace(/[{}\[\]\s]/g,'').split(',').filter(Boolean);
+  if(!d.length)f.push('hor\u00e1rio');
+  return f;
+}
 function bxRpc(nome,args){
   return api('/rpc/'+nome,{method:'POST',body:JSON.stringify(Object.assign({p_token:sessTok()},args||{}))});
 }

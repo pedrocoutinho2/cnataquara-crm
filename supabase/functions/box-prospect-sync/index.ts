@@ -35,6 +35,12 @@ const MOTIVO_INEFETIVO: Record<string, string> = {
 };
 const MOTIVO_REPIQUE: Record<string, string> = { vai_pesquisar: "1", sem_tempo: "3", desempregado: "4", nao_quer_agora: "7" };
 
+// Valor provisório quando falta dado do cliente (decisão de 16/11/2026): o envio não espera.
+// O que foi provisório fica em crm_leads.box_provisorio; o card do lead cobra o dado real
+// e o próximo atendimento enviado substitui o provisório no Box.
+const PROV_NASC = "01/01/2000";
+const PROV_DISP = Array.from({ length: 18 }, (_, k) => String(k + 1)); // seg a sáb, manhã/tarde/noite
+
 const dataBR = (iso?: string | null) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
 const digitos = (s?: string | null) => (s || "").replace(/\D/g, "");
 function foneBox(s?: string | null) {
@@ -80,9 +86,15 @@ export function atendimento(it: Item, pessoaId: string) {
 export function payloadNovo(it: Item) {
   const l = it.lead;
   const idioma = IDIOMA[l.curso];
+  const prov: string[] = [];
+  let nasc = dataBR(l.data_nascimento);
+  if (!nasc) { nasc = PROV_NASC; prov.push("data_nascimento"); }
+  let disp = (l.disponibilidade || []).map(String);
+  if (!disp.length) { disp = PROV_DISP; prov.push("disponibilidade"); }
+  it._prov = prov;
   return {
     CollectionAlunoTag: [],
-    CollectionAlunoDisponibilidadePeriodo: (l.disponibilidade || []).map((p: number) => ({ DisponibilidadePeriodoId: String(p) })),
+    CollectionAlunoDisponibilidadePeriodo: disp.map((p: string) => ({ DisponibilidadePeriodoId: p })),
     CollectionAlunoIdioma: idioma ? [{ IdiomaId: idioma, EstagioInteresseId: "", ModalidadeInteresseId: "" }] : [],
     CollectionPessoaResponsavel: null,
     PessoaEscola: {
@@ -90,7 +102,7 @@ export function payloadNovo(it: Item) {
       CollectionPessoaInteresse: [],
       Endereco: { EnderecoId: "0", CEP: "", Rua: "", Numero: "", Complemento: "", Cidade: "", EstadoId: "", Bairro: "" },
       EnderecoId: "0",
-      DataNascimento: dataBR(l.data_nascimento),
+      DataNascimento: nasc,
       Sexo: l.sexo === "M" ? "1" : l.sexo === "F" ? "2" : "",
       Nome: (l.nome || "").toUpperCase(),
       Apelido: (l.nome || "").toUpperCase(),
@@ -151,10 +163,22 @@ export function payloadExistente(it: Item, html: string, boxId: string) {
   }));
   const idiomaCrm = IDIOMA[l.curso];
   if (!idiomas.length && idiomaCrm) idiomas.push({ IdiomaId: idiomaCrm, EstagioInteresseId: "", ModalidadeInteresseId: "" });
+  // O que o Box tem prevalece, salvo campo que nós mandamos provisório e o CRM já tem o real.
+  const jaProv: string[] = l.box_provisorio || [];
+  const prov: string[] = [];
+  const dispCrm = (l.disponibilidade || []).map(String);
   let disp = checks("DisponibilidadePeriodoId");
-  if (!disp.length) disp = (l.disponibilidade || []).map(String);
+  if (jaProv.includes("disponibilidade") && dispCrm.length) disp = dispCrm;
+  else if (!disp.length) disp = dispCrm;
+  if (!disp.length) disp = PROV_DISP;
+  if (!dispCrm.length && (jaProv.includes("disponibilidade") || disp === PROV_DISP)) prov.push("disponibilidade");
   const end = (k: string) => val(`Endereco.${k}`);
-  const nasc = val("DataNascimento") || dataBR(l.data_nascimento);
+  const nascCrm = dataBR(l.data_nascimento);
+  let nasc = val("DataNascimento");
+  if (jaProv.includes("data_nascimento") && nascCrm) nasc = nascCrm;
+  else if (!nasc) nasc = nascCrm || PROV_NASC;
+  if (!nascCrm && (jaProv.includes("data_nascimento") || nasc === PROV_NASC)) prov.push("data_nascimento");
+  it._prov = prov;
   const vazio = (s: string) => (s && s.trim() ? s : " ");
   return {
     CollectionAlunoTag: [],
@@ -349,7 +373,7 @@ if (import.meta.main) Deno.serve(async (req) => {
         else payload = payloadNovo(it);
 
         if (!enviar) {
-          relatorio.push({ fila_id: it.fila_id, ok: true, simulacao: true, box_id: boxId, payload });
+          relatorio.push({ fila_id: it.fila_id, ok: true, simulacao: true, box_id: boxId, provisorio: it._prov || [], payload });
           continue;
         }
         const resp = await box!.salvar(payload);
@@ -361,7 +385,11 @@ if (import.meta.main) Deno.serve(async (req) => {
           p_fila_id: it.fila_id, p_ok: ok, p_box_id: novoId, p_payload: payload, p_resposta: resp,
           p_erro: ok ? null : (r.Errors || []).join(" | ") || "erro_box",
         });
-        relatorio.push({ fila_id: it.fila_id, ok, box_id: novoId, erro: ok ? null : r.Errors });
+        if (ok && Array.isArray(it._prov)) {
+          // service role: grava o que foi provisório (lista vazia = o Box já está com o dado real)
+          await sb.from("crm_leads").update({ box_provisorio: it._prov }).eq("id", it.lead.id);
+        }
+        relatorio.push({ fila_id: it.fila_id, ok, box_id: novoId, provisorio: it._prov || [], erro: ok ? null : r.Errors });
       } catch (e) {
         const msg = (e as Error).message;
         if (enviar) {

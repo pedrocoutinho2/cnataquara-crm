@@ -486,7 +486,13 @@ do Box do consultor dono do lead (`POST /Prospect/Save` do Box, JSON).
 - Ativo/receptivo: `crm_box_receptivo(interacao_id)` (primeiro contato de origem
   de campanha = receptivo; demais ativo; `lead_procurou` força receptivo).
 - Pendências: `crm_box_pendencias` (cobra, não bloqueia: item fica
-  `aguardando_dados`).
+  `aguardando_dados`). Desde 16/11/2026 nascimento e disponibilidade **não** são
+  pendência: faltando, `box-prospect-sync` (v3) manda 01/01/2000 e todos os 18
+  horários, grava o que foi provisório em `crm_leads.box_provisorio` e o card do
+  lead mostra "Box: falta …" (`boxFaltaLead`, só com `BOXON`, que vem de
+  `crm_box_credencial_status.box_ativo`). Dado real preenchido na ficha substitui
+  o provisório no Box no próximo atendimento enviado; fora isso, o que o Box já
+  tem prevalece.
 - Prospect que já existe no Box: a ficha atual do Box é lida e reenviada inteira,
   só com o atendimento novo. Nunca apaga dado do Box.
 - No JSON do Box, `Receptivo:true` = receptivo (o rádio da tela é invertido).
