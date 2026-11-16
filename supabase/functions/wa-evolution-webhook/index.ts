@@ -10,6 +10,8 @@
 //   token da instância (= secret EVO_TOKEN_*). Na v2.3.7 o header do webhook não chegou.
 //   events: MESSAGES_UPSERT, MESSAGES_UPDATE, CONNECTION_UPDATE
 //
+// v3 (16/11/2026): número novo vira lead na hora (etapa novo, origem WhatsApp, responsável = dono da
+//   conversa pelo rodízio/etiqueta). Só no recebimento ao vivo; a importação de histórico não cria lead.
 // Regras: falha FECHADO (conta sem token configurado não recebe nada); lead procurado só na
 // unidade da conta; grupo, status e canal ignorados; reentrega deduplicada pelo id da mensagem;
 // o apikey que a Evolution manda no corpo nunca é gravado (o trigger do banco também remove).
@@ -91,6 +93,32 @@ function extrair(msg: J | undefined): Info {
   return { tipo: 'sistema', texto: `[${k}]`, mime: null, nome: null, midia: false, contexto: null };
 }
 
+function fmtNum(numero: string): string {
+  const d = numero.replace(/\D/g, '').replace(/^55/, '');
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return d;
+}
+
+// número novo no WhatsApp vira lead (falha nunca impede gravar a conversa)
+async function leadAutomatico(conta: Conta, conversaId: string, atendenteId: string | null, numero: string, nomePerfil: string | null) {
+  try {
+    let resp: string | null = null;
+    if (atendenteId) {
+      const { data: u } = await db.from('crm_usuarios').select('nome').eq('id', atendenteId).maybeSingle();
+      resp = u?.nome ?? null;
+    }
+    const { data: lead, error } = await db.from('crm_leads').insert({
+      unidade: conta.unidade, nome: (nomePerfil ?? '').trim() || `WhatsApp ${fmtNum(numero)}`,
+      whatsapp: fmtNum(numero), etapa: 'novo', origem: 'WhatsApp', responsavel: resp,
+    }).select('id').single();
+    if (error) throw error;
+    await db.from('crm_wa_conversas').update({ lead_id: lead.id }).eq('id', conversaId);
+  } catch (e) {
+    console.log(JSON.stringify({ diag: 'lead_automatico_falhou', conversa: conversaId, erro: String((e as Error)?.message ?? e).slice(0, 200) }));
+  }
+}
+
 async function resolverConversa(conta: Conta, numero: string, nomePerfil: string | null): Promise<string> {
   const { data: existente } = await db.from('crm_wa_conversas')
     .select('id, nome_perfil').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
@@ -112,13 +140,14 @@ async function resolverConversa(conta: Conta, numero: string, nomePerfil: string
   const { data: nova, error } = await db.from('crm_wa_conversas').insert({
     conta_id: conta.id, wa_id: numero, numero_e164: '+' + numero, wa_chave: k,
     nome_perfil: nomePerfil, lead_id: leadId, lead_ambiguo: ambiguo,
-  }).select('id').single();
+  }).select('id, atendente_id').single();
   if (error?.code === '23505') {
     // corrida com outro evento da mesma conversa
     const { data: outra } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).single();
     return outra!.id as string;
   }
   if (error) throw error;
+  if (!leadId) await leadAutomatico(conta, nova.id as string, nova.atendente_id as string | null, numero, nomePerfil);
   return nova.id as string;
 }
 

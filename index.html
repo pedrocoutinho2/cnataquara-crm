@@ -1064,6 +1064,23 @@ body.waFull .stats{display:none}
 .wacomp textarea{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:13.5px;resize:none;max-height:160px;min-height:42px;background:var(--surface)}
 .wacomp textarea:focus{background:var(--white);outline:none;border-color:var(--blue)}
 .wacomp .btn{border-radius:20px;height:42px}
+.warespwrap{position:relative;flex:none}
+.warespbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--white);font-size:17px;cursor:pointer;color:var(--warn)}
+.warespbtn:hover{background:var(--warnBg)}
+.waresppop{display:none;position:absolute;bottom:50px;left:0;width:min(440px,80vw);max-height:380px;background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-2);z-index:20;flex-direction:column;overflow:hidden}
+.waresppop.open{display:flex}
+.wrhead{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.wrhead b{flex:1;font-family:var(--display);font-size:13.5px}
+.wrlist{overflow-y:auto}
+.wri{padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.wri.on,.wri:hover{background:var(--pastelBlue)}
+.wri .t{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.wri .t span{color:var(--blue);font-size:11.5px;font-weight:600}
+.wri .c{font-size:12px;color:var(--gray);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrvazio{padding:18px;color:var(--gray);font-size:13px;text-align:center}
+.wrrow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.wrrow:hover{background:var(--surface)}
+.waetapa{font-weight:600;color:var(--blue);border-color:var(--pastelBlue);background:var(--pastelBlue)}
 .wafechada{border-top:1px solid var(--line);padding:12px 16px;flex:none;background:var(--warnBg);font-size:12.5px;color:var(--warn)}
 .wafechada select{width:100%;margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:var(--r-md);font:inherit;font-size:13px;background:var(--white)}
 .wavazio{flex:1;display:grid;place-items:center;color:var(--gray);font-size:13.5px;padding:24px;text-align:center}
@@ -2396,7 +2413,7 @@ const CFG={
     nextField:'proximo_atendimento',
     prioField:'curso',prioLabel:'Curso',tipoLabel:'Origem',
     prios:[['Inglês','Inglês','p2'],['Espanhol','Espanhol','p1'],['Robótica','Robótica','p3'],['Proficiência','Proficiência','p3']],
-    tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['Outro','Outro']],
+    tipos:[['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['WhatsApp','WhatsApp'],['Outro','Outro']],
     sub:function(s){
       var d=s.data_entrada?s.data_entrada.split('-').reverse().join('/'):'';
       var pa=agLabel(s.proximo_atendimento,s.proximo_atendimento_hora);
@@ -2407,7 +2424,7 @@ const CFG={
       {k:'whatsapp',l:'WhatsApp',t:'text',licon:1},
       {k:'curso',l:'Curso de interesse',t:'select',opts:[['','—'],['Inglês','Inglês'],['Espanhol','Espanhol'],['Robótica','Robótica'],['Proficiência','Proficiência'],['Outro','Outro']]},
       {k:'nivel',l:'Nível',t:'select',opts:function(){return [['','—']].concat(NIVEIS.map(function(n){return [n,n];}));}},
-      {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['Outro','Outro']]},
+      {k:'origem',l:'Origem',t:'select',opts:[['','—'],['Google','Google'],['Facebook','Facebook'],['Instagram','Instagram'],['Matriz','Matriz'],['Indicação','Indicação'],['Flyer','Flyer'],['Ação comercial','Ação comercial'],['WhatsApp','WhatsApp'],['Outro','Outro']]},
       {k:'acao_id',l:'De qual ação comercial',t:'select',opts:function(){
         var l=(typeof ACOES==='object'&&ACOES&&ACOES.lista)?ACOES.lista:[];
         return [['','— escolha a ação —']].concat(l.filter(function(a){return a.status!=='cancelada';})
@@ -4921,6 +4938,7 @@ async function openConversas(){
     return;
   }
   if(!waVeTudo())WA.agente='';
+  await waRespCarregar();
   await waFila();
   await waCarregar(true);
   waStartPoll();
@@ -4939,6 +4957,7 @@ function waStartPoll(){
     /* não redesenha com um seletor aberto (transferir, agente, número) */
     const ae=document.activeElement;
     if(ae&&ae.tagName==='SELECT'&&$('board').contains(ae))return;
+    if(WA.respAberto||(typeof GMODAL==='object'&&GMODAL.aberto))return;
     waCarregar();
   },10000);
 }
@@ -5101,6 +5120,7 @@ function renderThread(sel){
     +(waPodeEditar()&&(vt||meu)&&WA.agentes.length?'<select id="watransf" class="watransf" aria-label="Transferir"><option value="">'+(sel.atendente_id?'Transferir para...':'Atribuir a...')+'</option>'
       +WA.agentes.filter(function(a){return a.usuario_id!==sel.atendente_id;}).map(function(a){return '<option value="'+esc(a.usuario_id)+'">'+esc(a.nome)+'</option>';}).join('')+'</select>':'')
     +(waPodeEditar()?(sel.status==='resolvida'?'<button class="walead" id="wareabrir">Reabrir</button>':'<button class="walead ok" id="waresolver">Resolver</button>'):'')
+    +(sel.lead?waEtapaSel(sel):'')
     +(sel.lead_id?'<button class="walead" id="wafichabtn">Abrir ficha</button>':'<button class="walead pri" id="wanovolead">Criar lead</button>')
     +'<button class="walead ic" id="wapaineltg" title="Detalhes">&#9432;</button>'
     +'</div></div>';
@@ -5132,7 +5152,8 @@ function renderThread(sel){
     h+='<div class="wafechada">Você pode ler esta conversa, mas não responder por ela.</div>';
   }else if(j.aberta){
     h+='<div class="wacomp">'
-      +'<textarea id="watxt" rows="1" placeholder="Escreva a mensagem. Enter envia, Shift+Enter quebra linha."></textarea>'
+      +'<div class="warespwrap"><button class="warespbtn" id="warespbtn" title="Mensagens salvas (ou digite / no início)">&#9889;</button><div class="waresppop" id="waresppop"></div></div>'
+      +'<textarea id="watxt" rows="1" placeholder="Escreva a mensagem. Digite / para mensagens salvas. Enter envia."></textarea>'
       +'<button class="btn primary" id="wasend">Enviar</button></div>';
   }else{
     h+='<div class="wafechada">A janela de 24 horas fechou. Fora dela o WhatsApp só entrega template aprovado.';
@@ -5243,11 +5264,25 @@ function waLigar(){
   const txt=$('watxt');
   if(txt){
     if(!$('wabusca')||document.activeElement!==$('wabusca'))txt.focus();
-    txt.oninput=function(){txt.style.height='auto';txt.style.height=Math.min(160,txt.scrollHeight)+'px';};
+    txt.oninput=function(){
+      txt.style.height='auto';txt.style.height=Math.min(160,txt.scrollHeight)+'px';
+      const v=txt.value;
+      if(v.charAt(0)==='/'&&v.indexOf('\n')<0)waRespAbrir(v.slice(1));else waRespFechar();
+    };
     txt.onkeydown=function(e){
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();waEnviar();}
+      if(WA.respAberto&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();waRespMover(e.key==='ArrowDown'?1:-1);return;}
+      if(WA.respAberto&&e.key==='Escape'){waRespFechar();return;}
+      if(e.key==='Enter'&&!e.shiftKey){
+        e.preventDefault();
+        if(WA.respAberto&&WA.respLista.length){waRespUsar(WA.respLista[WA.respIdx].id);return;}
+        waEnviar();
+      }
     };
   }
+  const rb=$('warespbtn');
+  if(rb)rb.onclick=function(){if(WA.respAberto)waRespFechar();else waRespAbrir('');};
+  const es=$('waetapa');
+  if(es)es.onchange=function(){waMudarEtapa(es.value);};
   const stpl=$('wasendtpl');
   if(stpl)stpl.onclick=function(){
     const v=$('watpl')?$('watpl').value:'';
@@ -5369,6 +5404,126 @@ async function waEtiquetas(){
       await waCarregar(true);
     }catch(e){toast(waErro(e,'Não foi possível aplicar.'));ok.disabled=false;ok.textContent='Aplicar';}
   };
+}
+
+/* ---- etapa do lead direto da conversa ----
+   Etapas sem dado obrigatório mudam aqui; as que exigem dado (experimental, negociação, fechado,
+   perdido) abrem a ficha do lead para completar, como no funil. */
+const WAETAPA_FICHA={experimental:1,negociacao:1,fechado:1,perdido:1};
+function waEtapaSel(c){
+  if(!waPodeEditar())return '<span class="watag lead">'+esc(waEtapaNome(c.lead.etapa))+'</span>';
+  return '<select id="waetapa" class="watransf waetapa" title="Etapa do lead no funil">'
+    +(CFG.leads.stages||[]).map(function(st){return '<option value="'+esc(st.id)+'"'+(st.id===c.lead.etapa?' selected':'')+'>'+esc(st.n)+'</option>';}).join('')
+    +'</select>';
+}
+async function waMudarEtapa(et){
+  const c=WA.conversas.find(function(x){return x.id===WA.sel;});
+  if(!c||!c.lead_id||!c.lead||et===c.lead.etapa)return;
+  if(WAETAPA_FICHA[et]){
+    toast('Essa etapa pede dados na ficha. Complete e salve por lá.');
+    renderConversas();
+    await goToAlert('leads',c.lead_id);
+    return;
+  }
+  try{
+    await api('/crm_leads?id=eq.'+encodeURIComponent(c.lead_id),{method:'PATCH',body:JSON.stringify({etapa:et})});
+    c.lead.etapa=et;DATA.leads=null;
+    toast('Lead em '+waEtapaNome(et)+'.');
+    renderConversas();
+  }catch(e){toast('Não foi possível mudar a etapa: '+(e.message||e));renderConversas();}
+}
+
+/* ---- mensagens salvas (crm_respostas_rapidas, por unidade) ----
+   Botão ⚡ ou / no início do texto; ↑↓ e Enter escolhem. Variáveis: {nome} {consultor} {unidade}. */
+WA.resp=[];WA.respAberto=false;WA.respLista=[];WA.respIdx=0;
+async function waRespCarregar(){
+  try{WA.resp=(await api('/crm_respostas_rapidas?ativa=eq.true&order=categoria.asc,ordem.asc,titulo.asc&select=id,categoria,titulo,corpo,atalho,usos'))||[];}
+  catch(e){WA.resp=[];}
+}
+function waRespTexto(r){
+  const c=WA.conversas.find(function(x){return x.id===WA.sel;})||{};
+  const nome=String((c.lead&&c.lead.nome)||c.nome_perfil||'').replace(/[^\p{L}\s'-]/gu,'').trim().split(/\s+/)[0]||'';
+  return String(r.corpo||'').replace(/\{nome\}/g,nome).replace(/\{consultor\}/g,currentUser||'')
+    .replace(/\{unidade\}/g,UN().nome||'');
+}
+function waRespAbrir(q){
+  const pop=$('waresppop');if(!pop)return;
+  const t=String(q||'').toLowerCase();
+  WA.respLista=WA.resp.filter(function(r){
+    return !t||(r.atalho||'').toLowerCase().replace('/','').indexOf(t)===0||(r.titulo||'').toLowerCase().indexOf(t)>-1||(r.corpo||'').toLowerCase().indexOf(t)>-1;
+  }).slice(0,40);
+  WA.respIdx=0;WA.respAberto=true;
+  let h='<div class="wrhead"><b>Mensagens salvas</b><button class="walead" id="warespnova">+ Nova</button><button class="walead" id="warespger">Gerenciar</button></div><div class="wrlist">';
+  if(!WA.respLista.length)h+='<div class="wrvazio">'+(WA.resp.length?'Nada com esse texto.':'Nenhuma mensagem salva ainda. Clique em + Nova.')+'</div>';
+  WA.respLista.forEach(function(r,i){
+    h+='<div class="wri'+(i===0?' on':'')+'" data-resp="'+esc(r.id)+'"><div class="t"><b>'+esc(r.titulo||'')+'</b>'+(r.atalho?'<span>'+esc(r.atalho)+'</span>':'')+'</div><div class="c">'+esc(String(r.corpo||'').slice(0,120))+'</div></div>';
+  });
+  h+='</div>';
+  pop.innerHTML=h;pop.classList.add('open');
+  pop.querySelectorAll('[data-resp]').forEach(function(el){el.onmousedown=function(e){e.preventDefault();waRespUsar(el.dataset.resp);};});
+  $('warespnova').onmousedown=function(e){e.preventDefault();waRespFechar();waRespEditar(null);};
+  $('warespger').onmousedown=function(e){e.preventDefault();waRespFechar();waRespGerenciar();};
+}
+function waRespFechar(){WA.respAberto=false;const p=$('waresppop');if(p){p.classList.remove('open');p.innerHTML='';}}
+function waRespMover(d){
+  if(!WA.respLista.length)return;
+  WA.respIdx=(WA.respIdx+d+WA.respLista.length)%WA.respLista.length;
+  document.querySelectorAll('.wri').forEach(function(el,i){el.classList.toggle('on',i===WA.respIdx);if(i===WA.respIdx)el.scrollIntoView({block:'nearest'});});
+}
+function waRespUsar(id){
+  const r=WA.resp.find(function(x){return x.id===id;});if(!r)return;
+  const txt=$('watxt');if(!txt)return;
+  txt.value=waRespTexto(r);
+  waRespFechar();
+  txt.focus();txt.style.height='auto';txt.style.height=Math.min(160,txt.scrollHeight)+'px';
+  api('/crm_respostas_rapidas?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({usos:(r.usos||0)+1})}).catch(function(){});
+  r.usos=(r.usos||0)+1;
+}
+function waRespEditar(id){
+  const r=id?WA.resp.find(function(x){return x.id===id;}):null;
+  const cats=[...new Set(WA.resp.map(function(x){return x.categoria;}).filter(Boolean))];
+  uiModal(r?'Editar mensagem salva':'Nova mensagem salva','Fica disponível para toda a equipe da unidade nas Conversas',
+    '<div class="f"><label>Título</label><input id="wrtit" maxlength="80" value="'+esc(r?r.titulo:'')+'" placeholder="Ex.: Boas-vindas lead novo"></div>'
+    +'<div class="f"><label>Atalho (opcional)</label><input id="wrata" maxlength="24" value="'+esc(r?r.atalho||'':'')+'" placeholder="/oi"></div>'
+    +'<div class="f"><label>Categoria</label><input id="wrcat" list="wrcats" maxlength="40" value="'+esc(r?r.categoria||'':'Geral')+'"><datalist id="wrcats">'+cats.map(function(c){return '<option value="'+esc(c)+'">';}).join('')+'</datalist></div>'
+    +'<div class="f"><label>Mensagem</label><textarea id="wrcorpo" rows="7" placeholder="Oi {nome}, aqui é {consultor}, do {unidade}!">'+esc(r?r.corpo||'':'')+'</textarea>'
+    +'<div class="wanota" style="margin-top:6px">Variáveis: <b>{nome}</b> primeiro nome do contato · <b>{consultor}</b> quem envia · <b>{unidade}</b> nome da unidade.</div></div>',
+    (r?'<button class="btn danger" id="wrdel">Excluir</button>':'')+'<span style="flex:1"></span><button class="btn" id="wrx">Cancelar</button><button class="btn primary" id="wrok">Salvar</button>');
+  $('wrx').onclick=uiModalClose;
+  uiFoco('wrtit');
+  $('wrok').onclick=async function(){
+    const tit=$('wrtit').value.trim(),corpo=$('wrcorpo').value.trim();
+    let ata=$('wrata').value.trim().replace(/\s+/g,'');
+    if(ata&&ata.charAt(0)!=='/')ata='/'+ata;
+    if(!tit||!corpo){toast('Preencha título e mensagem.');return;}
+    const body={titulo:tit,corpo:corpo,atalho:ata||null,categoria:$('wrcat').value.trim()||'Geral',ativa:true,atualizado_em:new Date().toISOString()};
+    try{
+      if(r)await api('/crm_respostas_rapidas?id=eq.'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify(body)});
+      else await api('/crm_respostas_rapidas',{method:'POST',body:JSON.stringify(Object.assign(body,{criado_por:currentUser,ordem:(WA.resp.length+1)*10}))});
+      await waRespCarregar();uiModalClose();toast('Mensagem salva.');
+    }catch(e){toast('Não foi possível salvar: '+(e.message||e));}
+  };
+  const del=$('wrdel');
+  if(del)del.onclick=async function(){
+    if(!del.classList.contains('confirm')){del.classList.add('confirm');del.textContent='Confirmar exclusão';return;}
+    try{await api('/crm_respostas_rapidas?id=eq.'+encodeURIComponent(r.id),{method:'PATCH',body:JSON.stringify({ativa:false})});
+      await waRespCarregar();uiModalClose();toast('Mensagem excluída.');}
+    catch(e){toast('Não foi possível excluir.');}
+  };
+}
+function waRespGerenciar(){
+  let h='';
+  if(!WA.resp.length)h='<div class="wavazio" style="padding:20px">Nenhuma mensagem salva ainda.</div>';
+  let cat=null;
+  WA.resp.forEach(function(r){
+    if(r.categoria!==cat){cat=r.categoria;h+='<div class="wadl">'+esc(cat||'Geral')+'</div>';}
+    h+='<div class="wrrow" data-wred="'+esc(r.id)+'"><div><b>'+esc(r.titulo)+'</b>'+(r.atalho?' <span class="watag">'+esc(r.atalho)+'</span>':'')
+      +'<div class="mut">'+esc(String(r.corpo||'').slice(0,140))+'</div></div><span class="mut">'+(r.usos||0)+' usos</span></div>';
+  });
+  uiModal('Mensagens salvas','Clique numa mensagem para editar',h,'<button class="btn" id="wrgx">Fechar</button><button class="btn primary" id="wrgnova">+ Nova mensagem</button>');
+  $('wrgx').onclick=uiModalClose;
+  $('wrgnova').onclick=function(){waRespEditar(null);};
+  document.querySelectorAll('[data-wred]').forEach(function(el){el.onclick=function(){waRespEditar(el.dataset.wred);};});
 }
 
 async function waEnviar(template){
