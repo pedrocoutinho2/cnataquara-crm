@@ -497,6 +497,12 @@ do Box do consultor dono do lead (`POST /Prospect/Save` do Box, JSON).
   `crm_box_credencial_status.box_ativo`). Dado real preenchido na ficha substitui
   o provisório no Box no próximo atendimento enviado; fora isso, o que o Box já
   tem prevalece.
+- Agenda vencida: o Box recusa agendamento no passado. Atendimento cujo próximo
+  contato já passou na hora do envio vai sem agenda (ação 6) e a descrição diz
+  para quando estava marcado (v5, 16/11/2026).
+- Login recusado não é repetido: com `ultimo_erro` começando por `login_`, a função
+  pula o consultor até alguém gravar senha nova (o Box passa a pedir CAPTCHA
+  depois de erros seguidos). O resultado do envio aparece no topo do modal.
 - Prospect que já existe no Box: a ficha atual do Box é lida e reenviada inteira,
   só com o atendimento novo. Nunca apaga dado do Box.
 - No JSON do Box, `Receptivo:true` = receptivo (o rádio da tela é invertido).

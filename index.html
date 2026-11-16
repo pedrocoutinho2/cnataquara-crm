@@ -4577,7 +4577,8 @@ function bxVisiveis(){
 }
 function renderBox(){
   const c=BX.cred||{};
-  let h='<div class="bxsec"><h4>Seu login no CNA Box</h4>';
+  /* resultado do envio/simulação no topo: no rodapé ficava escondido abaixo da fila (16/11/2026) */
+  let h='<div id="bxres">'+(BX.ultimo||'')+'</div><div class="bxsec"><h4>Seu login no CNA Box</h4>';
   if(c.conectado){
     h+='<p>Conectado como <b>'+esc(c.email_box)+'</b>.'
       +(c.ultimo_ok_em?' Último login aceito em '+esc(new Date(c.ultimo_ok_em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}))+'.':' Ainda não testado.')
@@ -4632,7 +4633,6 @@ function renderBox(){
       +(x.erro&&x.status==='erro'?'<div class="bxmeta" style="color:#A30E2A">'+esc(x.erro)+'</div>':'')
       +'</div><span class="bxst '+esc(x.status)+'">'+esc(BOX_ST[x.status]||x.status)+'</span></div>';
   });
-  h+='<div id="bxres"></div>';
   $('bxbody').innerHTML=h;
   let f='<button class="btn primary" id="bxaprovar">Aprovar marcados</button><button class="btn" id="bxignorar">Ignorar marcados</button>';
   if(podeTotal('leads'))f+='<div class="spacer"></div><button class="btn" id="bxsimular">Simular envio</button><button class="btn" id="bxenviar">Enviar aprovados agora</button>';
@@ -4652,14 +4652,22 @@ async function bxDecidir(acao){
 }
 async function bxRodar(enviar){
   const out=$('bxres');
-  if(out)out.innerHTML='<div class="bxres">'+(enviar?'Enviando ao Box...':'Simulando...')+'</div>';
+  const bts=[$('bxsimular'),$('bxenviar')].filter(Boolean);
+  bts.forEach(function(b){b.disabled=true;});
+  const mostra=function(t){BX.ultimo='<div class="bxres">'+esc(t)+'</div>';const o=$('bxres');if(o){o.innerHTML=BX.ultimo;o.scrollIntoView({block:'start',behavior:'smooth'});}};
+  mostra(enviar?'Enviando ao Box...':'Simulando...');
   try{
     const r=await waFn('box-prospect-sync',{enviar:!!enviar,login:true});
-    const ok=(r.relatorio||[]).filter(function(x){return x.ok;}).length;
-    const linhas=(r.relatorio||[]).map(function(x){return (x.ok?'ok ':'falhou ')+(x.box_id?'Box '+x.box_id+' ':'')+(x.erro?'· '+(Array.isArray(x.erro)?x.erro.join(' | '):x.erro):'');});
-    if(out)out.innerHTML='<div class="bxres">'+esc((enviar?'Envio':'Simulação')+': '+ok+' de '+(r.itens||0)+' ok.\n'+linhas.join('\n'))+'</div>';
+    const rel=r.relatorio||[];
+    const ok=rel.filter(function(x){return x.ok;}).length;
+    const nome=function(id){const it=BX.itens.find(function(i){return i.id===id;});return it?(it.lead_nome||'—'):'';};
+    const linhas=rel.map(function(x){return (x.ok?'ok · ':'falhou · ')+nome(x.fila_id)+(x.box_id?' · Box '+x.box_id:'')+(x.erro?' · '+(Array.isArray(x.erro)?x.erro.join(' | '):x.erro):'');});
+    const tit=(enviar?'Envio':'Simulação')+': '+ok+' de '+rel.length+' ok.';
+    mostra(rel.length?tit+'\n'+linhas.join('\n'):'Nada aprovado para enviar. Aprove os atendimentos antes.');
+    toast(rel.length?tit:'Nada aprovado para enviar.');
     if(enviar)setTimeout(openBox,1500);
-  }catch(e){if(out)out.innerHTML='<div class="bxres">'+esc(bxErro(e))+'</div>';}
+  }catch(e){mostra(bxErro(e));toast(bxErro(e));}
+  bts.forEach(function(b){b.disabled=false;});
 }
 function ligaBox(){
   $('bxfiltro').onchange=function(){BX.filtro=this.value;BX.sel={};renderBox();};

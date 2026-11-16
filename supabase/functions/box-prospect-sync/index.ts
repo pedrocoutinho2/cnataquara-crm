@@ -54,19 +54,30 @@ function foneBox(s?: string | null) {
 // deno-lint-ignore no-explicit-any
 type Item = any;
 
-export function atendimento(it: Item, pessoaId: string) {
+// "AAAA-MM-DD HH:MM" no horário de Brasília, comparável como texto
+export const agoraBR = () =>
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(new Date()).replace(",", "");
+
+export function atendimento(it: Item, pessoaId: string, agora = agoraBR()) {
   const i = it.interacao;
   const tipo = i.tipo === "ligacao" ? "1" : i.tipo === "visita" ? "3" : "2";
   const eletronico = tipo === "2" ? (i.tipo === "email" ? "2" : "4") : "";
-  let acao = "6";
-  if (i.proximo_canal === "visita" || i.proximo_canal === "reuniao") acao = "1";
-  else if (i.proximo_canal === "teste_nivel" || i.proximo_canal === "experimental") acao = "5";
-  else if (i.proximo_contato) acao = "2";
   const hora = (i.proximo_contato_hora || "09:00").slice(0, 5);
-  const desc = (i.nota || "").trim() || "Contato registrado no CRM.";
+  // 16/11/2026: o Box recusa agendamento no passado ("data de agendamento retroativa"). Atendimento antigo
+  // cujo próximo contato já passou vai sem agenda, e a descrição diz para quando estava marcado.
+  const passou = !!i.proximo_contato && `${String(i.proximo_contato).slice(0, 10)} ${hora}` <= agora;
+  const prox = passou ? null : i.proximo_contato;
+  let acao = "6";
+  if (prox && (i.proximo_canal === "visita" || i.proximo_canal === "reuniao")) acao = "1";
+  else if (prox && (i.proximo_canal === "teste_nivel" || i.proximo_canal === "experimental")) acao = "5";
+  else if (prox) acao = "2";
+  let desc = (i.nota || "").trim() || "Contato registrado no CRM.";
+  if (passou) desc += ` (Próximo contato estava marcado para ${dataBR(i.proximo_contato)} ${hora}; a data já tinha passado no envio ao Box.)`;
   // deno-lint-ignore no-explicit-any
   const a: any = {
-    Agenda: i.proximo_contato ? { DataInicio: `${dataBR(i.proximo_contato)} ${hora}`, Descricao: desc } : null,
+    Agenda: prox ? { DataInicio: `${dataBR(prox)} ${hora}`, Descricao: desc } : null,
     CollectionSolicitacaoSuspensao: null,
     Efetivo: i.efetivo !== false,
     Receptivo: !!i.receptivo, // no JSON do Box, true = receptivo (o rádio da tela é invertido)
@@ -365,6 +376,15 @@ if (import.meta.main) Deno.serve(async (req) => {
       const c = Array.isArray(cred) ? cred[0] : null;
       if (!c) {
         for (const it of lista) relatorio.push({ fila_id: it.fila_id, ok: false, erro: "consultor_sem_box" });
+        continue;
+      }
+      // Login recusado antes e ninguém gravou senha nova: não tenta de novo. Cada tentativa errada
+      // conta no Box, que passa a pedir o texto da imagem (CAPTCHA) e pode bloquear a conta.
+      // Gravar a senha de novo (consultor ou gestão) limpa ultimo_erro e libera.
+      const { data: st } = await sb.from("crm_box_credenciais").select("ultimo_erro")
+        .eq("unidade", unidade).eq("usuario_id", c.usuario_id).maybeSingle();
+      if (st?.ultimo_erro && /^login_/.test(st.ultimo_erro)) {
+        for (const it of lista) relatorio.push({ fila_id: it.fila_id, ok: false, erro: `aguardando_senha_nova (${st.ultimo_erro})` });
         continue;
       }
       box = new Box();
