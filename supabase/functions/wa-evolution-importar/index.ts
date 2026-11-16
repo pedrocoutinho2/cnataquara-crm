@@ -1,4 +1,4 @@
-// wa-evolution-importar · importa o histórico de uma instância da Evolution para o CRM (uso pontual).
+// wa-evolution-importar v4 · importa o histórico de uma instância da Evolution para o CRM (uso pontual).
 // 16/11/2026: Jardim América, últimos 30 dias (decisão do Pedro), sem grupos, status e canais.
 // Autenticação: token de sessão do CRM (no corpo) com visão da unidade inteira (crm_wa_ve_tudo) e
 // unidade da sessão igual à da conta. Falha fechado.
@@ -10,6 +10,12 @@
 //   { acao: 'etiquetas', simular } lê /label/findLabels + /chat/findChats e reatribui as conversas que
 //   não foram transferidas à mão (atribuicao <> 'manual'). Na importação, conversa nova já nasce com o
 //   dono da etiqueta. Etiqueta que não casa com nenhum agente é só relatada.
+// v4 (16/11/2026): { acao: 'finalizar' } depois da importação (e das etiquetas):
+//   - conversa sem lead vira lead (crm_wa_leads_do_historico: liga ao lead do mesmo número se existir;
+//     senão cria com a data do primeiro contato, etapa pela conversa e próximo atendimento no dia
+//     seguinte à última mensagem, 10h, para não nascer tudo vencido)
+//   - garante MESSAGES_EDITED e MESSAGES_DELETE no webhook da instância (edição e exclusão feitas no
+//     celular chegam ao CRM), mantendo url, headers e os eventos que já existiam
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -18,8 +24,13 @@ const EVO_URL = (Deno.env.get('EVO_URL') ?? 'https://evo.cnataquara.com.br').rep
 // deno-lint-ignore no-explicit-any
 type J = Record<string, any>;
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 function json(b: unknown, status = 200) {
-  return new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(b), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 function chave(num: string | null | undefined): string | null {
   let d = (num ?? '').replace(/\D/g, '');
@@ -112,6 +123,7 @@ async function lerEtiquetas(conta: J, tk: string, agentes: Agente[]) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ erro: 'method not allowed' }, 405);
   let b: J; try { b = await req.json(); } catch { return json({ erro: 'json invalido' }, 400); }
   if (typeof b.token !== 'string' || !/^[0-9a-f-]{36}$/i.test(b.token)) return json({ erro: 'sessao_invalida' }, 401);
@@ -135,6 +147,40 @@ Deno.serve(async (req) => {
 
   const { data: ags } = await db.rpc('crm_wa_agentes', { p_unidade: conta.unidade });
   const agentes: Agente[] = (ags ?? []).map((a: J) => ({ usuario_id: a.usuario_id, nome: a.nome }));
+
+  if (b.acao === 'finalizar') {
+    const out: J = { ok: true, acao: 'finalizar', simular };
+    if (simular) {
+      const { count } = await db.from('crm_wa_conversas').select('id', { count: 'exact', head: true }).eq('conta_id', conta.id).is('lead_id', null);
+      out.conversas_sem_lead = count;
+    } else {
+      const { data: n, error } = await db.rpc('crm_wa_leads_do_historico', { p_conta: conta.id });
+      out.leads_criados = error ? null : n;
+      if (error) out.erro_leads = error.message;
+    }
+    try {
+      const inst = encodeURIComponent(conta.evolution_instancia);
+      const h = { apikey: tk, 'Content-Type': 'application/json' };
+      const rf = await fetch(`${EVO_URL}/webhook/find/${inst}`, { headers: h });
+      const w: J = rf.ok ? await rf.json().catch(() => ({})) : {};
+      if (!rf.ok || !w?.url) throw new Error(`webhook_find_http_${rf.status}`);
+      const atuais: string[] = Array.isArray(w.events) ? w.events : [];
+      const faltam = ['MESSAGES_EDITED', 'MESSAGES_DELETE'].filter((e) => !atuais.includes(e));
+      out.webhook_eventos_antes = atuais;
+      if (faltam.length && !simular) {
+        const eventos = [...atuais, ...faltam];
+        const rs = await fetch(`${EVO_URL}/webhook/set/${inst}`, { method: 'POST', headers: h, body: JSON.stringify({ webhook: {
+          enabled: w.enabled !== false, url: w.url, headers: w.headers ?? {}, byEvents: !!(w.webhookByEvents ?? w.byEvents),
+          base64: !!(w.webhookBase64 ?? w.base64), events: eventos } }) });
+        if (!rs.ok) throw new Error(`webhook_set_http_${rs.status}`);
+        const rv = await fetch(`${EVO_URL}/webhook/find/${inst}`, { headers: h });
+        const v: J = rv.ok ? await rv.json().catch(() => ({})) : {};
+        out.webhook_eventos_depois = v?.events ?? null;
+        out.webhook_url_mantida = v?.url === w.url;
+      } else out.webhook_faltam = faltam;
+    } catch (e) { out.erro_webhook = String((e as Error).message); }
+    return json(out);
+  }
 
   if (b.acao === 'etiquetas') {
     let et;

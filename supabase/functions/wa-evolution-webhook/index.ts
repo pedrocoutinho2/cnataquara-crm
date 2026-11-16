@@ -1,4 +1,4 @@
-// wa-evolution-webhook · recebe eventos da Evolution API (WhatsApp não oficial, fase 1).
+// wa-evolution-webhook v4 · recebe eventos da Evolution API (WhatsApp não oficial, fase 1).
 // Decisões: 2026-10-03-whatsapp-api-nao-oficial-fase-1 (Evolution escolhida em 05/10/2026).
 // Spec: 10-cna/sistemas/whatsapp-multinumero.md
 //
@@ -12,6 +12,14 @@
 //
 // v3 (16/11/2026): número novo vira lead na hora (etapa novo, origem WhatsApp, responsável = dono da
 //   conversa pelo rodízio/etiqueta). Só no recebimento ao vivo; a importação de histórico não cria lead.
+// v4 (16/11/2026): o que a equipe faz no celular chega ao CRM sem perda:
+//   - reação (reactionMessage no messages.upsert) grava em crm_wa_mensagens.reacoes {nos|contato: emoji}
+//   - edição (evento messages.edited, protocolMessage MESSAGE_EDIT) troca o texto e marca editada
+//   - exclusão (evento messages.delete, ou protocolMessage REVOKE) marca apagada e MANTÉM o texto
+//   Assinar MESSAGES_EDITED e MESSAGES_DELETE no webhook da instância (wa-evolution-importar acao 'finalizar').
+//   Sugestão de etapa por IA (modo sugestão): ~40s depois da última mensagem da conversa, se nada novo
+//   chegou, o modelo (env WA_SUGESTAO_MODELO, padrão claude-haiku-5-5, chave ANTHROPIC_API_KEY) lê as
+//   últimas mensagens e, se a etapa do lead deveria mudar, grava sugestao_* na conversa. Nada muda sozinho.
 // Regras: falha FECHADO (conta sem token configurado não recebe nada); lead procurado só na
 // unidade da conta; grupo, status e canal ignorados; reentrega deduplicada pelo id da mensagem;
 // o apikey que a Evolution manda no corpo nunca é gravado (o trigger do banco também remove).
@@ -155,6 +163,11 @@ async function mensagem(conta: Conta, data: J): Promise<string | null> {
   const key = data?.key ?? {};
   const { numero, ignorar } = numeroDoJid(key, data);
   if (ignorar) return `ignorado:${ignorar}`;
+  // reação, edição e exclusão acham a mensagem pelo id (não dependem do número)
+  const bruto: J = data?.message ?? {};
+  if (bruto.reactionMessage) return await reacao(conta, data, bruto.reactionMessage);
+  const proto = bruto.protocolMessage ?? bruto.editedMessage?.message?.protocolMessage;
+  if (proto) return await protocolo(conta, proto);
   if (!numero) throw new Error(`numero_nao_identificado:${key?.remoteJid ?? ''}`);
   const info = extrair(data?.message);
   if (!info) return 'ignorado:sem_conteudo';
@@ -175,7 +188,113 @@ async function mensagem(conta: Conta, data: J): Promise<string | null> {
   });
   // 23505 = reentrega, ou eco de mensagem que o próprio CRM enviou
   if (error && error.code !== '23505') throw error;
+  if (!error && key?.id && (info.texto || !fromMe)) {
+    // deno-lint-ignore no-explicit-any
+    (globalThis as any).EdgeRuntime?.waitUntil?.(sugerirEtapa(conversaId, key.id));
+  }
   return null;
+}
+
+// ---- celular: reação, edição, exclusão -------------------------------------------------
+async function alvo(conta: Conta, id: string | null | undefined): Promise<J | null> {
+  if (!id) return null;
+  const { data } = await db.from('crm_wa_mensagens').select('id, reacoes, texto, conversa_id')
+    .eq('wa_message_id', id).eq('unidade', conta.unidade).maybeSingle();
+  return data;
+}
+
+async function reacao(conta: Conta, data: J, r: J) {
+  const m = await alvo(conta, r?.key?.id);
+  if (!m) return 'ignorado:reacao_sem_alvo';
+  const quem = data?.key?.fromMe === true ? 'nos' : 'contato';
+  const reacoes: J = { ...(m.reacoes ?? {}) };
+  const emoji = String(r?.text ?? '');
+  if (emoji) reacoes[quem] = emoji; else delete reacoes[quem];
+  await db.from('crm_wa_mensagens').update({ reacoes }).eq('id', m.id);
+  return null;
+}
+
+function textoEditado(e: J | undefined): string | null {
+  if (!e) return null;
+  if (typeof e.conversation === 'string') return e.conversation;
+  if (e.extendedTextMessage?.text) return e.extendedTextMessage.text;
+  for (const k of ['imageMessage', 'videoMessage', 'documentMessage']) if (e[k]?.caption != null) return e[k].caption;
+  return null;
+}
+
+async function protocolo(conta: Conta, p: J): Promise<string | null> {
+  const tipo = String(p?.type ?? '');
+  const m = await alvo(conta, p?.key?.id);
+  if (!m) return 'ignorado:protocolo_sem_alvo';
+  if (tipo === '0' || tipo === 'REVOKE') {
+    await db.from('crm_wa_mensagens').update({ apagada: true }).eq('id', m.id);
+    return null;
+  }
+  const novo = textoEditado(p?.editedMessage);
+  if (novo == null) return `ignorado:protocolo_${tipo || 'sem_tipo'}`;
+  await db.from('crm_wa_mensagens').update({ texto: novo, editada: true }).eq('id', m.id);
+  return null;
+}
+
+// ---- sugestão de etapa (IA, modo sugestão) ---------------------------------------------
+const ETAPAS: Record<string, string> = {
+  novo: 'Novo (ainda não houve contato da escola)',
+  contato_feito: 'Contato feito (a escola falou, o lead ainda não respondeu)',
+  respondeu: 'Respondeu (há conversa dos dois lados)',
+  experimental: 'Aula experimental ou teste de nível marcado/feito',
+  negociacao: 'Negociação (preço, plano, condição, matrícula sendo discutida)',
+  fechado: 'Fechado (matrícula confirmada, pagamento ou contrato)',
+  perdido: 'Perdido (desistiu, não tem interesse, foi para outra escola)',
+  aguardando_271: 'Aguardando próximo semestre (quer começar só no semestre seguinte)',
+};
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function sugerirEtapa(conversaId: string, msgId: string) {
+  const KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
+  if (!KEY) return;
+  await sleep(40000);
+  // só a última mensagem da conversa dispara (debounce natural)
+  const { data: ult } = await db.from('crm_wa_mensagens').select('wa_message_id').eq('conversa_id', conversaId)
+    .order('wa_timestamp', { ascending: false }).limit(1).maybeSingle();
+  if (!ult || ult.wa_message_id !== msgId) return;
+  const { data: c } = await db.from('crm_wa_conversas').select('id, lead_id, unidade, sugestao_etapa, sugestao_status').eq('id', conversaId).maybeSingle();
+  if (!c?.lead_id) return;
+  const { data: lead } = await db.from('crm_leads').select('etapa, nome').eq('id', c.lead_id).eq('unidade', c.unidade).maybeSingle();
+  if (!lead || lead.etapa === 'fechado') return;
+  const { data: msgs } = await db.from('crm_wa_mensagens').select('direcao, tipo, texto, apagada, wa_timestamp')
+    .eq('conversa_id', conversaId).order('wa_timestamp', { ascending: false }).limit(40);
+  const linhas = (msgs ?? []).reverse().map((m: J) =>
+    `${m.direcao === 'saida' ? 'ESCOLA' : 'LEAD'}: ${m.texto ? String(m.texto).slice(0, 500) : `[${m.tipo}]`}${m.apagada ? ' (apagada)' : ''}`).join('\n');
+  if (!linhas) return;
+  const prompt = `Você ajuda consultores de uma escola de idiomas (CNA) a manter o funil de vendas atualizado.
+Etapas possíveis:
+${Object.entries(ETAPAS).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+
+Etapa atual do lead: ${lead.etapa}.
+Conversa de WhatsApp (mais antiga primeiro):
+${linhas}
+
+Responda SOMENTE com JSON: {"etapa": "<uma das chaves acima>", "motivo": "<frase curta em português, até 120 caracteres, citando o fato da conversa>", "confianca": <0 a 1>}.
+Se não houver evidência clara de mudança, repita a etapa atual.`;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: Deno.env.get('WA_SUGESTAO_MODELO') ?? 'claude-haiku-5-5', max_tokens: 200,
+        messages: [{ role: 'user', content: prompt }] }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { console.log(JSON.stringify({ diag: 'sugestao_http', status: r.status, erro: j?.error?.type })); return; }
+    const txt: string = (j?.content ?? []).map((x: J) => x?.text ?? '').join('');
+    const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+    const et = String(o?.etapa ?? '');
+    if (!ETAPAS[et] || et === lead.etapa || Number(o?.confianca ?? 0) < 0.6) return;
+    if (c.sugestao_etapa === et && c.sugestao_status === 'ignorada') return; // não insiste no que foi recusado
+    await db.from('crm_wa_conversas').update({ sugestao_etapa: et, sugestao_motivo: String(o?.motivo ?? '').slice(0, 200),
+      sugestao_em: new Date().toISOString(), sugestao_status: 'pendente' }).eq('id', conversaId);
+  } catch (e) {
+    console.log(JSON.stringify({ diag: 'sugestao_falhou', erro: String((e as Error)?.message ?? e).slice(0, 200) }));
+  }
 }
 
 const STATUS: Record<string, string> = {
@@ -233,6 +352,18 @@ Deno.serve(async (req) => {
       const notas: string[] = [];
       for (const d of itens) { const n = await mensagem(conta, d); if (n) notas.push(n); }
       nota = notas.length ? notas.join(',') : null;
+    } else if (evento === 'messages.edited') {
+      const itens = Array.isArray(body.data) ? body.data : [body.data];
+      const notas: string[] = [];
+      for (const d of itens) { const n = await protocolo(conta, d); if (n) notas.push(n); }
+      nota = notas.length ? notas.join(',') : null;
+    } else if (evento === 'messages.delete') {
+      const itens = Array.isArray(body.data) ? body.data : [body.data];
+      for (const d of itens) {
+        const m = await alvo(conta, d?.id ?? d?.key?.id ?? d?.keyId);
+        if (m) await db.from('crm_wa_mensagens').update({ apagada: true }).eq('id', m.id);
+        else nota = 'ignorado:delete_sem_alvo';
+      }
     } else if (evento === 'messages.update') {
       const itens = Array.isArray(body.data) ? body.data : [body.data];
       for (const d of itens) await atualizacao(d);

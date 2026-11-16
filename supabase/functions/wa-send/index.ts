@@ -1,4 +1,4 @@
-// wa-send v3 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
+// wa-send v4 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
 // Spec: 10-cna/sistemas/whatsapp-multinumero.md (W2). Dívida nº 3 fechada aqui:
 //   - exige o token de sessão do CRM (crm_wa_sessao, nível 2 em 'conversas'); a chave anon sozinha não envia
 //   - conversa e conta sempre da unidade da sessão; número avulso usa conta_id da unidade (ou a única ativa)
@@ -7,6 +7,11 @@
 //   - opt-out respeitado no ato (crm_wa_optout por unidade + wa_chave)
 // v3 (16/11/2026, multiagente): consultor só envia em conversa dele (gestão em qualquer uma);
 //   enviar não troca o dono; conversa nova aberta pelo CRM nasce com quem enviou.
+// v4 (16/11/2026): quem acompanha a conversa (crm_wa_seguidores) também responde, sem virar dono.
+//   Ações além do texto (só Evolution): { acao: 'reagir', mensagem_id, emoji } · { acao: 'editar', mensagem_id, texto }
+//   · { acao: 'apagar', mensagem_id } (apaga para todos; no CRM a mensagem fica marcada, o texto não some)
+//   · { acao: 'midia', conversa_id, base64, mime, nome?, legenda? } (imagem, vídeo, documento; áudio vai como nota de voz).
+//   Editar e apagar só em mensagem enviada pela escola.
 // Transporte por conta: 'cloud' (Meta Cloud API, janela de 24h e template) ou 'evolution' (sessão por QR).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -123,6 +128,91 @@ async function enviarEvolution(conta: J, conversa: J, texto: string) {
   return { ok: true, id: resp?.key?.id ?? null };
 }
 
+async function evo(conta: J, rota: string, corpo: J, metodo = 'POST') {
+  const r = await fetch(`${EVO_URL}${rota}/${encodeURIComponent(conta.evolution_instancia)}`, {
+    method: metodo, headers: { apikey: segredo(conta), 'Content-Type': 'application/json' }, body: JSON.stringify(corpo),
+  });
+  const resp = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const m = resp?.response?.message ?? resp?.message ?? resp?.error ?? `HTTP ${r.status}`;
+    throw new Error('evolution:' + (Array.isArray(m) ? JSON.stringify(m) : String(m)).slice(0, 300));
+  }
+  return resp;
+}
+
+const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4',
+  'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'application/pdf': 'pdf' };
+
+async function acao(b: J, s: J, conta: J, conversa: J): Promise<Response> {
+  if (conta.provider !== 'evolution') return json({ erro: 'nao_suportado', detalhe: 'Disponível só nos números conectados pela Evolution.' }, 409);
+  const jid = `${conversa.wa_id}@s.whatsapp.net`;
+  const tipo = String(b.acao);
+  if (tipo === 'reagir' || tipo === 'editar' || tipo === 'apagar') {
+    const { data: m } = await db.from('crm_wa_mensagens').select('*').eq('id', b.mensagem_id).eq('conversa_id', conversa.id).maybeSingle();
+    if (!m?.wa_message_id) return json({ erro: 'mensagem_nao_encontrada', detalhe: 'Mensagem ainda sem confirmação do WhatsApp.' }, 404);
+    const fromMe = m.direcao === 'saida';
+    const key = { remoteJid: jid, fromMe, id: m.wa_message_id };
+    if (tipo === 'reagir') {
+      const emoji = String(b.emoji ?? '');
+      await evo(conta, '/message/sendReaction', { key, reaction: emoji });
+      const reacoes: J = { ...(m.reacoes ?? {}) };
+      if (emoji) reacoes.nos = emoji; else delete reacoes.nos;
+      await db.from('crm_wa_mensagens').update({ reacoes }).eq('id', m.id);
+      return json({ ok: true, reacoes });
+    }
+    if (!fromMe) return json({ erro: 'so_mensagem_da_escola', detalhe: 'Só dá para editar ou apagar mensagem enviada pela escola.' }, 409);
+    if (tipo === 'editar') {
+      const texto = String(b.texto ?? '').trim();
+      if (!texto) return json({ erro: 'mensagem vazia' }, 400);
+      await evo(conta, '/chat/updateMessage', { number: conversa.wa_id, key, text: texto });
+      await db.from('crm_wa_mensagens').update({ texto, editada: true }).eq('id', m.id);
+      return json({ ok: true });
+    }
+    await evo(conta, '/chat/deleteMessageForEveryone', { id: m.wa_message_id, remoteJid: jid, fromMe: true }, 'DELETE');
+    await db.from('crm_wa_mensagens').update({ apagada: true }).eq('id', m.id);
+    return json({ ok: true });
+  }
+  if (tipo === 'midia') {
+    const b64 = String(b.base64 ?? '').replace(/^data:[^,]+,/, '');
+    const mime = String(b.mime ?? 'application/octet-stream');
+    if (!b64) return json({ erro: 'arquivo vazio' }, 400);
+    if (b64.length > 22_000_000) return json({ erro: 'arquivo_grande', detalhe: 'Arquivo acima de 16 MB.' }, 413);
+    const audio = mime.startsWith('audio/');
+    const mt = mime.startsWith('image/') ? 'image' : mime.startsWith('video/') ? 'video' : 'document';
+    const tipoMsg = audio ? 'audio' : mt === 'image' ? 'imagem' : mt === 'video' ? 'video' : 'documento';
+    const nome = String(b.nome ?? `arquivo.${EXT[mime] ?? 'bin'}`).slice(0, 120);
+    const legenda = (b.legenda ?? '').toString().trim() || null;
+    const { data: msg, error } = await db.from('crm_wa_mensagens').insert({
+      conversa_id: conversa.id, direcao: 'saida', tipo: tipoMsg, texto: legenda, midia_mime: mime, midia_nome: audio ? null : nome,
+      status: 'pendente', autor_id: s.usuario_id, wa_timestamp: new Date().toISOString(),
+    }).select('*').single();
+    if (error) throw error;
+    // guarda no bucket antes de enviar: o CRM mostra a mídia mesmo se a API cair
+    const path = `${conversa.unidade}/${conversa.id}/${msg.id}.${EXT[mime] ?? (nome.split('.').pop() || 'bin')}`;
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    await db.storage.from('wa-media').upload(path, bytes, { contentType: mime, upsert: true });
+    await db.from('crm_wa_mensagens').update({ midia_path: path }).eq('id', msg.id);
+    try {
+      const resp = audio
+        ? await evo(conta, '/message/sendWhatsAppAudio', { number: conversa.wa_id, audio: b64 })
+        : await evo(conta, '/message/sendMedia', { number: conversa.wa_id, mediatype: mt, mimetype: mime, media: b64, fileName: nome, ...(legenda ? { caption: legenda } : {}) });
+      const id = resp?.key?.id ?? null;
+      const { error: eu } = await db.from('crm_wa_mensagens').update({ status: 'enviado', wa_message_id: id }).eq('id', msg.id);
+      if (eu?.code === '23505' && id) {
+        // eco chegou antes: a linha do eco recebe o arquivo do bucket e o autor; a pendente sai
+        await db.from('crm_wa_mensagens').update({ autor_id: s.usuario_id, midia_path: path }).eq('wa_message_id', id);
+        await db.from('crm_wa_mensagens').delete().eq('id', msg.id);
+      }
+      await db.from('crm_wa_conversas').update({ atendente_id: conversa.atendente_id ?? s.usuario_id }).eq('id', conversa.id);
+      return json({ ok: true, mensagem_id: msg.id, wa_message_id: id });
+    } catch (e) {
+      await db.from('crm_wa_mensagens').update({ status: 'falhou', erro_msg: String((e as Error).message).slice(0, 300) }).eq('id', msg.id);
+      return json({ erro: 'falha_no_envio', detalhe: String((e as Error).message), mensagem_id: msg.id }, 502);
+    }
+  }
+  return json({ erro: 'acao_invalida' }, 400);
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ erro: 'method not allowed' }, 405);
@@ -144,6 +234,11 @@ Deno.serve(async (req) => {
     // 1. conversa e conta, sempre da unidade da sessão
     let conversa: J | null = null;
     let conta: J | null = null;
+    if (b.mensagem_id && !b.conversa_id) {
+      const { data: mm } = await db.from('crm_wa_mensagens').select('conversa_id').eq('id', b.mensagem_id).eq('unidade', unidade).maybeSingle();
+      if (!mm) return json({ erro: 'mensagem_nao_encontrada' }, 404);
+      b.conversa_id = mm.conversa_id;
+    }
     if (b.conversa_id) {
       const { data } = await db.from('crm_wa_conversas').select('*').eq('id', b.conversa_id).eq('unidade', unidade).maybeSingle();
       if (!data) return json({ erro: 'conversa_de_outra_unidade', detalhe: 'Conversa não encontrada nesta unidade.' }, 404);
@@ -165,9 +260,11 @@ Deno.serve(async (req) => {
       return json({ erro: 'informe conversa_id ou wa_id' }, 400);
     }
     if (!conta) return json({ erro: 'conta_de_outra_unidade' }, 404);
-    // multiagente: conversa de outro consultor só a gestão responde
+    // multiagente: conversa de outro consultor só a gestão ou quem acompanha responde
     if (conversa!.atendente_id && conversa!.atendente_id !== s.usuario_id) {
-      const { data: vt } = await db.rpc('crm_wa_ve_tudo', { p_usuario: s.usuario_id, p_unidade: unidade });
+      const { data: seg } = await db.from('crm_wa_seguidores').select('usuario_id')
+        .eq('conversa_id', conversa!.id).eq('usuario_id', s.usuario_id).maybeSingle();
+      const { data: vt } = seg ? { data: true } : await db.rpc('crm_wa_ve_tudo', { p_usuario: s.usuario_id, p_unidade: unidade });
       if (!vt) return json({ erro: 'conversa_de_outro_agente', detalhe: 'Esta conversa é de outro consultor.' }, 403);
     }
     if (!conta.ativa) return json({ erro: 'conta_inativa', detalhe: 'Este número está desativado no CRM.' }, 409);
@@ -178,6 +275,8 @@ Deno.serve(async (req) => {
       const { data: oo } = await db.from('crm_wa_optout').select('wa_chave').eq('unidade', unidade).eq('wa_chave', k).maybeSingle();
       if (oo) return json({ erro: 'optout', detalhe: 'Este contato pediu para não receber mensagens.' }, 409);
     }
+
+    if (b.acao) return await acao(b, s, conta, conversa!);
 
     // 3. regras do transporte
     const evo = conta.provider === 'evolution';
@@ -226,6 +325,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, mensagem_id: mensagemId, wa_message_id: r.id, conversa_id: conversa!.id, provider: conta.provider });
   } catch (e) {
     const m = String((e as Error)?.message ?? e);
+    if (m.startsWith('evolution:')) return json({ erro: 'falha_no_envio', detalhe: m.slice(10) }, 502);
     if (m === 'conta_sem_token') return json({ erro: m, detalhe: 'O token deste número não está configurado no servidor.' }, 500);
     return json({ erro: m }, 500);
   }
