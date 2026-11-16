@@ -410,6 +410,25 @@ senão rodízio (`crm_wa_proximo_agente`, estado em `crm_wa_rodizio`). Rodízio 
 `wa-send` v3 não troca o dono e barra consultor em conversa de outro. Tela em `openConversas` (tela cheia,
 `body.waFull`). SQL: `20261116203217_wa_w4_*` e `20261116205643_wa_w4b_*`.
 
+**W5 (16/11/2026, `20261116231723_wa_w5_*`):**
+- Transferência: gestão troca na hora; consultor (só o dono) deixa **pendente** (`transf_para/de/em`)
+  até o destino aceitar (`crm_wa_transferencia_decidir`). Aceite leva o lead junto
+  (`crm_leads.responsavel`). Trocar o responsável na ficha do lead troca o dono da conversa
+  (trigger `z_wa_lead_responsavel_sync`, casa por nome do agente).
+- Acompanhar: `crm_wa_seguidores` (RLS sem policy). Quem acompanha vê e responde (wa-send v4), não vira dono.
+  Dono ou gestão adicionam; quem acompanha pode sair (`crm_wa_seguir`).
+- Celular sem perda: `crm_wa_mensagens.editada/apagada/reacoes`. Apagar no WhatsApp **não apaga o texto
+  no CRM**, só marca. Edição e exclusão chegam pelos eventos `MESSAGES_EDITED` e `MESSAGES_DELETE` da
+  Evolution, que precisam estar assinados no webhook (o `wa-evolution-importar` com `acao:'finalizar'` garante).
+- Sugestão de etapa por IA: o webhook espera ~40s sem mensagem nova e pede ao modelo
+  (`WA_SUGESTAO_MODELO`, padrão `claude-haiku-5-5`, `ANTHROPIC_API_KEY` do projeto). Grava só
+  `sugestao_*` na conversa; o consultor aceita ou ignora (`crm_wa_sugestao_decidir`). Nada move sozinho.
+  Sugestão ignorada não é repetida para a mesma etapa.
+- Histórico vira lead: `crm_wa_leads_do_historico(conta)` liga ao lead do mesmo `wa_chave` ou cria um com
+  data de entrada = primeira mensagem, etapa pela conversa (só entrada = novo, só saída = contato_feito,
+  os dois = respondeu) e próximo atendimento no dia seguinte à última mensagem, 10h.
+- wa-send v4 também reage, edita (até 15 min), apaga (até 48h) e envia mídia/áudio, só Evolution.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
