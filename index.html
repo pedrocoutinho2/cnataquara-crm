@@ -1052,8 +1052,13 @@ body.waFull .stats{display:none}
 .wam .meta .st.falhou{color:var(--danger);font-weight:600}
 .wam.falhou{background:var(--dangerBg);border:1px solid var(--dangerLine)}
 .wam .mdbtn{display:block;border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;cursor:pointer;margin-top:4px}
-.wam img.md,.wam video.md{max-width:100%;max-height:340px;border-radius:var(--r-sm);margin-top:4px;display:block}
+.wam img.md,.wam video.md{max-width:min(100%,320px);max-height:340px;border-radius:var(--r-sm);margin-top:2px;display:block;background:rgba(26,26,26,.06)}
 .wam audio.md{margin-top:4px;max-width:260px}
+.wam .mdload{width:240px;height:180px;border-radius:var(--r-sm);background:rgba(26,26,26,.06);display:grid;place-items:center;color:var(--gray);font-size:12px;margin-top:2px}
+.wam .mdload.aud{height:44px;width:260px}
+.wam a img.md{cursor:zoom-in}
+.wam .tx{margin-top:2px}
+.wam a.mdbtn{display:inline-block;text-decoration:none;color:var(--ink)}
 .wadia{align-self:center;background:var(--white);color:var(--gray);font-size:11px;padding:3px 12px;border-radius:var(--r-pill);margin:6px 0;box-shadow:var(--shadow-1)}
 .wacomp{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;flex:none;background:var(--white)}
 .wacomp textarea{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:13.5px;resize:none;max-height:160px;min-height:42px;background:var(--surface)}
@@ -5111,10 +5116,8 @@ function renderThread(sel){
     const sai=m.direcao==='saida';
     h+='<div class="wam '+(sai?'sai':'ent')+(m.status==='falhou'?' falhou':'')+'">';
     if(sai&&m.autor_id&&vt)h+='<div class="aut">'+esc(waAgNome(m.autor_id)||'')+'</div>';
-    h+=esc(m.texto||(m.midia_path?'':'['+m.tipo+']'));
-    if(m.midia_path){
-      h+='<button class="mdbtn" data-md="'+m.id+'">'+(m.tipo==='imagem'?'&#128247; Ver imagem':m.tipo==='audio'?'&#127908; Ouvir áudio':m.tipo==='video'?'&#127909; Ver vídeo':'&#128206; Abrir '+esc(m.tipo))+'</button><span id="md'+m.id+'"></span>';
-    }
+    if(m.midia_path)h+=waMidiaHTML(m);
+    if(m.texto||!m.midia_path)h+='<div class="tx">'+esc(m.texto||'['+m.tipo+']')+'</div>';
     h+='<div class="meta">'
       +(sai&&m.template_nome?'<span>template</span>':'')
       +'<span>'+esc(waHora(m.wa_timestamp||m.created_at))+'</span>'
@@ -5192,6 +5195,7 @@ function renderConversas(){
   if(txtAtual!==null&&$('watxt')){$('watxt').value=txtAtual;}
   const box=$('wamsgs');
   if(box)box.scrollTop=box.scrollHeight;
+  waMidiaAuto();
 }
 
 function waLigar(){
@@ -5392,6 +5396,66 @@ async function waEnviar(template){
     await waCarregar();
   }finally{
     WA.enviando=false;
+  }
+}
+
+/* mídia carrega sozinha ao aparecer na tela; URL assinada (1 h) fica em cache por mensagem,
+   para o polling de 10 s não apagar o que já carregou */
+WA.md={};
+const WAAUTO={imagem:1,sticker:1,video:1,audio:1};
+function waMidiaHTML(m){
+  const c=WA.md[m.id];
+  if(c&&c.exp>Date.now())return waMidiaEl(m,c);
+  if(WAAUTO[m.tipo])return '<div class="mdload'+(m.tipo==='audio'?' aud':'')+'" data-mdauto="'+m.id+'">'
+    +(m.tipo==='audio'?'&#127908; carregando áudio...':m.tipo==='video'?'carregando vídeo...':'carregando imagem...')+'</div>';
+  return '<button class="mdbtn" data-md="'+m.id+'">&#128206; '+esc(m.midia_nome||('Abrir '+m.tipo))+'</button><span id="md'+m.id+'"></span>';
+}
+function waMidiaEl(m,c){
+  const mime=c.mime||m.midia_mime||'';
+  if(mime.indexOf('image/')===0)return '<a href="'+esc(c.url)+'" target="_blank" rel="noopener"><img class="md" src="'+esc(c.url)+'" alt="Imagem" loading="lazy"></a>';
+  if(mime.indexOf('audio/')===0)return '<audio class="md" controls preload="metadata" src="'+esc(c.url)+'"></audio>';
+  if(mime.indexOf('video/')===0)return '<video class="md" controls preload="metadata" src="'+esc(c.url)+'"></video>';
+  return '<a class="mdbtn" href="'+esc(c.url)+'" target="_blank" rel="noopener">&#128206; '+esc(m.midia_nome||'Abrir arquivo')+'</a>';
+}
+WA.mdFila=[];WA.mdAtivos=0;
+function waMidiaAuto(){
+  const box=$('wamsgs');if(!box)return;
+  if(WA.mdObs)WA.mdObs.disconnect();
+  WA.mdObs=new IntersectionObserver(function(ents){
+    ents.forEach(function(e){
+      if(!e.isIntersecting)return;
+      const id=e.target.dataset.mdauto;
+      WA.mdObs.unobserve(e.target);
+      if(WA.mdFila.indexOf(id)<0&&!(WA.md[id]&&WA.md[id].carregando))WA.mdFila.push(id);
+    });
+    waMidiaBombear();
+  },{root:box,rootMargin:'400px 0px'});
+  box.querySelectorAll('[data-mdauto]').forEach(function(el){WA.mdObs.observe(el);});
+}
+function waMidiaBombear(){
+  while(WA.mdAtivos<3&&WA.mdFila.length){
+    const id=WA.mdFila.shift();
+    WA.mdAtivos++;
+    WA.md[id]={carregando:true,exp:0};
+    waFn('wa-media',{mensagem_id:id}).then(function(r){
+      WA.md[id]={url:r.url,mime:r.mime,exp:Date.now()+50*60000};
+      const el=document.querySelector('[data-mdauto="'+id+'"]');
+      const m=WA.msgs.find(function(x){return x.id===id;});
+      if(el&&m){
+        const box=$('wamsgs');
+        const noFim=box&&(box.scrollHeight-box.scrollTop-box.clientHeight<80);
+        el.outerHTML=waMidiaEl(m,WA.md[id]);
+        if(noFim&&box){
+          box.scrollTop=box.scrollHeight;
+          box.querySelectorAll('img.md').forEach(function(i){if(!i.complete)i.addEventListener('load',function(){if(box.scrollHeight-box.scrollTop-box.clientHeight<400)box.scrollTop=box.scrollHeight;},{once:true});});
+        }
+      }
+    }).catch(function(){
+      delete WA.md[id];
+      const el=document.querySelector('[data-mdauto="'+id+'"]');
+      if(el)el.outerHTML='<button class="mdbtn" data-md="'+id+'">Não carregou. Tentar de novo</button><span id="md'+id+'"></span>';
+      document.querySelectorAll('.mdbtn[data-md="'+id+'"]').forEach(function(b){b.onclick=function(){waMidia(id,b);};});
+    }).finally(function(){WA.mdAtivos--;waMidiaBombear();});
   }
 }
 
