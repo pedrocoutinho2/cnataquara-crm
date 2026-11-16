@@ -230,7 +230,7 @@ export function payloadExistente(it: Item, html: string, boxId: string) {
 }
 
 // ---------- sessão HTTP no Box ----------
-class Box {
+export class Box {
   jar = new Map<string, string>();
   guarda(r: Response) {
     for (const c of r.headers.getSetCookie()) {
@@ -258,10 +258,31 @@ class Box {
       headers: { "content-type": "application/x-www-form-urlencoded", "x-requested-with": "" },
       body: new URLSearchParams({ Localization: "", Email: email, Password: senha }),
     });
-    await r.arrayBuffer();
     const loc = r.headers.get("location") || "";
-    const ok = (r.status === 302 || r.status === 301) && !/Account\/Login/i.test(loc);
-    if (!ok) throw new Error("login_recusado");
+    if ((r.status === 302 || r.status === 301) && !/Account\/Login/i.test(loc)) { await r.arrayBuffer(); return; }
+    if (r.status !== 200) { await r.arrayBuffer(); throw new Error(`login_status_${r.status}`); }
+    // 16/11/2026: as duas credenciais davam login_recusado sem detalhe. O Box responde 200 tanto no erro
+    // (validation-summary "erroLogin") quanto, possivelmente, numa tela de escolha de escola. Diferencia.
+    const html = await r.text();
+    const limpa = (s: string) => s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n))).replace(/\s+/g, " ").trim();
+    const erro = html.match(/validation-summary-errors[^>]*>\s*<ul>\s*<li>([^<]{0,200})/);
+    if (erro) throw new Error(`login_recusado: ${limpa(erro[1])}`);
+    const selEscola = html.match(/<select[^>]*id="EscolaId"[\s\S]*?<\/select>/);
+    if (selEscola) {
+      const ops = [...selEscola[0].matchAll(/<option[^>]*value="(\d+)"[^>]*>([^<]*)</g)];
+      const un = html.match(/id="UnidadeNegocioId"[^>]*value="(\d*)"/) ||
+        html.match(/<select[^>]*id="UnidadeNegocioId"[\s\S]*?<option[^>]*selected[^>]*value="(\d+)"/);
+      if (ops.length !== 1) throw new Error(`login_escolher_escola: ${ops.map((o) => limpa(o[2])).join(" | ").slice(0, 200)}`);
+      const c = await this.req(`/Account/ChangeLogin/${ops[0][1]}?unidadeNegocioId=${un ? un[1] : ""}`, { headers: { "x-requested-with": "" } });
+      const cloc = c.headers.get("location") || "";
+      const ct = await c.text();
+      if ((c.status === 302 || c.status === 301) ? /Account\/Login/i.test(cloc) : /login-form/.test(ct)) {
+        throw new Error(`login_troca_escola_falhou_${c.status}`);
+      }
+      return;
+    }
+    if (/login-form/.test(html)) throw new Error("login_recusado_sem_mensagem");
+    throw new Error("login_resposta_inesperada_200");
   }
   async buscar(email?: string | null, fone?: string | null) {
     const tentativas: Array<[string, string]> = [];
