@@ -479,6 +479,10 @@ do Box do consultor dono do lead (`POST /Prospect/Save` do Box, JSON).
 - Senha do Box: o próprio consultor grava pelo modal (`crm_box_credencial_salvar`),
   direto no Vault. O front nunca lê de volta; só a Edge Function (service role)
   lê por `crm_box_credencial_ler`.
+  Desde 16/11/2026 a gestão (nível total em `leads`) também grava o login de
+  cada consultor da unidade pela seção "Login do Box da equipe" do mesmo modal
+  (`crm_box_equipe_listar`, `crm_box_credencial_salvar_de`); `definido_por`
+  registra quem gravou. Ninguém lê a senha de volta, nem a gestão.
 - Campos novos: `crm_leads.data_nascimento`, `sexo` (+`sexo_sugerido`, sugerido
   pelo primeiro nome em `sexoPorNome`), `disponibilidade smallint[]` (ids do Box:
   manhã 1–6, tarde 7–12, noite 13–18, seg→sáb), `box_id`;

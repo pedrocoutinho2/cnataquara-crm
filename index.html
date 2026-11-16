@@ -4561,8 +4561,9 @@ async function openBox(){
   $('bxfoot').innerHTML='';
   BX.sel={};
   try{
-    const r=await Promise.all([bxRpc('crm_box_credencial_status'),bxRpc('crm_box_fila_listar',{p_status:null})]);
-    BX.cred=r[0]||{conectado:false};BX.itens=r[1]||[];
+    const r=await Promise.all([bxRpc('crm_box_credencial_status'),bxRpc('crm_box_fila_listar',{p_status:null}),
+      podeTotal('leads')?bxRpc('crm_box_equipe_listar').catch(function(){return null;}):Promise.resolve(null)]);
+    BX.cred=r[0]||{conectado:false};BX.itens=r[1]||[];BX.equipe=r[2];
   }catch(e){$('bxbody').innerHTML='<div class="ibox warn"><div class="itx">'+esc(bxErro(e))+'</div></div>';return;}
   renderBox();
 }
@@ -4580,7 +4581,7 @@ function renderBox(){
   if(c.conectado){
     h+='<p>Conectado como <b>'+esc(c.email_box)+'</b>.'
       +(c.ultimo_ok_em?' Último login aceito em '+esc(new Date(c.ultimo_ok_em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}))+'.':' Ainda não testado.')
-      +(c.ultimo_erro?' <b style="color:#A30E2A">O Box recusou o último login: confira a senha.</b>':'')+'</p>';
+      +(c.ultimo_erro?' <b style="color:#A30E2A">O Box recusou o último login ('+esc(c.ultimo_erro)+'): confira a senha.</b>':'')+'</p>';
   }else{
     h+='<p>Sem login cadastrado. Seus atendimentos só vão para o Box depois que você informar o e-mail e a senha que usa no Box.</p>';
   }
@@ -4588,6 +4589,27 @@ function renderBox(){
     +'<div class="bxcred"><div><label>E-mail do Box</label><input id="bxemail" type="email" autocomplete="off" value="'+esc(c.email_box||'')+'"></div>'
     +'<div><label>Senha do Box</label><input id="bxsenha" type="password" autocomplete="new-password" placeholder="'+(c.conectado?'deixe em branco para manter':'')+'"></div>'
     +'<button class="btn" id="bxcredsave">'+(c.conectado?'Trocar':'Salvar')+'</button></div></div>';
+  /* 16/11/2026: gestão (total em leads) grava o login do Box de cada consultor da unidade.
+     A senha vai direto para o Vault (crm_box_credencial_salvar_de); ninguém lê de volta. */
+  if(BX.equipe&&BX.equipe.length){
+    const dt=function(v){return v?new Date(v).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}):'';};
+    h+='<div class="bxsec"><h4>Login do Box da equipe</h4><p>Cadastre ou troque o login de cada consultor. A senha fica criptografada no servidor e não volta para a tela.</p>';
+    BX.equipe.forEach(function(p){
+      let st;
+      if(!p.conectado)st='Sem login cadastrado.';
+      else st='Conectado como <b>'+esc(p.email_box)+'</b>. '
+        +(p.ultimo_erro?'<b style="color:#A30E2A">Box recusou: '+esc(p.ultimo_erro)+'</b>'
+          :(p.ultimo_ok_em?'Login aceito em '+esc(dt(p.ultimo_ok_em))+'.':'Ainda não testado.'))
+        +(p.definido_por?' <span class="bxmeta">Gravado por '+esc(p.definido_por)+(p.atualizado_em?' em '+esc(dt(p.atualizado_em)):'')+'.</span>':'');
+      h+='<div class="bxrow"><div></div><div><div class="bxnome">'+esc(p.nome)+'</div><div class="bxmeta">'+st+'</div>'
+        +'<div class="bxcred bxeq" data-uid="'+esc(p.usuario_id)+'" style="display:none">'
+        +'<div><label>E-mail do Box</label><input class="bxeqemail" type="email" autocomplete="off" value="'+esc(p.email_box||'')+'"></div>'
+        +'<div><label>Senha do Box</label><input class="bxeqsenha" type="password" autocomplete="new-password"></div>'
+        +'<button class="btn bxeqsave">Salvar</button></div></div>'
+        +'<button class="btn bxeqabre" data-uid="'+esc(p.usuario_id)+'">'+(p.conectado?'Trocar':'Cadastrar')+'</button></div>';
+    });
+    h+='</div>';
+  }
   const vis=bxVisiveis();
   const cont=function(f){return BX.itens.filter(function(x){return f(x);}).length;};
   h+='<div class="bxbar"><select id="bxfiltro">'
@@ -4674,6 +4696,31 @@ function ligaBox(){
       toast('Login do Box salvo.');openBox();
     }catch(e){toast(bxErro(e));b.disabled=false;}
   };
+  document.querySelectorAll('#bxbody .bxeqabre').forEach(function(b){
+    b.onclick=function(){
+      const f=document.querySelector('#bxbody .bxeq[data-uid="'+b.dataset.uid+'"]');
+      if(!f)return;
+      f.style.display=f.style.display==='none'?'':'none';
+      const sn=f.querySelector('.bxeqsenha');if(sn&&f.style.display==='')sn.focus();
+    };
+  });
+  document.querySelectorAll('#bxbody .bxeq').forEach(function(f){
+    f.querySelector('.bxeqsave').onclick=async function(){
+      const em=f.querySelector('.bxeqemail').value.trim(),sn=f.querySelector('.bxeqsenha').value;
+      if(!em){toast('Informe o e-mail do Box do consultor.');return;}
+      if(!sn){toast('Informe a senha do Box do consultor.');return;}
+      const b=this;b.disabled=true;
+      try{
+        await bxRpc('crm_box_credencial_salvar_de',{p_usuario_id:f.dataset.uid,p_email:em,p_senha:sn});
+        f.querySelector('.bxeqsenha').value='';
+        toast('Login do Box salvo.');openBox();
+      }catch(e){
+        const m=String((e&&e.message)||e||'');
+        toast(m.indexOf('usuario_fora_da_unidade')>-1?'Essa pessoa não está ativa nesta unidade.':bxErro(e));
+        b.disabled=false;
+      }
+    };
+  });
   $('bxaprovar').onclick=function(){bxDecidir('aprovar');};
   $('bxignorar').onclick=function(){bxDecidir('ignorar');};
   if($('bxsimular'))$('bxsimular').onclick=function(){bxRodar(false);};
