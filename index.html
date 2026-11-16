@@ -4897,7 +4897,7 @@ function waVeTudo(){return !!(WA.eu&&WA.eu.ve_tudo);}
 function waPodeEditar(){return !!(WA.eu&&Number(WA.eu.nivel)>=2);}
 function waAgNome(id){const a=WA.agentes.find(function(x){return x.usuario_id===id;});return a?a.nome:'';}
 function waIni(n){if(/^[\d(+]/.test(String(n||'').trim()))return '#';const p=String(n||'?').trim().split(/\s+/);return ((p[0]||'?')[0]+(p.length>1?(p[p.length-1][0]||''):'')).toUpperCase();}
-const WAATRIB={lead:'pelo lead',rodizio:'pelo rodízio',manual:'manual',distribuida:'distribuída'};
+const WAATRIB={lead:'pelo lead',rodizio:'pelo rodízio',manual:'manual',distribuida:'distribuída',etiqueta:'pela etiqueta do WhatsApp'};
 
 async function openConversas(){
   document.body.classList.add('waFull');
@@ -5020,7 +5020,7 @@ function renderAgentes(){
   });
   h+='</div><div class="waagfoot">'
     +'<button class="btn" id="wadistr"'+(WA.semDono?'':' disabled')+'>Distribuir sem dono</button>'
-    +(WA.contas.some(function(c){return c.provider==='evolution';})?'<button class="btn" id="waimport">Importar histórico</button>':'')
+    +(WA.contas.some(function(c){return c.provider==='evolution';})?'<button class="btn" id="waetiq">Dono pelas etiquetas do WhatsApp</button><button class="btn" id="waimport">Importar histórico</button>':'')
     +'<div class="wanota">O rodízio divide cada conversa nova entre quem está marcado. Contato que já é lead vai para o responsável.</div>'
     +'</div></div>';
   return h;
@@ -5233,6 +5233,7 @@ function waLigar(){
   const pt=$('wapaineltg');if(pt)pt.onclick=function(){WA.painel=!WA.painel;renderConversas();};
   const ds=$('wadistr');if(ds)ds.onclick=waDistribuir;
   const im=$('waimport');if(im)im.onclick=waImportar;
+  const et=$('waetiq');if(et)et.onclick=function(){waEtiquetas();};
   const send=$('wasend');
   if(send)send.onclick=function(){waEnviar();};
   const txt=$('watxt');
@@ -5325,9 +5326,45 @@ async function waImportar(){
       pag=r.proxima_pagina||0;voltas++;
     }
     toast(tot.inseridas+' mensagens importadas em '+tot.conv+' conversas novas.');
+    /* etiquetas do WhatsApp com o nome do consultor prevalecem sobre o rodízio */
+    try{await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:false});}catch(_){}
   }catch(e){toast(waErro(e,'Importação parou: '+(e.message||e)));}
   if(b){b.disabled=false;b.textContent='Importar histórico';}
   await waCarregar(true);
+}
+
+/* etiquetas do WhatsApp Business com o nome do consultor definem o dono (prévia antes de aplicar) */
+async function waEtiquetas(){
+  const conta=WA.contas.find(function(c){return c.provider==='evolution'&&(!WA.contaSel||c.id===WA.contaSel);});
+  if(!conta){toast('Nenhum número da Evolution nesta unidade.');return;}
+  const b=$('waetiq');if(b){b.disabled=true;b.textContent='Lendo etiquetas...';}
+  let r=null;
+  try{r=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:true});}
+  catch(e){toast(waErro(e,'Não foi possível ler as etiquetas: '+(e.message||e)));}
+  if(b){b.disabled=false;b.textContent='Dono pelas etiquetas do WhatsApp';}
+  if(!r)return;
+  const linhas=(r.etiquetas||[]).map(function(x){
+    return '<tr><td>'+esc(x.etiqueta)+'</td><td>'+(x.agente?'<b>'+esc(x.agente)+'</b>':'<span class="semd">não casa com ninguém</span>')+'</td><td style="text-align:right">'+Number(x.conversas||0)+'</td></tr>';
+  }).join('');
+  uiModal('Dono pelas etiquetas do WhatsApp','Etiquetas do WhatsApp Business deste número',
+    '<p style="margin:0 0 10px">Etiqueta com o nome do consultor passa a definir o dono da conversa. Conversa que você transferiu à mão não muda.</p>'
+    +'<table class="rtab" style="width:100%"><thead><tr><th>Etiqueta</th><th>Consultor</th><th style="text-align:right">Conversas</th></tr></thead><tbody>'
+    +(linhas||'<tr><td colspan="3">Nenhuma etiqueta encontrada no WhatsApp deste número.</td></tr>')+'</tbody></table>'
+    +'<p style="margin:12px 0 0">Vão mudar de dono agora: <b>'+Number(r.aplicadas||0)+'</b> · já certas: '+Number(r.ja_certas||0)
+    +' · mantidas por transferência manual: '+Number(r.mantidas_por_transferencia_manual||0)
+    +' · ainda não estão no CRM (entram na importação): '+Number(r.ainda_nao_estao_no_crm||0)
+    +(r.ambiguas?' · com etiqueta de mais de um consultor (ficam como estão): '+r.ambiguas:'')+'</p>',
+    Number(r.aplicadas)?'<button class="btn" id="waetiqx">Cancelar</button><button class="btn primary" id="waetiqok">Aplicar</button>':'<button class="btn" id="waetiqx">Fechar</button>');
+  $('waetiqx').onclick=uiModalClose;
+  const ok=$('waetiqok');
+  if(ok)ok.onclick=async function(){
+    ok.disabled=true;ok.textContent='Aplicando...';
+    try{
+      const f=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:false});
+      uiModalClose();toast((f.aplicadas||0)+' conversas com o dono da etiqueta.');
+      await waCarregar(true);
+    }catch(e){toast(waErro(e,'Não foi possível aplicar.'));ok.disabled=false;ok.textContent='Aplicar';}
+  };
 }
 
 async function waEnviar(template){

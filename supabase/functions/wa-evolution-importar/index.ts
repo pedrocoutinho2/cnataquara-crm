@@ -6,6 +6,10 @@
 // Regras: mensagem já existente (wa_message_id) é pulada; conversa nova nasce pelo trigger de
 // atribuição (lead da unidade -> responsável, senão rodízio); no fim, as conversas tocadas ficam
 // como lidas (histórico não vira "não lida" para a equipe).
+// v3 (16/11/2026): etiquetas do WhatsApp Business com o nome do consultor definem o dono da conversa.
+//   { acao: 'etiquetas', simular } lê /label/findLabels + /chat/findChats e reatribui as conversas que
+//   não foram transferidas à mão (atribuicao <> 'manual'). Na importação, conversa nova já nasce com o
+//   dono da etiqueta. Etiqueta que não casa com nenhum agente é só relatada.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -61,6 +65,52 @@ function extrair(msg: J | undefined): Info {
   return { tipo: 'sistema', texto: `[${k}]`, mime: null, nome: null, midia: false, contexto: null };
 }
 
+function norm(v: unknown): string {
+  return String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+type Agente = { usuario_id: string; nome: string };
+function casaAgente(etiqueta: string, agentes: Agente[]): Agente | null {
+  const e = norm(etiqueta);
+  if (!e) return null;
+  const achados = agentes.filter((a) => {
+    const primeiro = norm(a.nome).split(/\s+/)[0];
+    const completo = norm(a.nome);
+    return e === completo || e === primeiro || (e.length >= 3 && primeiro.startsWith(e))
+      || e.split(/[\s\-_/]+/).includes(primeiro);
+  });
+  return achados.length === 1 ? achados[0] : null;
+}
+async function lerEtiquetas(conta: J, tk: string, agentes: Agente[]) {
+  const inst = encodeURIComponent(conta.evolution_instancia);
+  const h = { apikey: tk, 'Content-Type': 'application/json' };
+  const rl = await fetch(`${EVO_URL}/label/findLabels/${inst}`, { headers: h });
+  const labels: J[] = rl.ok ? await rl.json().catch(() => []) : [];
+  if (!rl.ok) throw new Error(`evolution_labels_http_${rl.status}`);
+  const rc = await fetch(`${EVO_URL}/chat/findChats/${inst}`, { method: 'POST', headers: h, body: JSON.stringify({}) });
+  const chatsResp = rc.ok ? await rc.json().catch(() => []) : [];
+  if (!rc.ok) throw new Error(`evolution_chats_http_${rc.status}`);
+  const chats: J[] = Array.isArray(chatsResp) ? chatsResp : (chatsResp?.records ?? chatsResp?.chats ?? []);
+  const nomeDe = new Map<string, string>();
+  for (const l of Array.isArray(labels) ? labels : []) nomeDe.set(String(l.id ?? l.labelId ?? ''), String(l.name ?? ''));
+  const resumo = new Map<string, { etiqueta: string; agente: string | null; conversas: number }>();
+  for (const [, nome] of nomeDe) resumo.set(nome, { etiqueta: nome, agente: casaAgente(nome, agentes)?.nome ?? null, conversas: 0 });
+  const porNumero = new Map<string, Agente>();
+  let semNumero = 0, ambiguas = 0;
+  for (const c of chats) {
+    const ls: unknown[] = Array.isArray(c.labels) ? c.labels : [];
+    if (!ls.length) continue;
+    const nomes = ls.map((x) => typeof x === 'object' && x ? String((x as J).name ?? nomeDe.get(String((x as J).id)) ?? '') : (nomeDe.get(String(x)) ?? ''))
+      .filter(Boolean);
+    nomes.forEach((n) => { const r = resumo.get(n) ?? { etiqueta: n, agente: casaAgente(n, agentes)?.nome ?? null, conversas: 0 }; r.conversas++; resumo.set(n, r); });
+    const ags = [...new Set(nomes.map((n) => casaAgente(n, agentes)).filter(Boolean).map((a) => a!.usuario_id))];
+    if (ags.length !== 1) { if (ags.length > 1) ambiguas++; continue; }
+    const { numero } = numeroDoJid({ remoteJid: c.remoteJid ?? c.id, remoteJidAlt: c.remoteJidAlt }, c);
+    if (!numero) { semNumero++; continue; }
+    porNumero.set(numero, agentes.find((a) => a.usuario_id === ags[0])!);
+  }
+  return { porNumero, resumo: [...resumo.values()].sort((a, b) => b.conversas - a.conversas), semNumero, ambiguas, total_chats: chats.length };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ erro: 'method not allowed' }, 405);
   let b: J; try { b = await req.json(); } catch { return json({ erro: 'json invalido' }, 400); }
@@ -82,6 +132,29 @@ Deno.serve(async (req) => {
   if (!conta || conta.unidade !== s.unidade) return json({ erro: 'conta_nao_encontrada' }, 404);
   const tk = conta.token_ref ? (Deno.env.get(conta.token_ref) ?? '') : '';
   if (!tk) return json({ erro: 'conta_sem_token' }, 500);
+
+  const { data: ags } = await db.rpc('crm_wa_agentes', { p_unidade: conta.unidade });
+  const agentes: Agente[] = (ags ?? []).map((a: J) => ({ usuario_id: a.usuario_id, nome: a.nome }));
+
+  if (b.acao === 'etiquetas') {
+    let et;
+    try { et = await lerEtiquetas(conta, tk, agentes); } catch (e) { return json({ erro: String((e as Error).message) }, 502); }
+    let aplicadas = 0, ja_certas = 0, manuais = 0, fora_do_crm = 0;
+    for (const [numero, ag] of et.porNumero) {
+      const { data: c } = await db.from('crm_wa_conversas').select('id, atendente_id, atribuicao').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
+      if (!c) { fora_do_crm++; continue; }
+      if (c.atendente_id === ag.usuario_id) { ja_certas++; continue; }
+      if (c.atribuicao === 'manual') { manuais++; continue; }
+      if (!simular) await db.from('crm_wa_conversas').update({ atendente_id: ag.usuario_id, atribuicao: 'etiqueta', atribuida_em: new Date().toISOString() }).eq('id', c.id);
+      aplicadas++;
+    }
+    return json({ ok: true, simular, acao: 'etiquetas', etiquetas: et.resumo, conversas_com_dono_pela_etiqueta: et.porNumero.size,
+      aplicadas, ja_certas, mantidas_por_transferencia_manual: manuais, ainda_nao_estao_no_crm: fora_do_crm,
+      ambiguas: et.ambiguas, sem_numero: et.semNumero, total_chats: et.total_chats });
+  }
+
+  let mapaEtiqueta = new Map<string, Agente>();
+  try { mapaEtiqueta = (await lerEtiquetas(conta, tk, agentes)).porNumero; } catch (_) { /* sem etiquetas: segue pelo rodízio */ }
 
   const cont: J = { paginas: 0, total_evolution: null, lidas: 0, no_periodo: 0, fora_do_periodo: 0, ignoradas: {}, ja_existiam: 0, inseridas: 0, conversas_novas: 0, erros: [] as string[] };
   const convCache = new Map<string, string>();
@@ -138,6 +211,7 @@ Deno.serve(async (req) => {
             const { data: nova, error } = await db.from('crm_wa_conversas').insert({
               conta_id: conta.id, wa_id: numero, numero_e164: '+' + numero, wa_chave: k,
               nome_perfil: key.fromMe ? null : (rg.pushName ?? null), lead_id: leadId, lead_ambiguo: amb,
+              ...(mapaEtiqueta.has(numero) ? { atendente_id: mapaEtiqueta.get(numero)!.usuario_id, atribuicao: 'etiqueta', atribuida_em: new Date().toISOString() } : {}),
             }).select('id').single();
             if (error?.code === '23505') {
               const { data: o } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).single();
