@@ -2348,10 +2348,13 @@ const CFG={
       {k:'turma',l:'Turma (mapa de turmas)',t:'turmas'},
       {k:'data_inicio_aulas',l:'Início das aulas',t:'date'},
       {k:'motivo_perda',l:'Motivo da perda',t:'select',opts:[['','—'],['Sem retorno','Sem retorno'],['Contato inválido','Contato inválido'],['Preço','Preço'],['Sem turma disponível','Sem turma disponível'],['Fora da região','Fora da região'],['Só robótica','Só robótica'],['Outro','Outro']]},
+      /* promocoes (16/11/2026): varias por lead, autocomplete do catalogo da unidade */
+      {k:'promo_ofertada',l:'Promoções passadas ao cliente',t:'promo',full:true},
+      {k:'promo_fechada',l:'Promoções com que fechou',t:'promo',full:true},
       {k:'turno_desejado',l:'Turno que o aluno pode',t:'select',opts:[['','—'],['Manhã','Manhã'],['Tarde','Tarde'],['Noite','Noite'],['Sábado','Sábado'],['Indiferente','Indiferente']]},
       {k:'observacoes',l:'Observações',t:'textarea',full:true}
     ],
-    csv:['nome','nome_aluno','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','turno_desejado','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
+    csv:['nome','nome_aluno','data_entrada','whatsapp','idade','responsavel_legal','origem','curso','responsavel','etapa','data_inicio_aulas','nivel','turma','motivo_perda','promo_ofertada','promo_fechada','turno_desejado','ultimo_contato','proximo_atendimento','proximo_atendimento_hora','proximo_canal','data_fechamento','observacoes']
   }
 };
 
@@ -3157,6 +3160,8 @@ function openModal(id){
         +'" class="'+(v&&!hv?'need':'')+'"></div>';
     }else if(f.t==='disp'){
       inner+=dispHTML(v);
+    }else if(f.t==='promo'){
+      inner+=promoHTML(f.k,v);
     }else if(f.t==='turmas'){
       inner+='<select data-k="'+f.k+'" class="selturma">'
         +'<option value="'+esc(v)+'" selected>'+esc(v||'— sem turma —')+'</option></select>';
@@ -3166,6 +3171,7 @@ function openModal(id){
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
     if(f.k==='turno_desejado')d.id='fTurno';
+    if(f.k==='promo_fechada')d.id='fPromoF';
     if(f.k==='acao_id')d.id='fAcao';
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
@@ -3185,8 +3191,9 @@ function openModal(id){
   });
   boxIntSync();
   if(tab==='leads')boxFichaInit(form,s);
+  if(tab==='leads'){promoBind('promo_ofertada');promoBind('promo_fechada');syncPromo();}
   const selEt=form.querySelector('[data-k=etapa]');
-  if(selEt)selEt.addEventListener('change',function(){syncPerda();syncNivel(true);syncMatricula();syncAluno();tnSyncBotaoFicha();pcSync();});
+  if(selEt)selEt.addEventListener('change',function(){syncPromo();syncPerda();syncNivel(true);syncMatricula();syncAluno();tnSyncBotaoFicha();pcSync();});
   const selMp=form.querySelector('[data-k=motivo_perda]');
   if(selMp)selMp.addEventListener('change',syncPerda);
   syncPerda();
@@ -4092,6 +4099,7 @@ $('save').onclick=async function(){
     /* CNA Box: disponibilidade vai como array de ids do Box; sexo sugerido pelo nome fica marcado */
     body.disponibilidade=body.disponibilidade?String(body.disponibilidade).split(',').map(Number).filter(function(n){return n>=1&&n<=18;}):null;
     if(body.disponibilidade&&!body.disponibilidade.length)body.disponibilidade=null;
+    ['promo_ofertada','promo_fechada'].forEach(function(k){body[k]=promoLer(body[k]);});
     const sxSel=document.querySelector('#form [data-k=sexo]');
     body.sexo_sugerido=!!(sxSel&&sxSel.value&&sxSel.dataset.sug==='1');
     const stFin=body.etapa==='fechado'||body.etapa==='perdido';
@@ -4399,6 +4407,46 @@ const BOX_PEND={data_nascimento:'Falta nascimento do aluno (vai provisório)',di
 const BOX_ST={pendente:'Aguardando aprovação',aguardando_dados:'Faltam dados',aprovado:'Aprovado, aguardando envio',
   enviado:'Enviado ao Box',erro:'Erro no envio',ignorado:'Ignorado'};
 var BX={itens:[],cred:null,filtro:'abertos',sel:{}};
+
+/* ---- ficha do lead: promocoes ofertadas e fechadas (16/11/2026) ----
+   Catalogo: crm_configs.promocoes da unidade (JSON array de nomes); sem linha, vale
+   PROMO_PADRAO. O % mora no proprio item. Varias por lead, chips com autocomplete
+   (uiPick). O hidden data-k guarda JSON; promoLer converte para text[] no salvar. */
+const PROMO_PADRAO=(function(){
+  const l=['13x com 1ª grátis','Matrícula grátis','Desconto à vista (3%)'];
+  for(let p=5;p<=50;p+=5)l.push(p+'% de desconto');
+  return l;
+})();
+function promoCatalogo(){
+  try{const a=JSON.parse(UNCFG.promocoes||'null');if(Array.isArray(a)&&a.length)return a.map(String);}catch(e){}
+  return PROMO_PADRAO.slice();
+}
+function promoArr(v){
+  if(Array.isArray(v))return v.filter(Boolean).map(String);
+  if(!v)return [];
+  try{const a=JSON.parse(v);if(Array.isArray(a))return a.filter(Boolean).map(String);}catch(e){}
+  return String(v).replace(/^\{|\}$/g,'').split(',').map(function(x){return x.replace(/^"|"$/g,'').trim();}).filter(Boolean);
+}
+function promoLer(v){const a=promoArr(v);return a.length?a:null;}
+function promoHTML(k,v){
+  const sel=promoArr(v);
+  return '<input type="hidden" data-k="'+k+'" value="'+esc(sel.length?JSON.stringify(sel):'')+'">'+
+    uiPickHTML('pk_'+k,{itens:promoCatalogo(),sel:sel,ph:'Digite: 13x, matrícula, 30%...',
+      vazio:'Nenhuma promoção.',
+      mudou:function(a){
+        const h=document.querySelector('#form input[data-k='+k+']');
+        if(h)h.value=a.length?JSON.stringify(a):'';
+        DIRTY=true;syncPend();
+      }});
+}
+function promoBind(k){if($('pk_'+k+'_w'))uiPickBind('pk_'+k);}
+/* "com que fechou" so aparece no fechamento, ou se ja tiver valor */
+function syncPromo(){
+  const w=$('fPromoF');if(!w)return;
+  const se=document.querySelector('#form [data-k=etapa]');
+  const h=w.querySelector('input[data-k=promo_fechada]');
+  w.style.display=((se&&se.value==='fechado')||(h&&h.value))?'':'none';
+}
 
 /* ---- ficha do lead: disponibilidade (grade do Box) e sexo sugerido pelo nome ---- */
 function dispHTML(v){
@@ -5299,7 +5347,7 @@ async function atualizarVinculo(){
 async function carregarCfgUnidade(){
   UNCFG={};
   try{
-    const r=await api('/crm_configs?select=chave,valor&chave=in.(regiao_anuncio,email_contato,whatsapp_contato)');
+    const r=await api('/crm_configs?select=chave,valor&chave=in.(regiao_anuncio,email_contato,whatsapp_contato,promocoes)');
     (r||[]).forEach(function(x){UNCFG[x.chave]=x.valor;});
   }catch(e){}
 }
@@ -9257,6 +9305,11 @@ async function faqExcluir(id){
 /* ================= Calculadora de valores ================= */
 const ANO_PRECOS=2026;
 const PARCELAS=[12,11,10,9,1];
+/* 13x com a 1a parcela gratis (promocao recorrente, 16/11/2026): so no curso.
+   Parcela = curso com desconto / 13; o cliente paga 12. A 1a gratis e desconto real
+   e entra no total e na economia. Material segue ate 12x. */
+const PARC_GRATIS=13;
+const PARCELAS_CURSO=[PARC_GRATIS].concat(PARCELAS);
 let PRECOS={niveis:null,materiais:null,certs:null};
 let CALC={n1:'',d1:0,dois:true,n2:'',d2:0,mat:true,dm1:0,dm2:0,
           parcC:12,parcM:12,matricula:15000,validade:''};
@@ -9377,13 +9430,15 @@ function calcular(){
     cursoCheio:cursoCheio,cursoDesc:cursoDesc,matCheio:matCheio,matDesc:matDesc,
     taxa:taxa,
     totalCheio:cursoCheio+matCheio+taxa,
-    totalDesc:cursoDesc+matDesc+taxa,
-    economia:(cursoCheio+matCheio)-(cursoDesc+matDesc),
+    totalDesc:(CALC.parcC===PARC_GRATIS?Math.round(cursoDesc*(PARC_GRATIS-1)/PARC_GRATIS):cursoDesc)+matDesc+taxa,
+    economia:(cursoCheio+matCheio)-((CALC.parcC===PARC_GRATIS?Math.round(cursoDesc*(PARC_GRATIS-1)/PARC_GRATIS):cursoDesc)+matDesc),
     /* desconto medio efetivo: sai do dinheiro, nao da media simples dos %.
        com os dois periodos custando igual da exatamente a media de d1 e d2,
        e quando os niveis tem preco diferente continua batendo com o total. */
     descCursoPct:cursoCheio>0?(1-cursoDesc/cursoCheio)*100:0,
     descMatPct:matCheio>0?(1-matDesc/matCheio)*100:0,
+    gratisCurso:CALC.parcC===PARC_GRATIS?cursoDesc/PARC_GRATIS:0,
+    cursoPago:CALC.parcC===PARC_GRATIS?Math.round(cursoDesc*(PARC_GRATIS-1)/PARC_GRATIS):cursoDesc,
     parcCurso:cursoDesc/CALC.parcC,
     parcMat:matDesc/CALC.parcM,
     mesmaParc:CALC.parcC===CALC.parcM,
@@ -9404,9 +9459,9 @@ function optsDesc(sel){
   for(let i=0;i<=100;i+=5)o+='<option value="'+i+'"'+(i===sel?' selected':'')+'>'+i+'%</option>';
   return o;
 }
-function optsParc(sel){
-  return PARCELAS.map(function(n){
-    return '<option value="'+n+'"'+(n===sel?' selected':'')+'>'+(n===1?'À vista':n+'x')+'</option>';
+function optsParc(sel,lista){
+  return (lista||PARCELAS).map(function(n){
+    return '<option value="'+n+'"'+(n===sel?' selected':'')+'>'+(n===1?'À vista':(n===PARC_GRATIS?n+'x (1ª grátis)':n+'x'))+'</option>';
   }).join('');
 }
 
@@ -9421,7 +9476,11 @@ function resultadoHTML(R){
      '<div class="cl2"><span>Desconto</span><b>'+CALC.d1+'%'+(CALC.dois?' / '+CALC.d2+'%':'')+
        (CALC.dois&&CALC.d1!==CALC.d2?' <span style="font-weight:600;color:var(--gray)">\u00b7 m\u00e9dia '+pctDesc(R.descCursoPct)+'</span>':'')+'</b></div>'+
      '<div class="cl2 tot"><span>Total com desconto</span><b>'+money(R.cursoDesc)+'</b></div>'+
-     '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+'</span>'+
+     (R.gratisCurso
+       ? '<div class="cl2"><span>1ª parcela grátis</span><b>− '+money(R.gratisCurso)+'</b></div>'+
+         '<div class="cl2 tot"><span>Total a pagar (12 parcelas)</span><b>'+money(R.cursoPago)+'</b></div>'
+       : '')+
+     '<div class="cbig"><span class="cbl">'+(CALC.parcC>1?CALC.parcC+'x de':'À vista')+(R.gratisCurso?' · 1ª grátis':'')+'</span>'+
        '<span class="cbv">'+money(R.parcCurso)+'</span></div></div>';
 
   /* bloco material */
@@ -9505,7 +9564,7 @@ function renderCalc(){
   h+='</div>';
 
   h+='<div class="cbox"><h4>Parcelamento e condições</h4>'+
-     '<div class="cf"><label>Parcelamento do curso</label><select id="c_parcC">'+optsParc(CALC.parcC)+'</select></div>'+
+     '<div class="cf"><label>Parcelamento do curso</label><select id="c_parcC">'+optsParc(CALC.parcC,PARCELAS_CURSO)+'</select></div>'+
      '<div class="cf"><label>Parcelamento do material</label><select id="c_parcM">'+optsParc(CALC.parcM)+'</select></div>'+
      '<div class="cf"><label>Taxa de matrícula</label>'+
        '<div class="cmoney"><span>R$</span><input id="c_taxa" type="text" inputmode="numeric" autocomplete="off" value="'+fmtNum(CALC.matricula)+'"></div></div>'+
@@ -9545,8 +9604,8 @@ function calcCampos(R){
     nivel1:n1,
     nivel2:n2,
     periodos:CALC.dois?'2 períodos':'1 período',
-    curso_parcela:CALC.parcC>1?(CALC.parcC+'x de '+money(R.parcCurso)):('À vista: '+money(R.cursoDesc)),
-    curso_total:money(R.cursoDesc),
+    curso_parcela:CALC.parcC>1?(CALC.parcC+'x de '+money(R.parcCurso)+(R.gratisCurso?', com a 1ª parcela grátis':'')):('À vista: '+money(R.cursoDesc)),
+    curso_total:money(R.cursoPago),
     desconto:pctDesc(R.descCursoPct),
     material_nome:(R.m1?R.m1.nome:'')+(R.m2?' + '+R.m2.nome:''),
     material_parcela:CALC.parcM>1?(CALC.parcM+'x de '+money(R.parcMat)):('À vista: '+money(R.matDesc)),
