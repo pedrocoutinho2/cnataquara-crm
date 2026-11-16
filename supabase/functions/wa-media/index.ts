@@ -1,9 +1,12 @@
-// wa-media v2 · devolve URL assinada (1h) da mídia de uma mensagem de WhatsApp.
-// Exige o token de sessão do CRM (crm_wa_sessao, nível 1 em 'conversas') e a mensagem tem de ser da
-// unidade da sessão. Na primeira abertura baixa do provedor e guarda no bucket privado 'wa-media':
-//   midia_path 'meta:<id>' → Meta Cloud API (token do secret em token_ref da conta)
-//   midia_path 'evo:<id>'  → Evolution, /chat/getBase64FromMediaMessage (token da instância)
-// Depois só assina. Caminho no bucket: <unidade>/<conversa>/<mensagem>.<ext>
+// wa-media v2 · entrega mídia de mensagem do WhatsApp por URL assinada (1 h).
+// Spec: 10-cna/sistemas/whatsapp-multinumero.md (W2). Dívida nº 3 fechada aqui:
+//   - exige o token de sessão do CRM (crm_wa_sessao, nível 1 em 'conversas'); a chave anon sozinha não lê mídia
+//   - mensagem só da unidade da sessão
+//   - token do provedor lido do secret apontado por crm_wa_contas.token_ref (WA_TOKEN_* ou EVO_TOKEN_*)
+// Origem da mídia pelo prefixo de midia_path:
+//   meta:<media_id>  → baixa da Cloud API e guarda no bucket
+//   evo:<message_id> → pede o base64 à Evolution (chat/getBase64FromMediaMessage) e guarda no bucket
+//   qualquer outro   → já está no bucket, só assina
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const db = createClient(
@@ -29,25 +32,6 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-const EXT: Record<string, string> = {
-  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
-  'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a', 'audio/amr': 'amr',
-  'video/mp4': 'mp4', 'video/3gpp': '3gp', 'application/pdf': 'pdf',
-};
-
-function extensao(mime: string | null, nome: string | null): string {
-  if (nome && nome.includes('.')) return nome.split('.').pop()!.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'bin';
-  const base = (mime ?? '').split(';')[0].trim();
-  return EXT[base] ?? 'bin';
-}
-
-function b64(s: string): Uint8Array {
-  const bin = atob(s.replace(/^data:[^,]*,/, ''));
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
 const ERROS_SESSAO = ['sessao_invalida', 'unidade_nao_escolhida', 'sem_permissao'];
 
 async function sessao(token: unknown, min: number): Promise<J> {
@@ -66,7 +50,28 @@ function segredo(conta: J): string {
   return v;
 }
 
-async function baixarMeta(conta: J, midiaId: string) {
+const EXT: Record<string, string> = {
+  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+  'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a', 'audio/amr': 'amr',
+  'video/mp4': 'mp4', 'video/3gpp': '3gp',
+  'application/pdf': 'pdf',
+};
+
+function extensao(mime: string | null, nome: string | null): string {
+  if (nome && nome.includes('.')) return nome.split('.').pop()!.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'bin';
+  const base = (mime ?? '').split(';')[0].trim();
+  return EXT[base] ?? 'bin';
+}
+
+function deBase64(b64: string): Uint8Array {
+  const limpo = b64.includes(',') && b64.startsWith('data:') ? b64.split(',')[1] : b64;
+  const bin = atob(limpo);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function baixarMeta(conta: J, midiaId: string): Promise<{ bytes: Uint8Array; mime: string | null }> {
   const tk = segredo(conta);
   const r1 = await fetch(`https://graph.facebook.com/${GRAPH}/${midiaId}`, { headers: { Authorization: `Bearer ${tk}` } });
   if (!r1.ok) throw new Error(`metadados da midia: ${r1.status}`);
@@ -76,7 +81,7 @@ async function baixarMeta(conta: J, midiaId: string) {
   return { bytes: new Uint8Array(await r2.arrayBuffer()), mime: meta.mime_type ?? null };
 }
 
-async function baixarEvolution(conta: J, msgId: string) {
+async function baixarEvolution(conta: J, msgId: string): Promise<{ bytes: Uint8Array; mime: string | null; nome: string | null }> {
   if (!conta.evolution_instancia) throw new Error('conta_sem_instancia');
   const r = await fetch(`${EVO_URL}/chat/getBase64FromMediaMessage/${encodeURIComponent(conta.evolution_instancia)}`, {
     method: 'POST',
@@ -84,8 +89,28 @@ async function baixarEvolution(conta: J, msgId: string) {
     body: JSON.stringify({ message: { key: { id: msgId } }, convertToMp4: false }),
   });
   const resp = await r.json().catch(() => ({}));
-  if (!r.ok || !resp?.base64) throw new Error(`midia na evolution: ${r.status}`);
-  return { bytes: b64(String(resp.base64)), mime: resp.mimetype ?? null };
+  if (!r.ok || typeof resp?.base64 !== 'string') {
+    const m = resp?.response?.message ?? resp?.message ?? resp?.error ?? `HTTP ${r.status}`;
+    throw new Error(`evolution_midia: ${(Array.isArray(m) ? JSON.stringify(m) : String(m)).slice(0, 200)}`);
+  }
+  return { bytes: deBase64(resp.base64), mime: resp.mimetype ?? null, nome: resp.fileName ?? null };
+}
+
+async function ingerir(msg: J, conta: J): Promise<{ path: string; mime: string }> {
+  const origem = String(msg.midia_path);
+  let bytes: Uint8Array, mime: string | null, nome: string | null = msg.midia_nome ?? null;
+  if (origem.startsWith('meta:')) {
+    ({ bytes, mime } = await baixarMeta(conta, origem.slice(5)));
+  } else {
+    const r = await baixarEvolution(conta, origem.slice(4));
+    bytes = r.bytes; mime = r.mime; nome = nome ?? r.nome;
+  }
+  const tipo = mime ?? msg.midia_mime ?? 'application/octet-stream';
+  const path = `${msg.unidade}/${msg.conversa_id}/${msg.id}.${extensao(tipo, nome)}`;
+  const { error } = await db.storage.from(BUCKET).upload(path, bytes, { contentType: tipo, upsert: true });
+  if (error) throw error;
+  await db.from('crm_wa_mensagens').update({ midia_path: path, midia_mime: tipo }).eq('id', msg.id);
+  return { path, mime: tipo };
 }
 
 Deno.serve(async (req) => {
@@ -98,9 +123,9 @@ Deno.serve(async (req) => {
   let s: J;
   try { s = await sessao(b.token, 1); } catch (e) {
     const m = String((e as Error).message);
-    return json({ erro: m, detalhe: 'Sessão expirada ou sem acesso a Conversas.' }, m === 'sem_permissao' ? 403 : 401);
+    return json({ erro: m, detalhe: m === 'sem_permissao' ? 'Seu acesso a Conversas não permite ver mídia.' : 'Sessão expirada. Entre de novo.' }, m === 'sem_permissao' ? 403 : 401);
   }
-  if (!b.mensagem_id) return json({ erro: 'informe mensagem_id' }, 400);
+  if (typeof b.mensagem_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(b.mensagem_id)) return json({ erro: 'informe mensagem_id' }, 400);
 
   try {
     const { data: msg } = await db.from('crm_wa_mensagens')
@@ -110,26 +135,20 @@ Deno.serve(async (req) => {
     if (!msg.midia_path) return json({ erro: 'mensagem sem midia' }, 400);
 
     let path = String(msg.midia_path);
-    let mime: string | null = msg.midia_mime;
-    const origem = path.startsWith('meta:') ? 'meta' : path.startsWith('evo:') ? 'evo' : null;
-    if (origem) {
+    let mime = msg.midia_mime as string | null;
+    if (path.startsWith('meta:') || path.startsWith('evo:')) {
       const { data: conv } = await db.from('crm_wa_conversas').select('conta_id').eq('id', msg.conversa_id).single();
-      const { data: conta } = await db.from('crm_wa_contas').select('*').eq('id', conv!.conta_id).eq('unidade', s.unidade).single();
-      const id = path.slice(origem.length + 1);
-      const d = origem === 'meta' ? await baixarMeta(conta!, id) : await baixarEvolution(conta!, id);
-      mime = (d.mime ?? mime ?? 'application/octet-stream').split(';')[0].trim();
-      path = `${s.unidade}/${msg.conversa_id}/${msg.id}.${extensao(mime, msg.midia_nome)}`;
-      const { error: errUp } = await db.storage.from(BUCKET).upload(path, d.bytes, { contentType: mime, upsert: true });
-      if (errUp) throw errUp;
-      await db.from('crm_wa_mensagens').update({ midia_path: path, midia_mime: mime }).eq('id', msg.id);
+      const { data: conta } = await db.from('crm_wa_contas').select('*').eq('id', conv!.conta_id).eq('unidade', s.unidade).maybeSingle();
+      if (!conta) return json({ erro: 'conta_de_outra_unidade' }, 404);
+      ({ path, mime } = await ingerir(msg, conta));
     }
 
     const { data: assinada, error } = await db.storage.from(BUCKET).createSignedUrl(path, EXPIRA);
     if (error) throw error;
-    return json({ ok: true, url: assinada.signedUrl, path, mime, expira_em: EXPIRA });
+    return json({ ok: true, url: assinada.signedUrl, mime, expira_em: EXPIRA });
   } catch (e) {
     const m = String((e as Error)?.message ?? e);
     if (m === 'conta_sem_token') return json({ erro: m, detalhe: 'O token deste número não está configurado no servidor.' }, 500);
-    return json({ erro: m }, 500);
+    return json({ erro: m.slice(0, 300) }, 500);
   }
 });

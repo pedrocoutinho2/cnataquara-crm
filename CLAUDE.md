@@ -387,7 +387,7 @@ Versionadas em `supabase/functions/<nome>/index.ts`, mesmo padrão do repo
 | função | `verify_jwt` | quem chama |
 |---|---|---|
 | `wa-webhook` | **false** | Meta Cloud API |
-| `wa-evolution-webhook` | **false** | Evolution (header `x-cna-token` = secret `EVO_TOKEN_*` da conta; falha fechado) |
+| `wa-evolution-webhook` | **false** | Evolution (header `x-cna-token` ou `apikey` do corpo = secret `EVO_TOKEN_*` da conta; falha fechado) |
 | `wa-send` | true | front (`waEnviar`, `waFilaEnviar`); v2 exige `token` de sessão no corpo |
 | `wa-media` | true | front (`waMidia`); v2 exige `token` de sessão no corpo |
 
@@ -398,6 +398,18 @@ Transporte por conta em `crm_wa_contas.provider`: `evolution` (sem janela de 24h
 ou `cloud`. Secrets: `EVO_URL` (opcional, padrão `https://evo.cnataquara.com.br`), `EVO_TOKEN_*`
 e `WA_TOKEN_*` apontados por `token_ref`.
 | `ata-analisar` | **false** | front, 9270 |
+| `wa-evolution-importar` | true | front (gestão, botão "Importar histórico" em Conversas); token de sessão com `crm_wa_ve_tudo`; importa N dias da Evolution sem duplicar |
+
+### Conversas multiagente (16/11/2026)
+
+Cada consultor vê só as conversas com `atendente_id` = ele; gestão (`crm_wa_ve_tudo`: nível total em
+Conversas, papel coordenação ou admin) vê a unidade inteira, filtra por agente, transfere e distribui.
+Conversa nova é atribuída no banco pelo trigger `b10_wa_atribuir`: lead com responsável agente → ele;
+senão rodízio (`crm_wa_proximo_agente`, estado em `crm_wa_rodizio`). Rodízio por pessoa em
+`crm_usuario_unidades.wa_rodizio` (null = papel comercial ou consultor). Abrir conversa não troca o dono;
+`wa-send` v3 não troca o dono e barra consultor em conversa de outro. Tela em `openConversas` (tela cheia,
+`body.waFull`). SQL: `20261116203217_wa_w4_*` e `20261116205643_wa_w4b_*`.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud

@@ -5,7 +5,9 @@
 // Configuração na Evolution, por instância (POST /webhook/set/{instancia}):
 //   url: https://<projeto>.supabase.co/functions/v1/wa-evolution-webhook
 //   byEvents: false · base64: false
-//   headers: { "x-cna-token": <mesmo valor do secret EVO_TOKEN_* da conta> }
+//   headers: { "x-cna-token": <mesmo valor do secret EVO_TOKEN_* da conta> }  (opcional)
+//   v2 (16/11/2026): também aceita o campo `apikey` que a Evolution manda no corpo, que é o
+//   token da instância (= secret EVO_TOKEN_*). Na v2.3.7 o header do webhook não chegou.
 //   events: MESSAGES_UPSERT, MESSAGES_UPDATE, CONNECTION_UPDATE
 //
 // Regras: falha FECHADO (conta sem token configurado não recebe nada); lead procurado só na
@@ -168,6 +170,7 @@ Deno.serve(async (req) => {
 
   let body: J;
   try { body = JSON.parse(await req.text()); } catch { return new Response('bad json', { status: 400 }); }
+  const apikeyCorpo = typeof body.apikey === 'string' ? body.apikey : '';
   delete body.apikey;
 
   const instancia = typeof body.instance === 'string' ? body.instance : '';
@@ -179,7 +182,14 @@ Deno.serve(async (req) => {
   // header errado: 401 sem gravar nada (a Evolution não reenvia 401).
   const segredo = conta?.token_ref ? (Deno.env.get(conta.token_ref) ?? '') : '';
   const recebido = req.headers.get('x-cna-token') ?? '';
-  if (!conta || !segredo || !iguais(recebido, segredo)) return new Response('unauthorized', { status: 401 });
+  const okHeader = !!segredo && iguais(recebido, segredo);
+  const okCorpo = !!segredo && iguais(apikeyCorpo, segredo);
+  if (!conta || !segredo || !(okHeader || okCorpo)) {
+    // diagnóstico sem valores: só presença e tamanho
+    console.log(JSON.stringify({ diag: 'wa_evo_401', instancia, conta: !!conta, segredo_len: segredo.length,
+      header_len: recebido.length, corpo_len: apikeyCorpo.length }));
+    return new Response('unauthorized', { status: 401 });
+  }
 
   const evento = String(body.event ?? 'desconhecido');
   const { data: ev } = await db.from('crm_wa_eventos')

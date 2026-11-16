@@ -960,51 +960,127 @@ input[type=date].dvazio{color:#C9C9CE}
 }
 
 /* ================= Conversas (WhatsApp) ================= */
-.wawrap{display:grid;grid-template-columns:330px 1fr;gap:var(--s3);height:calc(100vh - 210px);min-height:430px}
-.wacol{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--white);display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.wahead{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex:none;min-height:52px}
-.wahead b{font-family:var(--display);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wahead .sub{font-size:12px;color:var(--gray)}
-.waback{display:none;border:none;background:none;font-size:20px;line-height:1;color:var(--ink);cursor:pointer;padding:0 4px}
-.wafiltros{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex:none}
-.wafiltros button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 11px;font-size:12px;cursor:pointer;color:var(--gray)}
-.wafiltros button.on{background:var(--red);border-color:var(--red);color:var(--white)}
+/* Conversas: tela cheia, multiagente (16/11/2026) */
+body.waFull .board{padding:0;overflow:hidden;align-items:stretch;gap:0}
+body.waFull .stats{display:none}
+.wawrap{flex:1;display:grid;grid-template-columns:340px minmax(0,1fr);height:100%;min-height:430px;background:var(--white);border-top:1px solid var(--line)}
+.wawrap.gestao{grid-template-columns:240px 340px minmax(0,1fr)}
+.wawrap.comdet{grid-template-columns:340px minmax(0,1fr) 280px}
+.wawrap.gestao.comdet{grid-template-columns:240px 340px minmax(0,1fr) 280px}
+.wacol{display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--white);border-right:1px solid var(--line)}
+.wacol:last-child{border-right:none}
+.wacol.agentes{background:var(--surface)}
+.wasec{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);padding:14px 14px 8px;flex:none}
+.waag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;padding:8px 12px;cursor:pointer;border-left:3px solid transparent;font:inherit;color:var(--ink)}
+.waag:hover{background:var(--white)}
+.waag.on{background:var(--white);border-left-color:var(--red)}
+.waag .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--white);font-weight:600;font-size:11.5px;flex:none}
+.waag .av.all{background:var(--blue)}
+.waag .av.sem{background:var(--muted)}
+.waag.alerta .av.sem{background:var(--warn)}
+.waag .mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.waag .n{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.waag .p{font-size:11.5px;color:var(--gray)}
+.waag .cnt{background:var(--red);color:var(--white);border-radius:var(--r-pill);font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;display:grid;place-items:center}
+.warod{position:relative;width:30px;height:17px;flex:none;cursor:pointer}
+.warod input{opacity:0;width:0;height:0;position:absolute}
+.warod span{position:absolute;inset:0;background:var(--line);border-radius:var(--r-pill);transition:background .15s}
+.warod span::after{content:'';position:absolute;width:13px;height:13px;left:2px;top:2px;background:var(--white);border-radius:50%;transition:transform .15s;box-shadow:var(--shadow-1)}
+.warod input:checked+span{background:var(--ok)}
+.warod input:checked+span::after{transform:translateX(13px)}
+.waagfoot{border-top:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px;flex:none}
+.waagfoot .btn{width:100%}
+.waagfoot .btn[disabled]{opacity:.5;cursor:default}
+.wanota{font-size:11.5px;color:var(--gray);line-height:1.4}
+.walhead{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;flex:none}
+.walhead .wat{font-family:var(--display);font-weight:700;font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.waagsel{display:none;border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 8px;font:inherit;font-size:12px;max-width:50%}
+.wabusca{padding:4px 12px 8px;flex:none}
+.wabusca input{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:8px 11px;font:inherit;font-size:13px;background:var(--surface)}
+.wabusca input:focus{background:var(--white);outline:2px solid var(--pastelBlue);border-color:var(--blue)}
+.wafiltros{display:flex;gap:6px;padding:0 12px 10px;border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+.wafiltros button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 10px;font-size:12px;cursor:pointer;color:var(--gray)}
+.wafiltros button i{font-style:normal;font-weight:700;margin-left:2px}
+.wafiltros button.on{background:var(--ink);border-color:var(--ink);color:var(--white)}
 .wascroll{overflow-y:auto;flex:1;min-height:0}
-.wai{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.wai{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start;border-left:3px solid transparent}
 .wai:hover{background:var(--surface)}
-.wai.on{background:var(--pastelRed)}
-.wai .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--white);font-weight:600;font-size:13px;flex:none}
-.wai .mid{flex:1;min-width:0}
-.wai .n{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wai .p{font-size:12px;color:var(--gray);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
-.wai .r{text-align:right;flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.wai .t{font-size:11px;color:var(--muted)}
-.wai .nl{background:var(--red);color:var(--white);border-radius:var(--r-pill);font-size:11px;font-weight:700;min-width:18px;height:18px;padding:0 5px;display:grid;place-items:center}
+.wai.on{background:var(--pastelRed);border-left-color:var(--red)}
+.wai .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--white);font-weight:600;font-size:13px;flex:none}
+.wai .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.wai .row1,.wai .row2{display:flex;align-items:center;gap:8px}
+.wai .n{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.wai.unread .n{font-weight:700}
+.wai .p{font-size:12.5px;color:var(--gray);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.wai.unread .p{color:var(--ink)}
+.wai .t{font-size:11px;color:var(--muted);flex:none}
+.wai.unread .t{color:var(--red);font-weight:600}
+.wai .row3{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.wai .nl{background:var(--red);color:var(--white);border-radius:var(--r-pill);font-size:11px;font-weight:700;min-width:19px;height:19px;padding:0 5px;display:grid;place-items:center;flex:none}
+.watag{font-size:10.5px;padding:1px 7px;border-radius:var(--r-pill);background:var(--surface);color:var(--gray);border:1px solid var(--line);white-space:nowrap}
+.watag.lead{background:var(--pastelBlue);color:var(--blue);border-color:transparent}
+.watag.ag{background:var(--white);color:var(--ac,var(--ink));border-color:var(--ac,var(--line));font-weight:600}
+.watag.sem{background:var(--warnBg);color:var(--warn);border-color:transparent}
+.watag.ok{background:var(--okBg);color:var(--ok);border-color:transparent}
 .waj{font-size:11px;padding:2px 8px;border-radius:var(--r-pill);white-space:nowrap}
 .waj.ok{background:var(--okBg);color:var(--ok)}
 .waj.off{background:var(--dangerBg);color:var(--danger)}
-.waselo{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:var(--r-pill);background:var(--pastelBlue);color:var(--blue);margin-top:3px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.waselo{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:var(--r-pill);background:var(--pastelBlue);color:var(--blue);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .wacontasel{margin-left:auto;border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:3px 8px;font:inherit;font-size:12px;color:var(--gray);max-width:45%}
-.wamsgs{flex:1;min-height:0;overflow-y:auto;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
-.wam{max-width:74%;padding:8px 11px;border-radius:var(--r-lg);font-size:13.5px;line-height:1.45;box-shadow:var(--shadow-1);word-wrap:break-word;white-space:pre-wrap}
-.wam.ent{background:var(--white);align-self:flex-start;border-top-left-radius:var(--s1)}
-.wam.sai{background:var(--pastelBlue);align-self:flex-end;border-top-right-radius:var(--s1)}
-.wam .meta{font-size:10.5px;color:var(--muted);margin-top:4px;display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.wahead{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex:none;min-height:64px;flex-wrap:wrap}
+.wahead .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--white);font-weight:600;font-size:14px;flex:none}
+.wahead .who{flex:1;min-width:160px}
+.wahead .who>b{font-family:var(--display);font-size:16px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wahead .sub{font-size:12px;color:var(--gray)}
+.wahead .sub b.ag{color:var(--ink)}
+.semd{color:var(--warn);font-weight:600}
+.waacts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.watransf{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:5px 10px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer}
+.waback{display:none;border:none;background:none;font-size:20px;line-height:1;color:var(--ink);cursor:pointer;padding:0 4px}
+.walead{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600;color:var(--ink)}
+.walead:hover{background:var(--surface)}
+.walead.pri{background:var(--red);border-color:var(--red);color:var(--white)}
+.walead.ok{color:var(--ok);border-color:var(--ok)}
+.walead.ic{padding:5px 9px}
+.wamsgs{flex:1;min-height:0;overflow-y:auto;padding:18px 6%;background:#F2EFEA;display:flex;flex-direction:column;gap:6px}
+.wam{max-width:68%;padding:7px 10px 5px;border-radius:var(--r-md);font-size:13.5px;line-height:1.45;box-shadow:0 1px .5px rgba(26,26,26,.13);word-wrap:break-word;white-space:pre-wrap}
+.wam.ent{background:var(--white);align-self:flex-start;border-top-left-radius:2px}
+.wam.sai{background:#DCF3E4;align-self:flex-end;border-top-right-radius:2px}
+.wam .aut{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:2px}
+.wam .meta{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.wam .meta .st.lido{color:#1E88E5}
+.wam .meta .st.falhou{color:var(--danger);font-weight:600}
 .wam.falhou{background:var(--dangerBg);border:1px solid var(--dangerLine)}
-.wam .mdbtn{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:5px 10px;font-size:12px;cursor:pointer;margin-top:4px}
-.wam img.md{max-width:100%;border-radius:var(--r-sm);margin-top:4px;display:block}
-.wadia{align-self:center;background:var(--white);border:1px solid var(--line);color:var(--gray);font-size:11px;padding:2px 12px;border-radius:var(--r-pill)}
-.wacomp{border-top:1px solid var(--line);padding:10px;display:flex;gap:8px;align-items:flex-end;flex:none;background:var(--white)}
-.wacomp textarea{flex:1;border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;font:inherit;font-size:13.5px;resize:none;max-height:120px;min-height:40px}
-.wafechada{border-top:1px solid var(--line);padding:10px;flex:none;background:var(--warnBg);font-size:12.5px;color:var(--warn)}
+.wam .mdbtn{display:block;border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;cursor:pointer;margin-top:4px}
+.wam img.md,.wam video.md{max-width:100%;max-height:340px;border-radius:var(--r-sm);margin-top:4px;display:block}
+.wam audio.md{margin-top:4px;max-width:260px}
+.wadia{align-self:center;background:var(--white);color:var(--gray);font-size:11px;padding:3px 12px;border-radius:var(--r-pill);margin:6px 0;box-shadow:var(--shadow-1)}
+.wacomp{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;flex:none;background:var(--white)}
+.wacomp textarea{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:13.5px;resize:none;max-height:160px;min-height:42px;background:var(--surface)}
+.wacomp textarea:focus{background:var(--white);outline:none;border-color:var(--blue)}
+.wacomp .btn{border-radius:20px;height:42px}
+.wafechada{border-top:1px solid var(--line);padding:12px 16px;flex:none;background:var(--warnBg);font-size:12.5px;color:var(--warn)}
 .wafechada select{width:100%;margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:var(--r-md);font:inherit;font-size:13px;background:var(--white)}
 .wavazio{flex:1;display:grid;place-items:center;color:var(--gray);font-size:13.5px;padding:24px;text-align:center}
-.walead{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 11px;font-size:12px;cursor:pointer;white-space:nowrap}
-.waamb{background:var(--warnBg);color:var(--warn);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;margin:10px 14px 0}
-@media(max-width:900px){.wawrap{grid-template-columns:1fr;height:calc(100vh - 200px)}
+.waicone{font-size:34px;margin-bottom:8px;opacity:.6}
+.waamb{background:var(--warnBg);color:var(--warn);border-bottom:1px solid var(--line);padding:7px 16px;font-size:12px;flex:none}
+.wadet{overflow-y:auto;flex:1;padding:0 14px 16px;display:flex;flex-direction:column;gap:4px}
+.wadl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:12px}
+.wadv{font-size:13px;color:var(--ink);line-height:1.45}
+.wadv .mut,.mut{color:var(--gray);font-size:12px}
+.wadet .btn{margin-top:8px}
+@media(max-width:1400px){.wawrap.comdet{grid-template-columns:320px minmax(0,1fr)}
+  .wawrap.gestao.comdet{grid-template-columns:220px 320px minmax(0,1fr)}
+  .wacol.detalhe{display:none}}
+@media(max-width:1100px){.wawrap.gestao,.wawrap.gestao.comdet{grid-template-columns:320px minmax(0,1fr)}
+  .wacol.agentes{display:none}
+  .waagsel{display:block}}
+@media(max-width:900px){.wawrap,.wawrap.gestao,.wawrap.comdet,.wawrap.gestao.comdet{grid-template-columns:1fr}
   .wawrap.thread .wacol.lista{display:none}
   .wawrap:not(.thread) .wacol.thread{display:none}
-  .waback{display:block}}
+  .waback{display:block}
+  .wamsgs{padding:12px}
+  .wam{max-width:86%}}
 
 .wasug{padding:9px 12px;border-bottom:1px solid var(--line);background:var(--warnBg);cursor:pointer;font-size:12.5px;color:var(--warn);display:flex;align-items:center;gap:8px;flex:none}
 .wasug b{font-family:var(--display)}
@@ -4812,18 +4888,26 @@ function waCor(nome){
 }
 const WASTATUS={pendente:'enviando...',enviado:'enviado',entregue:'entregue',lido:'lido',falhou:'falhou'};
 
+/* ================= Conversas (WhatsApp) · multiagente, tela cheia (16/11/2026) =================
+   Consultor vê só as conversas dele. Gestão (eu.ve_tudo) vê a unidade inteira, filtra por agente,
+   transfere, distribui as sem dono e liga/desliga o rodízio por pessoa. Tudo por RPC com token. */
+WA.eu=null;WA.agentes=[];WA.semDono=0;WA.agente='';WA.busca='';WA.status='abertas';WA.painel=true;
+
+function waVeTudo(){return !!(WA.eu&&WA.eu.ve_tudo);}
+function waPodeEditar(){return !!(WA.eu&&Number(WA.eu.nivel)>=2);}
+function waAgNome(id){const a=WA.agentes.find(function(x){return x.usuario_id===id;});return a?a.nome:'';}
+function waIni(n){if(/^[\d(+]/.test(String(n||'').trim()))return '#';const p=String(n||'?').trim().split(/\s+/);return ((p[0]||'?')[0]+(p.length>1?(p[p.length-1][0]||''):'')).toUpperCase();}
+const WAATRIB={lead:'pelo lead',rodizio:'pelo rodízio',manual:'manual',distribuida:'distribuída'};
+
 async function openConversas(){
+  document.body.classList.add('waFull');
   $('stats').innerHTML='';
   $('board').innerHTML='<div class="loading">Carregando conversas...</div>';
-  let p=null;
-  try{p=await waRpc('crm_wa_painel');}
+  try{await waPainel();}
   catch(e){
     $('board').innerHTML='<div class="pane"><div class="loading">'+esc(waErro(e,'Não foi possível abrir as conversas.'))+'</div></div>';
     return;
   }
-  WA.contas=(p&&p.contas)||[];
-  WA.templates=(p&&p.templates)||[];
-  if(WA.contaSel&&!WA.contas.some(function(c){return c.id===WA.contaSel;}))WA.contaSel=null;
   if(!WA.contas.length){
     $('board').innerHTML='<div class="pane"><div class="loading">'
       +'Nenhum número de WhatsApp ativo em '+esc(UN().nome)+'.<br><br>'
@@ -4831,14 +4915,53 @@ async function openConversas(){
       +'</div></div>';
     return;
   }
+  if(!waVeTudo())WA.agente='';
   await waFila();
   await waCarregar(true);
   waStartPoll();
 }
 
-async function waCarregar(render){
+async function waMsgs(id){
   try{
-    WA.conversas=(await waRpc('crm_wa_conversas_listar',{p_conta_id:WA.contaSel||null,p_limite:300}))||[];
+    WA.msgs=(await waRpc('crm_wa_mensagens_listar',{p_conversa_id:id,p_limite:400}))||[];
+  }catch(e){WA.msgs=[];}
+}
+
+function waStartPoll(){
+  if(WA.poll)clearInterval(WA.poll);
+  WA.poll=setInterval(function(){
+    if(tab!=='conversas'||document.hidden)return;
+    /* não redesenha com um seletor aberto (transferir, agente, número) */
+    const ae=document.activeElement;
+    if(ae&&ae.tagName==='SELECT'&&$('board').contains(ae))return;
+    waCarregar();
+  },10000);
+}
+
+function setNavBadge(n){
+  const b=$('nbConversas');
+  if(!b)return;
+  b.textContent=n>99?'99+':String(n);
+  b.classList.toggle('on',n>0);
+}
+
+async function waPainel(){
+  const p=await waRpc('crm_wa_painel');
+  WA.eu=(p&&p.eu)||null;
+  WA.contas=(p&&p.contas)||[];
+  WA.templates=(p&&p.templates)||[];
+  WA.agentes=(p&&p.agentes)||[];
+  WA.semDono=Number(p&&p.sem_dono)||0;
+  if(WA.contaSel&&!WA.contas.some(function(c){return c.id===WA.contaSel;}))WA.contaSel=null;
+}
+
+async function waCarregar(render){
+  const args={p_conta_id:WA.contaSel||null,p_limite:500};
+  if(WA.agente==='__sem__')args.p_sem_dono=true;
+  else if(WA.agente)args.p_atendente=WA.agente;
+  try{
+    WA.conversas=(await waRpc('crm_wa_conversas_listar',args))||[];
+    if(waVeTudo())await waPainel();
   }catch(e){
     if(render)$('board').innerHTML='<div class="pane"><div class="loading">Não foi possível carregar as conversas.</div></div>';
     return;
@@ -4852,142 +4975,221 @@ async function waCarregar(render){
   if(render!==false)renderConversas();
 }
 
-async function waMsgs(id){
-  try{
-    WA.msgs=(await waRpc('crm_wa_mensagens_listar',{p_conversa_id:id,p_limite:400}))||[];
-  }catch(e){WA.msgs=[];}
-}
-
-function waStartPoll(){
-  if(WA.poll)clearInterval(WA.poll);
-  WA.poll=setInterval(function(){
-    if(tab!=='conversas'||document.hidden)return;
-    waCarregar();
-  },10000);
-}
-
-function setNavBadge(n){
-  const b=$('nbConversas');
-  if(!b)return;
-  b.textContent=n>99?'99+':String(n);
-  b.classList.toggle('on',n>0);
-}
 function waBadge(){
-  const n=WA.conversas.reduce(function(a,c){return a+(c.nao_lidas||0);},0);
+  const eu=WA.eu&&WA.eu.usuario_id;
+  const n=WA.conversas.reduce(function(a,c){
+    return a+((c.atendente_id===eu||(!c.atendente_id&&waVeTudo()))?(c.nao_lidas||0):0);
+  },0);
   setNavBadge(n);
 }
 
 function waFiltradas(){
-  if(WA.filtro==='nao')return WA.conversas.filter(function(c){return (c.nao_lidas||0)>0;});
-  if(WA.filtro==='minhas')return WA.conversas.filter(function(c){
-    return c.atendente_id===meuId()||(c.lead&&c.lead.responsavel===currentUser);
+  const q=WA.busca.trim().toLowerCase(),qd=q.replace(/\D/g,'');
+  return WA.conversas.filter(function(c){
+    if(WA.status==='nao'&&!(c.nao_lidas>0))return false;
+    if(WA.status==='abertas'&&c.status==='resolvida')return false;
+    if(WA.status==='resolvidas'&&c.status!=='resolvida')return false;
+    if(q){
+      const nome=waNome(c).toLowerCase();
+      const num=String(c.numero_e164||c.wa_id||'').replace(/\D/g,'');
+      if(nome.indexOf(q)<0&&!(qd.length>=3&&num.indexOf(qd)>-1))return false;
+    }
+    return true;
   });
-  if(WA.filtro==='abertas')return WA.conversas.filter(function(c){return waJanela(c).aberta;});
-  return WA.conversas;
+}
+
+function waContagem(fn){return WA.conversas.filter(fn).length;}
+
+function renderAgentes(){
+  if(!waVeTudo())return '';
+  const total=WA.agentes.reduce(function(a,x){return a+Number(x.abertas||0);},0);
+  let h='<div class="wacol agentes"><div class="wasec">Agentes</div><div class="wascroll">';
+  h+='<button class="waag'+(!WA.agente?' on':'')+'" data-ag=""><span class="av all">&#9776;</span>'
+    +'<span class="mid"><span class="n">Todas da unidade</span><span class="p">'+total+' em aberto</span></span></button>';
+  h+='<button class="waag'+(WA.agente==='__sem__'?' on':'')+(WA.semDono?' alerta':'')+'" data-ag="__sem__"><span class="av sem">?</span>'
+    +'<span class="mid"><span class="n">Sem dono</span><span class="p">'+(WA.semDono?WA.semDono+' esperando':'nenhuma')+'</span></span>'
+    +(WA.semDono?'<span class="cnt">'+WA.semDono+'</span>':'')+'</button>';
+  WA.agentes.forEach(function(a){
+    h+='<div class="waag'+(WA.agente===a.usuario_id?' on':'')+'" data-ag="'+esc(a.usuario_id)+'" role="button" tabindex="0">'
+      +'<span class="av" style="background:'+waCor(a.nome)+'">'+esc(waIni(a.nome))+'</span>'
+      +'<span class="mid"><span class="n">'+esc(a.nome)+'</span>'
+      +'<span class="p">'+Number(a.abertas||0)+' em aberto'+(a.no_rodizio?'':' · fora do rodízio')+'</span></span>'
+      +(Number(a.nao_lidas)?'<span class="cnt">'+a.nao_lidas+'</span>':'')
+      +'<label class="warod" title="Recebe conversa nova pelo rodízio"><input type="checkbox" data-rod="'+esc(a.usuario_id)+'"'+(a.no_rodizio?' checked':'')+'><span></span></label>'
+      +'</div>';
+  });
+  h+='</div><div class="waagfoot">'
+    +'<button class="btn" id="wadistr"'+(WA.semDono?'':' disabled')+'>Distribuir sem dono</button>'
+    +(WA.contas.some(function(c){return c.provider==='evolution';})?'<button class="btn" id="waimport">Importar histórico</button>':'')
+    +'<div class="wanota">O rodízio divide cada conversa nova entre quem está marcado. Contato que já é lead vai para o responsável.</div>'
+    +'</div></div>';
+  return h;
+}
+
+function renderLista(lista){
+  const vt=waVeTudo();
+  let titulo=vt?(WA.agente==='__sem__'?'Sem dono':(WA.agente?waAgNome(WA.agente):'Todas da unidade')):'Minhas conversas';
+  let h='<div class="wacol lista">';
+  h+='<div class="walhead"><div class="wat">'+esc(titulo)+'</div>'
+    +(vt?'<select class="waagsel" id="waagsel" aria-label="Agente"><option value="">Todas</option><option value="__sem__"'+(WA.agente==='__sem__'?' selected':'')+'>Sem dono</option>'
+      +WA.agentes.map(function(a){return '<option value="'+esc(a.usuario_id)+'"'+(WA.agente===a.usuario_id?' selected':'')+'>'+esc(a.nome)+'</option>';}).join('')+'</select>':'')
+    +'</div>';
+  h+='<div class="wabusca"><input type="search" id="wabusca" placeholder="Buscar nome ou número" value="'+esc(WA.busca)+'"></div>';
+  if(WA.fila.length){
+    h+='<div class="wasug'+(WA.sel==='__fila__'?' on':'')+'" id="wasugbar"><b>'+WA.fila.length+'</b> '
+      +(WA.fila.length===1?'sugestão de mensagem esperando você':'sugestões de mensagem esperando você')+'</div>';
+  }
+  const ops=[['abertas','Abertas',waContagem(function(c){return c.status!=='resolvida';})],
+             ['nao','Não lidas',waContagem(function(c){return c.nao_lidas>0;})],
+             ['resolvidas','Resolvidas',null],['todas','Todas',null]];
+  h+='<div class="wafiltros">'+ops.map(function(o){
+      return '<button data-f="'+o[0]+'"'+(WA.status===o[0]?' class="on"':'')+'>'+o[1]+(o[2]?' <i>'+o[2]+'</i>':'')+'</button>';
+    }).join('')
+    +(WA.contas.length>1?'<select class="wacontasel" id="waconta" aria-label="Número"><option value="">Todos os números</option>'
+      +WA.contas.map(function(c){return '<option value="'+esc(c.id)+'"'+(WA.contaSel===c.id?' selected':'')+'>'+esc(c.rotulo||waFmtNum(c.numero_e164))+'</option>';}).join('')
+      +'</select>':'')
+    +'</div>';
+  h+='<div class="wascroll" id="walista">';
+  if(!lista.length){
+    h+='<div class="wavazio">'+(WA.busca?'Nada encontrado para essa busca.':(vt?'Nenhuma conversa neste filtro.':'Nenhuma conversa sua neste filtro. As novas chegam pelo rodízio.'))+'</div>';
+  }else{
+    lista.forEach(function(c){
+      const n=waNome(c),j=waJanela(c);
+      h+='<div class="wai'+(c.id===WA.sel?' on':'')+(c.nao_lidas?' unread':'')+'" data-c="'+c.id+'">'
+        +'<span class="av" style="background:'+waCor(n)+'">'+esc(waIni(n))+'</span>'
+        +'<span class="mid"><span class="row1"><span class="n">'+esc(n)+'</span><span class="t">'+esc(waQuando(c.ultima_mensagem_em))+'</span></span>'
+        +'<span class="row2"><span class="p">'+esc(c.ultima_previa||'Sem mensagens')+'</span>'
+        +(c.nao_lidas?'<span class="nl">'+c.nao_lidas+'</span>':(j.aberta&&!j.evo?'<span class="waj ok">24h</span>':''))+'</span>'
+        +'<span class="row3">'
+        +(c.lead?'<span class="watag lead">'+esc(waEtapaNome(c.lead.etapa))+'</span>':'<span class="watag">sem lead</span>')
+        +(vt?(c.atendente_id?'<span class="watag ag" style="--ac:'+waCor(c.atendente_nome||'')+'">'+esc(c.atendente_nome||'')+'</span>':'<span class="watag sem">sem dono</span>'):'')
+        +(c.status==='resolvida'?'<span class="watag ok">resolvida</span>':'')
+        +(WA.contas.length>1?'<span class="waselo">'+esc(c.conta_rotulo||waFmtNum(c.conta_numero))+'</span>':'')
+        +'</span></span></div>';
+    });
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function waEtapaNome(id){
+  try{const s=(CFG.leads.stages||[]).find(function(x){return x.id===id;});return s?(s.n||s.nome||id):id;}catch(_){return id;}
+}
+
+function renderThread(sel){
+  const vt=waVeTudo();
+  let h='<div class="wacol thread">';
+  if(!sel){
+    h+='<div class="wavazio"><div><div class="waicone">&#128172;</div>Escolha uma conversa para ver o histórico e responder.</div></div></div>';
+    return h;
+  }
+  const n=waNome(sel),j=waJanela(sel);
+  const meu=WA.eu&&sel.atendente_id===WA.eu.usuario_id;
+  h+='<div class="wahead">'
+    +'<button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
+    +'<span class="av" style="background:'+waCor(n)+'">'+esc(waIni(n))+'</span>'
+    +'<div class="who"><b>'+esc(n)+'</b>'
+    +'<div class="sub">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))
+    +(sel.atendente_id?' · com <b class="ag">'+esc(sel.atendente_nome||'')+'</b>':' · <span class="semd">sem dono</span>')+'</div></div>'
+    +(j.evo?'':'<span class="waj '+(j.aberta?'ok':'off')+'">'+esc(j.txt)+'</span>')
+    +'<div class="waacts">'
+    +(waPodeEditar()&&(vt||meu)&&WA.agentes.length?'<select id="watransf" class="watransf" aria-label="Transferir"><option value="">'+(sel.atendente_id?'Transferir para...':'Atribuir a...')+'</option>'
+      +WA.agentes.filter(function(a){return a.usuario_id!==sel.atendente_id;}).map(function(a){return '<option value="'+esc(a.usuario_id)+'">'+esc(a.nome)+'</option>';}).join('')+'</select>':'')
+    +(waPodeEditar()?(sel.status==='resolvida'?'<button class="walead" id="wareabrir">Reabrir</button>':'<button class="walead ok" id="waresolver">Resolver</button>'):'')
+    +(sel.lead_id?'<button class="walead" id="wafichabtn">Abrir ficha</button>':'<button class="walead pri" id="wanovolead">Criar lead</button>')
+    +'<button class="walead ic" id="wapaineltg" title="Detalhes">&#9432;</button>'
+    +'</div></div>';
+  if(sel.lead_ambiguo){
+    h+='<div class="waamb">Este número aparece em mais de um lead. A conversa foi ligada ao cadastro mais recente, vale conferir e unificar.</div>';
+  }
+  h+='<div class="wamsgs" id="wamsgs">';
+  let ultimoDia='';
+  if(!WA.msgs.length)h+='<div class="wavazio">Carregando mensagens...</div>';
+  WA.msgs.forEach(function(m){
+    const d=waDia(m.wa_timestamp||m.created_at);
+    if(d!==ultimoDia){h+='<div class="wadia">'+esc(d)+'</div>';ultimoDia=d;}
+    const sai=m.direcao==='saida';
+    h+='<div class="wam '+(sai?'sai':'ent')+(m.status==='falhou'?' falhou':'')+'">';
+    if(sai&&m.autor_id&&vt)h+='<div class="aut">'+esc(waAgNome(m.autor_id)||'')+'</div>';
+    h+=esc(m.texto||(m.midia_path?'':'['+m.tipo+']'));
+    if(m.midia_path){
+      h+='<button class="mdbtn" data-md="'+m.id+'">'+(m.tipo==='imagem'?'&#128247; Ver imagem':m.tipo==='audio'?'&#127908; Ouvir áudio':m.tipo==='video'?'&#127909; Ver vídeo':'&#128206; Abrir '+esc(m.tipo))+'</button><span id="md'+m.id+'"></span>';
+    }
+    h+='<div class="meta">'
+      +(sai&&m.template_nome?'<span>template</span>':'')
+      +'<span>'+esc(waHora(m.wa_timestamp||m.created_at))+'</span>'
+      +(sai?'<span class="st '+esc(m.status||'')+'">'+esc(WASTATUS[m.status]||m.status||'')+'</span>':'')
+      +'</div>';
+    if(m.status==='falhou'&&m.erro_msg)h+='<div class="meta" style="justify-content:flex-start">'+esc(m.erro_msg)+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  const podeResp=waPodeEditar()&&(vt||meu||!sel.atendente_id);
+  if(!podeResp){
+    h+='<div class="wafechada">Você pode ler esta conversa, mas não responder por ela.</div>';
+  }else if(j.aberta){
+    h+='<div class="wacomp">'
+      +'<textarea id="watxt" rows="1" placeholder="Escreva a mensagem. Enter envia, Shift+Enter quebra linha."></textarea>'
+      +'<button class="btn primary" id="wasend">Enviar</button></div>';
+  }else{
+    h+='<div class="wafechada">A janela de 24 horas fechou. Fora dela o WhatsApp só entrega template aprovado.';
+    const tpls=WA.templates.filter(function(t){return !t.conta_id||t.conta_id===sel.conta_id;});
+    if(tpls.length){
+      h+='<select id="watpl"><option value="">Escolha um template aprovado</option>'
+        +tpls.map(function(t){return '<option value="'+esc(t.nome)+'">'+esc(t.nome)+(t.corpo?' · '+esc(t.corpo.slice(0,50)):'')+'</option>';}).join('')
+        +'</select>'
+        +'<div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="wasendtpl">Enviar template</button></div>';
+    }else{
+      h+=' Nenhum template aprovado cadastrado ainda.';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function renderDetalhe(sel){
+  if(!sel||!WA.painel)return '';
+  const l=sel.lead;
+  let h='<div class="wacol detalhe"><div class="wasec">Detalhes</div><div class="wadet">';
+  h+='<div class="wadl">Contato</div><div class="wadv">'+esc(sel.nome_perfil||'—')+'<br><span class="mut">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))+'</span></div>';
+  h+='<div class="wadl">Atendente</div><div class="wadv">'+(sel.atendente_id?esc(sel.atendente_nome||''):'<span class="semd">sem dono</span>')
+    +(sel.atribuicao?'<br><span class="mut">atribuída '+esc(WAATRIB[sel.atribuicao]||sel.atribuicao)+(sel.atribuida_em?' em '+esc(waDia(sel.atribuida_em))+' '+esc(waHora(sel.atribuida_em)):'')+'</span>':'')+'</div>';
+  if(l){
+    h+='<div class="wadl">Lead</div><div class="wadv"><b>'+esc(l.nome||'')+'</b><br>'
+      +'<span class="watag lead">'+esc(waEtapaNome(l.etapa))+'</span>'
+      +(l.responsavel?'<br><span class="mut">responsável: '+esc(l.responsavel)+'</span>':'')+'</div>'
+      +'<button class="btn" id="wafichabtn2" style="width:100%">Abrir ficha do lead</button>';
+  }else{
+    h+='<div class="wadl">Lead</div><div class="wadv mut">Este contato ainda não é lead.</div>'
+      +'<button class="btn primary" id="wanovolead2" style="width:100%">Criar lead com este contato</button>';
+  }
+  h+='<div class="wadl">Status</div><div class="wadv">'+esc(sel.status==='resolvida'?'Resolvida':sel.status==='pendente'?'Pendente':'Aberta')+'</div>';
+  h+='<div class="wadl">Número da unidade</div><div class="wadv">'+esc(sel.conta_rotulo||'')+'<br><span class="mut">'+esc(waFmtNum(sel.conta_numero))+'</span></div>';
+  h+='</div></div>';
+  return h;
 }
 
 function renderConversas(){
   const lista=waFiltradas();
   const verFila=(WA.sel==='__fila__');
   const sel=(WA.sel&&!verFila)?WA.conversas.find(function(x){return x.id===WA.sel;}):null;
-
-  let h='<div class="wawrap'+((sel||verFila)?' thread':'')+'">';
-
-  /* coluna da lista */
-  h+='<div class="wacol lista">';
-  if(WA.fila.length){
-    h+='<div class="wasug'+(WA.sel==='__fila__'?' on':'')+'" id="wasugbar">'
-      +'<b>'+WA.fila.length+'</b> '
-      +(WA.fila.length===1?'sugestão de mensagem esperando você':'sugestões de mensagem esperando você')
-      +'</div>';
-  }
-  h+='<div class="wafiltros">'
-    +['todas|Todas','nao|Não lidas','minhas|Minhas'].concat(waTemCloud()?['abertas|Janela aberta']:[]).map(function(o){
-      const p=o.split('|');
-      return '<button data-f="'+p[0]+'"'+(WA.filtro===p[0]?' class="on"':'')+'>'+p[1]+'</button>';
-    }).join('')
-    +(WA.contas.length>1?'<select class="wacontasel" id="waconta" aria-label="Número"><option value="">Todos os números</option>'
-      +WA.contas.map(function(c){return '<option value="'+esc(c.id)+'"'+(WA.contaSel===c.id?' selected':'')+'>'+esc(c.rotulo||waFmtNum(c.numero_e164))+'</option>';}).join('')
-      +'</select>':'')
-    +'</div>';
-  h+='<div class="wascroll">';
-  if(!lista.length){
-    h+='<div class="wavazio">Nenhuma conversa por aqui ainda.</div>';
-  }else{
-    lista.forEach(function(c){
-      const n=waNome(c),j=waJanela(c);
-      h+='<div class="wai'+(c.id===WA.sel?' on':'')+'" data-c="'+c.id+'">'
-        +'<span class="av" style="background:'+waCor(n)+'">'+esc(n[0]||'?').toUpperCase()+'</span>'
-        +'<span class="mid"><span class="n">'+esc(n)+'</span>'
-        +'<span class="p">'+esc(c.ultima_previa||'Sem mensagens')+'</span>'
-        +(WA.contas.length>1?'<span class="waselo">'+esc(c.conta_rotulo||waFmtNum(c.conta_numero))+'</span>':'')+'</span>'
-        +'<span class="r"><span class="t">'+esc(waQuando(c.ultima_mensagem_em))+'</span>'
-        +(c.nao_lidas?'<span class="nl">'+c.nao_lidas+'</span>':(j.aberta&&!j.evo?'<span class="waj ok">24h</span>':''))
-        +'</span></div>';
-    });
-  }
-  h+='</div></div>';
-
-  /* coluna da conversa */
-  h+='<div class="wacol thread">';
-  if(verFila){
-    h+=renderFilaPainel();
-  }else if(!sel){
-    h+='<div class="wavazio">Escolha uma conversa à esquerda para ver o histórico e responder.</div>';
-  }else{
-    const n=waNome(sel),j=waJanela(sel);
-    h+='<div class="wahead">'
-      +'<button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
-      +'<div style="flex:1;min-width:0"><b>'+esc(n)+'</b>'
-      +'<div class="sub">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))+'</div></div>'
-      +(j.evo?(WA.contas.length>1?'<span class="waselo">'+esc(sel.conta_rotulo||'')+'</span>':''):'<span class="waj '+(j.aberta?'ok':'off')+'">'+esc(j.txt)+'</span>')
-      +(sel.lead_id?'<button class="walead" id="wafichabtn">Abrir ficha</button>':'<button class="walead" id="wanovolead">Criar lead</button>')
-      +'</div>';
-    if(sel.lead_ambiguo){
-      h+='<div class="waamb">Este número aparece em mais de um lead. A conversa foi ligada ao cadastro mais recente, vale conferir e unificar.</div>';
-    }
-    h+='<div class="wamsgs" id="wamsgs">';
-    let ultimoDia='';
-    WA.msgs.forEach(function(m){
-      const d=waDia(m.wa_timestamp||m.created_at);
-      if(d!==ultimoDia){h+='<div class="wadia">'+esc(d)+'</div>';ultimoDia=d;}
-      const sai=m.direcao==='saida';
-      h+='<div class="wam '+(sai?'sai':'ent')+(m.status==='falhou'?' falhou':'')+'">'
-        +esc(m.texto||'['+m.tipo+']');
-      if(m.midia_path){
-        h+='<button class="mdbtn" data-md="'+m.id+'">Abrir '+esc(m.tipo)+'</button><span id="md'+m.id+'"></span>';
-      }
-      h+='<div class="meta">'
-        +(sai&&m.template_nome?'<span>template</span>':'')
-        +'<span>'+esc(waHora(m.wa_timestamp||m.created_at))+'</span>'
-        +(sai?'<span>'+esc(WASTATUS[m.status]||m.status||'')+'</span>':'')
-        +'</div>';
-      if(m.status==='falhou'&&m.erro_msg)h+='<div class="meta" style="justify-content:flex-start">'+esc(m.erro_msg)+'</div>';
-      h+='</div>';
-    });
-    h+='</div>';
-    if(j.aberta){
-      h+='<div class="wacomp">'
-        +'<textarea id="watxt" rows="1" placeholder="Escreva a mensagem..."></textarea>'
-        +'<button class="btn primary" id="wasend">Enviar</button></div>';
-    }else{
-      h+='<div class="wafechada">A janela de 24 horas fechou. Fora dela o WhatsApp só entrega template aprovado.';
-      const tpls=WA.templates.filter(function(t){return !t.conta_id||t.conta_id===sel.conta_id;});
-      if(tpls.length){
-        h+='<select id="watpl"><option value="">Escolha um template aprovado</option>'
-          +tpls.map(function(t){return '<option value="'+esc(t.nome)+'">'+esc(t.nome)+(t.corpo?' · '+esc(t.corpo.slice(0,50)):'')+'</option>';}).join('')
-          +'</select>'
-          +'<div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="wasendtpl">Enviar template</button></div>';
-      }else{
-        h+=' Nenhum template aprovado cadastrado ainda.';
-      }
-      h+='</div>';
-    }
-  }
-  h+='</div></div>';
-
+  /* preserva busca com foco e posição da lista entre re-renderizações do polling */
+  const ae=document.activeElement,buscaFoco=ae&&ae.id==='wabusca',cursor=buscaFoco?ae.selectionStart:0;
+  const lst=$('walista'),scl=lst?lst.scrollTop:0;
+  const txtAtual=$('watxt')?$('watxt').value:null;
+  let h='<div class="wawrap'+(waVeTudo()?' gestao':'')+((sel||verFila)?' thread':'')+(sel&&WA.painel?' comdet':'')+'">';
+  h+=renderAgentes();
+  h+=renderLista(lista);
+  if(verFila)h+='<div class="wacol thread">'+renderFilaPainel()+'</div>';
+  else h+=renderThread(sel);
+  h+=renderDetalhe(sel);
+  h+='</div>';
   $('board').innerHTML=h;
   waLigar();
+  if($('walista'))$('walista').scrollTop=scl;
+  if(buscaFoco&&$('wabusca')){$('wabusca').focus();try{$('wabusca').setSelectionRange(cursor,cursor);}catch(_){}}
+  if(txtAtual!==null&&$('watxt')){$('watxt').value=txtAtual;}
   const box=$('wamsgs');
   if(box)box.scrollTop=box.scrollHeight;
 }
@@ -4998,27 +5200,45 @@ function waLigar(){
   waLigarFila();
   const wc=$('waconta');
   if(wc)wc.onchange=function(){WA.contaSel=wc.value||null;WA.sel=null;WA.msgs=[];waCarregar(true);};
+  const ags=$('waagsel');
+  if(ags)ags.onchange=function(){waTrocaAgente(ags.value);};
+  document.querySelectorAll('.waag[data-ag]').forEach(function(b){
+    b.onclick=function(e){if(e.target.closest('.warod'))return;waTrocaAgente(b.dataset.ag);};
+  });
+  document.querySelectorAll('[data-rod]').forEach(function(cb){
+    cb.onchange=function(){waRodizio(cb.dataset.rod,cb.checked);};
+  });
+  const bus=$('wabusca');
+  if(bus)bus.oninput=function(){WA.busca=bus.value;renderConversas();};
   document.querySelectorAll('.wafiltros button').forEach(function(b){
-    b.onclick=function(){WA.filtro=b.dataset.f;renderConversas();};
+    b.onclick=function(){WA.status=b.dataset.f;renderConversas();};
   });
   document.querySelectorAll('.wai').forEach(function(el){
     el.onclick=function(){waAbrir(el.dataset.c);};
   });
   const volta=$('wavolta');
   if(volta)volta.onclick=function(){WA.sel=null;WA.msgs=[];renderConversas();};
-  const ficha=$('wafichabtn');
-  if(ficha)ficha.onclick=function(){
-    const c=WA.conversas.find(function(x){return x.id===WA.sel;});
-    if(c&&c.lead_id)goToAlert('leads',c.lead_id);
-  };
-  const novo=$('wanovolead');
-  if(novo)novo.onclick=waCriarLead;
+  ['wafichabtn','wafichabtn2'].forEach(function(id){
+    const f=$(id);
+    if(f)f.onclick=function(){
+      const c=WA.conversas.find(function(x){return x.id===WA.sel;});
+      if(c&&c.lead_id)goToAlert('leads',c.lead_id);
+    };
+  });
+  ['wanovolead','wanovolead2'].forEach(function(id){const b=$(id);if(b)b.onclick=waCriarLead;});
+  const tf=$('watransf');
+  if(tf)tf.onchange=function(){if(tf.value)waTransferir(WA.sel,tf.value);};
+  const rs=$('waresolver');if(rs)rs.onclick=function(){waStatus(WA.sel,'resolvida');};
+  const ra=$('wareabrir');if(ra)ra.onclick=function(){waStatus(WA.sel,'aberta');};
+  const pt=$('wapaineltg');if(pt)pt.onclick=function(){WA.painel=!WA.painel;renderConversas();};
+  const ds=$('wadistr');if(ds)ds.onclick=waDistribuir;
+  const im=$('waimport');if(im)im.onclick=waImportar;
   const send=$('wasend');
   if(send)send.onclick=function(){waEnviar();};
   const txt=$('watxt');
   if(txt){
-    txt.focus();
-    txt.oninput=function(){txt.style.height='auto';txt.style.height=Math.min(120,txt.scrollHeight)+'px';};
+    if(!$('wabusca')||document.activeElement!==$('wabusca'))txt.focus();
+    txt.oninput=function(){txt.style.height='auto';txt.style.height=Math.min(160,txt.scrollHeight)+'px';};
     txt.onkeydown=function(e){
       if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();waEnviar();}
     };
@@ -5034,17 +5254,80 @@ function waLigar(){
   });
 }
 
+function waTrocaAgente(v){
+  WA.agente=v||'';WA.sel=null;WA.msgs=[];
+  $('board').querySelector('#walista')&&($('walista').innerHTML='<div class="wavazio">Carregando...</div>');
+  waCarregar(true);
+}
+
 async function waAbrir(id){
   WA.sel=id;WA.msgs=[];
   renderConversas();
   await waMsgs(id);
   const c=WA.conversas.find(function(x){return x.id===id;});
-  if(c&&c.nao_lidas){
+  if(c&&c.nao_lidas&&WA.eu&&(c.atendente_id===WA.eu.usuario_id||!c.atendente_id)){
     c.nao_lidas=0;
     waRpc('crm_wa_conversa_abrir',{p_conversa_id:id}).catch(function(){});
     waBadge();
   }
   renderConversas();
+}
+
+async function waTransferir(id,uid){
+  const nome=waAgNome(uid);
+  try{
+    await waRpc('crm_wa_conversa_transferir',{p_conversa_id:id,p_usuario_id:uid});
+    toast('Conversa com '+nome+'.');
+    if(!waVeTudo()){WA.sel=null;WA.msgs=[];}
+    await waCarregar(true);
+  }catch(e){toast(waErro(e,'Não foi possível transferir: '+(e.message||e)));renderConversas();}
+}
+
+async function waStatus(id,st){
+  try{
+    await waRpc('crm_wa_conversa_status',{p_conversa_id:id,p_status:st});
+    toast(st==='resolvida'?'Conversa resolvida.':'Conversa reaberta.');
+    await waCarregar(true);
+  }catch(e){toast(waErro(e,'Não foi possível atualizar a conversa.'));}
+}
+
+async function waRodizio(uid,on){
+  try{
+    await waRpc('crm_wa_agente_rodizio',{p_usuario_id:uid,p_rodizio:!!on});
+    toast(waAgNome(uid)+(on?' entra no rodízio.':' sai do rodízio.'));
+    await waCarregar(true);
+  }catch(e){toast(waErro(e,'Não foi possível mudar o rodízio.'));renderConversas();}
+}
+
+async function waDistribuir(){
+  const b=$('wadistr');if(b){b.disabled=true;b.textContent='Distribuindo...';}
+  try{
+    const n=await waRpc('crm_wa_distribuir_sem_dono');
+    toast(Number(n)?(n+(Number(n)===1?' conversa distribuída.':' conversas distribuídas.')):'Nenhum agente no rodízio para receber.');
+    await waCarregar(true);
+  }catch(e){toast(waErro(e,'Não foi possível distribuir.'));renderConversas();}
+}
+
+/* importa o histórico do número (Evolution) em lotes; mensagens já existentes são puladas */
+async function waImportar(){
+  const conta=WA.contas.find(function(c){return c.provider==='evolution'&&(!WA.contaSel||c.id===WA.contaSel);});
+  if(!conta){toast('Nenhum número da Evolution nesta unidade.');return;}
+  const dias=Number(prompt('Importar mensagens de quantos dias para trás? (1 a 90)','30'));
+  if(!dias||dias<1||dias>90)return;
+  const b=$('waimport');
+  let pag=1,tot={inseridas:0,ja:0,conv:0},voltas=0;
+  try{
+    while(pag&&voltas<40){
+      if(b){b.disabled=true;b.textContent='Importando... página '+pag;}
+      const r=await waFn('wa-evolution-importar',{conta_id:conta.id,dias:dias,simular:false,pagina_inicial:pag,max_paginas:3});
+      tot.inseridas+=r.inseridas||0;tot.ja+=r.ja_existiam||0;tot.conv+=r.conversas_novas||0;
+      if(r.erros&&r.erros.length)console.warn('importar',r.erros);
+      pag=r.proxima_pagina||0;voltas++;
+    }
+    toast(tot.inseridas+' mensagens importadas em '+tot.conv+' conversas novas.');
+  }catch(e){toast(waErro(e,'Importação parou: '+(e.message||e)));}
+  if(b){b.disabled=false;b.textContent='Importar histórico';}
+  await waCarregar(true);
 }
 
 async function waEnviar(template){
@@ -5067,6 +5350,7 @@ async function waEnviar(template){
     await waCarregar();
   }catch(e){
     if(e.codigo==='janela_fechada')toast('A janela de 24 horas fechou. Use um template.');
+    else if(e.codigo==='conversa_de_outro_agente')toast('Esta conversa é de outro consultor.');
     else toast(waErro(e,'Não foi possível enviar: '+(e.message||e)));
     await waCarregar();
   }finally{
@@ -5084,6 +5368,9 @@ async function waMidia(msgId,btn){
       btn.style.display='none';
     }else if(r.mime&&r.mime.indexOf('audio/')===0&&alvo){
       alvo.innerHTML='<audio class="md" controls src="'+r.url+'"></audio>';
+      btn.style.display='none';
+    }else if(r.mime&&r.mime.indexOf('video/')===0&&alvo){
+      alvo.innerHTML='<video class="md" controls src="'+r.url+'"></video>';
       btn.style.display='none';
     }else{
       window.open(r.url,'_blank');
@@ -5105,7 +5392,8 @@ async function waCriarLead(){
       whatsapp:waFmtNum(c.numero_e164||c.wa_id),
       etapa:CFG.leads.stages[0].id,
       origem:'WhatsApp',
-      responsavel:currentUser
+      /* o lead nasce com o dono da conversa (rodízio), não com quem clicou */
+      responsavel:c.atendente_nome||currentUser
     })});
     const novo=r&&r[0];
     if(novo){
@@ -5113,7 +5401,6 @@ async function waCriarLead(){
       DATA.leads=null;
       await waCarregar(false);
       toast('Lead criado. Complete a ficha.');
-      /* abre a ficha em modal para o consultor completar nome e origem na hora */
       await goToAlert('leads',novo.id);
     }
   }catch(e){toast('Não foi possível criar o lead: '+(e.message||e));}
@@ -5208,6 +5495,7 @@ async function waFilaDescartar(id){
 /* ================= Tabs e usuário ================= */
 function setTab(t){
   if(!tabLiberada(t))t=primeiraTabPermitida();
+  document.body.classList.toggle('waFull',t==='conversas');
   tab=t;filters=emptyFilters();$('q').value='';$('fpanel').classList.remove('open');
   document.querySelectorAll('#snav a[data-t]').forEach(function(a){a.classList.toggle('on',a.dataset.t===t);});
   abrirGrupo(NAVGRP[t]);

@@ -1,10 +1,12 @@
-// wa-send v2 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
+// wa-send v3 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
 // Spec: 10-cna/sistemas/whatsapp-multinumero.md (W2). Dívida nº 3 fechada aqui:
 //   - exige o token de sessão do CRM (crm_wa_sessao, nível 2 em 'conversas'); a chave anon sozinha não envia
 //   - conversa e conta sempre da unidade da sessão; número avulso usa conta_id da unidade (ou a única ativa)
 //   - autor_id vem da sessão, nunca do cliente
 //   - token do provedor lido do secret apontado por crm_wa_contas.token_ref (WA_TOKEN_* ou EVO_TOKEN_*)
 //   - opt-out respeitado no ato (crm_wa_optout por unidade + wa_chave)
+// v3 (16/11/2026, multiagente): consultor só envia em conversa dele (gestão em qualquer uma);
+//   enviar não troca o dono; conversa nova aberta pelo CRM nasce com quem enviou.
 // Transporte por conta: 'cloud' (Meta Cloud API, janela de 24h e template) ou 'evolution' (sessão por QR).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -55,7 +57,7 @@ function segredo(conta: J): string {
   return v;
 }
 
-async function conversaPorNumero(conta: J, waId: string): Promise<J> {
+async function conversaPorNumero(conta: J, waId: string, autor: string): Promise<J> {
   const { data: existente } = await db.from('crm_wa_conversas')
     .select('*').eq('conta_id', conta.id).eq('wa_id', waId).maybeSingle();
   if (existente) return existente;
@@ -70,6 +72,7 @@ async function conversaPorNumero(conta: J, waId: string): Promise<J> {
   }
   const { data: nova, error } = await db.from('crm_wa_conversas').insert({
     conta_id: conta.id, wa_id: waId, numero_e164: '+' + waId, wa_chave: k, lead_id: leadId, lead_ambiguo: ambiguo,
+    atendente_id: autor, atribuicao: 'manual', atribuida_em: new Date().toISOString(),
   }).select('*').single();
   if (error?.code === '23505') {
     const { data: outra } = await db.from('crm_wa_conversas').select('*').eq('conta_id', conta.id).eq('wa_id', waId).single();
@@ -157,11 +160,16 @@ Deno.serve(async (req) => {
       let waId = String(b.wa_id ?? b.numero).replace(/\D/g, '');
       if (!waId.startsWith('55')) waId = '55' + waId;
       if (waId.length < 12) return json({ erro: 'numero_invalido', detalhe: 'Número de WhatsApp inválido.' }, 400);
-      conversa = await conversaPorNumero(conta!, waId);
+      conversa = await conversaPorNumero(conta!, waId, s.usuario_id);
     } else {
       return json({ erro: 'informe conversa_id ou wa_id' }, 400);
     }
     if (!conta) return json({ erro: 'conta_de_outra_unidade' }, 404);
+    // multiagente: conversa de outro consultor só a gestão responde
+    if (conversa!.atendente_id && conversa!.atendente_id !== s.usuario_id) {
+      const { data: vt } = await db.rpc('crm_wa_ve_tudo', { p_usuario: s.usuario_id, p_unidade: unidade });
+      if (!vt) return json({ erro: 'conversa_de_outro_agente', detalhe: 'Esta conversa é de outro consultor.' }, 403);
+    }
     if (!conta.ativa) return json({ erro: 'conta_inativa', detalhe: 'Este número está desativado no CRM.' }, 409);
 
     // 2. opt-out
@@ -211,7 +219,7 @@ Deno.serve(async (req) => {
     } else if (errUp) throw errUp;
 
     await db.from('crm_wa_conversas').update({
-      atendente_id: s.usuario_id,
+      atendente_id: conversa!.atendente_id ?? s.usuario_id,
       status: conversa!.status === 'resolvida' ? 'pendente' : conversa!.status,
     }).eq('id', conversa!.id);
 
