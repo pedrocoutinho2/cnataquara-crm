@@ -429,6 +429,14 @@ senão rodízio (`crm_wa_proximo_agente`, estado em `crm_wa_rodizio`). Rodízio 
   os dois = respondeu) e próximo atendimento no dia seguinte à última mensagem, 10h.
 - wa-send v4 também reage, edita (até 15 min), apaga (até 48h) e envia mídia/áudio, só Evolution.
 
+**W6 (17/11/2026, `20261117024614_wa_w6_nome_do_lead`): nome do lead.** `crm_leads.nome_auto = true` quando o
+nome veio da automação; o banco troca por um melhor (`crm_wa_lead_nome_sync`, trigger `z_wa_conversa_nome`) na
+ordem nome dito na conversa (`nome_ia`, IA da sugestão) > agenda do celular (`nome_contato`, contatos da
+Evolution) > perfil (`nome_perfil`), tudo limpo por `crm_wa_nome_limpo` (tira emoji, número, e-mail, "WhatsApp
+Business"). Sem nome bom, fica "WhatsApp (DDD) número". Qualquer edição de nome fora da automação zera
+`nome_auto` (trigger `a05_leads_nome_manual`, GUC `crm.nome_auto`): correção humana nunca é sobrescrita.
+Número com menos de 10 dígitos (ex.: `0@s.whatsapp.net`, conta oficial do WhatsApp) é ignorado.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
