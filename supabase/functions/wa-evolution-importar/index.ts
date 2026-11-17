@@ -16,6 +16,10 @@
 //     seguinte à última mensagem, 10h, para não nascer tudo vencido)
 //   - garante MESSAGES_EDITED e MESSAGES_DELETE no webhook da instância (edição e exclusão feitas no
 //     celular chegam ao CRM), mantendo url, headers e os eventos que já existiam
+// v5 (17/11/2026): 'finalizar' também lê a agenda (/chat/findContacts -> crm_wa_conversas.nome_contato,
+//   e o banco atualiza o nome dos leads automáticos), assina CONTACTS_UPSERT/CONTACTS_UPDATE e liga
+//   syncFullHistory na instância (vale na próxima conexão por QR: é o que traz o histórico completo).
+//   Número de sistema (menos de 10 dígitos, ex.: 0@s.whatsapp.net) é ignorado.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -43,9 +47,10 @@ function numeroDoJid(key: J, r: J): { numero: string | null; ignorar: string | n
   if (jid.endsWith('@g.us')) return { numero: null, ignorar: 'grupo' };
   if (jid === 'status@broadcast') return { numero: null, ignorar: 'status' };
   if (jid.endsWith('@newsletter') || jid.endsWith('@broadcast')) return { numero: null, ignorar: 'canal' };
-  if (jid.endsWith('@s.whatsapp.net')) return { numero: jid.split('@')[0].replace(/\D/g, ''), ignorar: null };
+  const curto = (n: string) => n.length < 10 ? { numero: null, ignorar: 'sistema' } : { numero: n, ignorar: null };
+  if (jid.endsWith('@s.whatsapp.net')) return curto(jid.split('@')[0].replace(/\D/g, ''));
   const alt: string = key?.remoteJidAlt ?? key?.senderPn ?? r?.senderPn ?? '';
-  if (alt.includes('@s.whatsapp.net')) return { numero: alt.split('@')[0].replace(/\D/g, ''), ignorar: null };
+  if (alt.includes('@s.whatsapp.net')) return curto(alt.split('@')[0].replace(/\D/g, ''));
   return { numero: null, ignorar: 'sem_numero' };
 }
 function tsSeg(v: unknown): number {
@@ -132,7 +137,7 @@ Deno.serve(async (req) => {
   const { data: vt } = await db.rpc('crm_wa_ve_tudo', { p_usuario: s.usuario_id, p_unidade: s.unidade });
   if (!vt) return json({ erro: 'sem_permissao' }, 403);
   const instancia = String(b.instancia ?? '');
-  const dias = Math.min(Math.max(Number(b.dias ?? 30), 1), 90);
+  const dias = Math.min(Math.max(Number(b.dias ?? 30), 1), 365);
   const simular = b.simular !== false;
   const pagIni = Math.max(Number(b.pagina_inicial ?? 1), 1);
   const maxPag = Math.min(Math.max(Number(b.max_paginas ?? 5), 1), 40);
@@ -165,7 +170,7 @@ Deno.serve(async (req) => {
       const w: J = rf.ok ? await rf.json().catch(() => ({})) : {};
       if (!rf.ok || !w?.url) throw new Error(`webhook_find_http_${rf.status}`);
       const atuais: string[] = Array.isArray(w.events) ? w.events : [];
-      const faltam = ['MESSAGES_EDITED', 'MESSAGES_DELETE'].filter((e) => !atuais.includes(e));
+      const faltam = ['MESSAGES_EDITED', 'MESSAGES_DELETE', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE'].filter((e) => !atuais.includes(e));
       out.webhook_eventos_antes = atuais;
       if (faltam.length && !simular) {
         const eventos = [...atuais, ...faltam];
@@ -179,6 +184,41 @@ Deno.serve(async (req) => {
         out.webhook_url_mantida = v?.url === w.url;
       } else out.webhook_faltam = faltam;
     } catch (e) { out.erro_webhook = String((e as Error).message); }
+    const inst = encodeURIComponent(conta.evolution_instancia);
+    const h = { apikey: tk, 'Content-Type': 'application/json' };
+    // agenda do celular
+    try {
+      const rc = await fetch(`${EVO_URL}/chat/findContacts/${inst}`, { method: 'POST', headers: h, body: JSON.stringify({ where: {} }) });
+      const lista: J[] = rc.ok ? await rc.json().catch(() => []) : [];
+      if (!rc.ok) throw new Error(`contatos_http_${rc.status}`);
+      const { data: convs } = await db.from('crm_wa_conversas').select('id, wa_id, nome_contato').eq('conta_id', conta.id);
+      const porNum = new Map((convs ?? []).map((c: J) => [c.wa_id, c]));
+      let nomes = 0;
+      for (const ct of Array.isArray(lista) ? lista : []) {
+        const { numero } = numeroDoJid({ remoteJid: ct.remoteJid ?? ct.id ?? '' }, ct);
+        const nome = String(ct.name ?? ct.pushName ?? '').trim();
+        const c = numero ? porNum.get(numero) : null;
+        if (!c || !nome || nome.replace(/\D/g, '') === numero || c.nome_contato === nome) continue;
+        if (!simular) await db.from('crm_wa_conversas').update({ nome_contato: nome }).eq('id', c.id);
+        nomes++;
+      }
+      out.contatos_lidos = Array.isArray(lista) ? lista.length : 0;
+      out.nomes_da_agenda = nomes;
+    } catch (e) { out.erro_contatos = String((e as Error).message); }
+    // histórico completo na próxima conexão
+    try {
+      const rs = await fetch(`${EVO_URL}/settings/find/${inst}`, { headers: h });
+      const st: J = rs.ok ? await rs.json().catch(() => ({})) : {};
+      if (!rs.ok) throw new Error(`settings_find_http_${rs.status}`);
+      out.sync_full_history_antes = !!st.syncFullHistory;
+      if (!st.syncFullHistory && !simular) {
+        const corpo = { rejectCall: !!st.rejectCall, msgCall: st.msgCall ?? '', groupsIgnore: !!st.groupsIgnore,
+          alwaysOnline: !!st.alwaysOnline, readMessages: !!st.readMessages, readStatus: !!st.readStatus, syncFullHistory: true };
+        const rw = await fetch(`${EVO_URL}/settings/set/${inst}`, { method: 'POST', headers: h, body: JSON.stringify(corpo) });
+        if (!rw.ok) throw new Error(`settings_set_http_${rw.status}`);
+        out.sync_full_history_depois = true;
+      }
+    } catch (e) { out.erro_settings = String((e as Error).message); }
     return json(out);
   }
 

@@ -20,6 +20,10 @@
 //   Sugestão de etapa por IA (modo sugestão): ~40s depois da última mensagem da conversa, se nada novo
 //   chegou, o modelo (env WA_SUGESTAO_MODELO, padrão claude-haiku-5-5, chave ANTHROPIC_API_KEY) lê as
 //   últimas mensagens e, se a etapa do lead deveria mudar, grava sugestao_* na conversa. Nada muda sozinho.
+// v5 (17/11/2026): nome do lead. Lead criado aqui nasce com nome_auto (o banco troca por nome melhor
+//   até alguém editar: crm_wa_lead_nome_sync). Eventos contacts.upsert/contacts.update gravam o nome da
+//   agenda em crm_wa_conversas.nome_contato. A IA da sugestão também lê o nome que o cliente disser
+//   ("meu nome é...", assinatura) e grava em nome_ia. Número de sistema (ex.: 0@s.whatsapp.net) é ignorado.
 // Regras: falha FECHADO (conta sem token configurado não recebe nada); lead procurado só na
 // unidade da conta; grupo, status e canal ignorados; reentrega deduplicada pelo id da mensagem;
 // o apikey que a Evolution manda no corpo nunca é gravado (o trigger do banco também remove).
@@ -56,9 +60,10 @@ function numeroDoJid(key: J, data: J): { numero: string | null; ignorar: string 
   if (jid.endsWith('@g.us')) return { numero: null, ignorar: 'grupo' };
   if (jid === 'status@broadcast') return { numero: null, ignorar: 'status' };
   if (jid.endsWith('@newsletter') || jid.endsWith('@broadcast')) return { numero: null, ignorar: 'canal' };
-  if (jid.endsWith('@s.whatsapp.net')) return { numero: jid.split('@')[0].replace(/\D/g, ''), ignorar: null };
+  const curto = (n: string) => n.length < 10 ? { numero: null, ignorar: 'sistema' } : { numero: n, ignorar: null };
+  if (jid.endsWith('@s.whatsapp.net')) return curto(jid.split('@')[0].replace(/\D/g, ''));
   const alt: string = key?.remoteJidAlt ?? key?.senderPn ?? data?.senderPn ?? '';
-  if (alt.includes('@s.whatsapp.net')) return { numero: alt.split('@')[0].replace(/\D/g, ''), ignorar: null };
+  if (alt.includes('@s.whatsapp.net')) return curto(alt.split('@')[0].replace(/\D/g, ''));
   return { numero: null, ignorar: null };
 }
 
@@ -117,7 +122,7 @@ async function leadAutomatico(conta: Conta, conversaId: string, atendenteId: str
       resp = u?.nome ?? null;
     }
     const { data: lead, error } = await db.from('crm_leads').insert({
-      unidade: conta.unidade, nome: (nomePerfil ?? '').trim() || `WhatsApp ${fmtNum(numero)}`,
+      unidade: conta.unidade, nome: (nomePerfil ?? '').trim() || `WhatsApp ${fmtNum(numero)}`, nome_auto: true,
       whatsapp: fmtNum(numero), etapa: 'novo', origem: 'WhatsApp', responsavel: resp,
     }).select('id').single();
     if (error) throw error;
@@ -260,7 +265,7 @@ async function sugerirEtapa(conversaId: string, msgId: string) {
   const { data: c } = await db.from('crm_wa_conversas').select('id, lead_id, unidade, sugestao_etapa, sugestao_status').eq('id', conversaId).maybeSingle();
   if (!c?.lead_id) return;
   const { data: lead } = await db.from('crm_leads').select('etapa, nome').eq('id', c.lead_id).eq('unidade', c.unidade).maybeSingle();
-  if (!lead || lead.etapa === 'fechado') return;
+  if (!lead) return;
   const { data: msgs } = await db.from('crm_wa_mensagens').select('direcao, tipo, texto, apagada, wa_timestamp')
     .eq('conversa_id', conversaId).order('wa_timestamp', { ascending: false }).limit(40);
   const linhas = (msgs ?? []).reverse().map((m: J) =>
@@ -274,26 +279,41 @@ Etapa atual do lead: ${lead.etapa}.
 Conversa de WhatsApp (mais antiga primeiro):
 ${linhas}
 
-Responda SOMENTE com JSON: {"etapa": "<uma das chaves acima>", "motivo": "<frase curta em português, até 120 caracteres, citando o fato da conversa>", "confianca": <0 a 1>}.
-Se não houver evidência clara de mudança, repita a etapa atual.`;
+Responda SOMENTE com JSON: {"etapa": "<uma das chaves acima>", "motivo": "<frase curta em português, até 120 caracteres, citando o fato da conversa>", "confianca": <0 a 1>, "nome": "<nome e sobrenome do LEAD (a pessoa que fala com a escola) se ele disser ou assinar na conversa, senão null>"}.
+Se não houver evidência clara de mudança, repita a etapa atual. Não use o nome de quem trabalha na escola nem o nome do aluno quando quem fala é o responsável.`;
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: Deno.env.get('WA_SUGESTAO_MODELO') ?? 'claude-haiku-5-5', max_tokens: 200,
+      body: JSON.stringify({ model: Deno.env.get('WA_SUGESTAO_MODELO') ?? 'claude-haiku-5-5', max_tokens: 250,
         messages: [{ role: 'user', content: prompt }] }),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { console.log(JSON.stringify({ diag: 'sugestao_http', status: r.status, erro: j?.error?.type, msg: String(j?.error?.message ?? '').slice(0, 240) })); return; }
     const txt: string = (j?.content ?? []).map((x: J) => x?.text ?? '').join('');
     const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+    const nm = typeof o?.nome === 'string' ? o.nome.trim() : '';
+    if (nm && nm.toLowerCase() !== 'null') await db.from('crm_wa_conversas').update({ nome_ia: nm.slice(0, 80) }).eq('id', conversaId);
     const et = String(o?.etapa ?? '');
-    if (!ETAPAS[et] || et === lead.etapa || Number(o?.confianca ?? 0) < 0.6) return;
+    if (lead.etapa === 'fechado' || !ETAPAS[et] || et === lead.etapa || Number(o?.confianca ?? 0) < 0.6) return;
     if (c.sugestao_etapa === et && c.sugestao_status === 'ignorada') return; // não insiste no que foi recusado
     await db.from('crm_wa_conversas').update({ sugestao_etapa: et, sugestao_motivo: String(o?.motivo ?? '').slice(0, 200),
       sugestao_em: new Date().toISOString(), sugestao_status: 'pendente' }).eq('id', conversaId);
   } catch (e) {
     console.log(JSON.stringify({ diag: 'sugestao_falhou', erro: String((e as Error)?.message ?? e).slice(0, 200) }));
+  }
+}
+
+// ---- agenda do celular -> nome_contato -------------------------------------------------
+async function contatos(conta: Conta, itens: J[]) {
+  for (const d of itens) {
+    const { numero } = numeroDoJid({ remoteJid: d?.remoteJid ?? d?.id ?? '' }, d);
+    const nome = String(d?.name ?? d?.pushName ?? d?.notify ?? d?.verifiedName ?? '').trim();
+    if (!numero || !nome || nome.replace(/\D/g, '') === numero) continue;
+    await db.from('crm_wa_conversas').update({ nome_contato: nome })
+      .eq('conta_id', conta.id).eq('wa_id', numero).neq('nome_contato', nome);
+    await db.from('crm_wa_conversas').update({ nome_contato: nome })
+      .eq('conta_id', conta.id).eq('wa_id', numero).is('nome_contato', null);
   }
 }
 
@@ -364,6 +384,8 @@ Deno.serve(async (req) => {
         if (m) await db.from('crm_wa_mensagens').update({ apagada: true }).eq('id', m.id);
         else nota = 'ignorado:delete_sem_alvo';
       }
+    } else if (evento === 'contacts.upsert' || evento === 'contacts.update') {
+      await contatos(conta, Array.isArray(body.data) ? body.data : [body.data]);
     } else if (evento === 'messages.update') {
       const itens = Array.isArray(body.data) ? body.data : [body.data];
       for (const d of itens) await atualizacao(d);

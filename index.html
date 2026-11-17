@@ -5602,12 +5602,12 @@ async function waDistribuir(){
 async function waImportar(){
   const conta=WA.contas.find(function(c){return c.provider==='evolution'&&(!WA.contaSel||c.id===WA.contaSel);});
   if(!conta){toast('Nenhum número da Evolution nesta unidade.');return;}
-  const dias=Number(prompt('Importar mensagens de quantos dias para trás? (1 a 90)','30'));
-  if(!dias||dias<1||dias>90)return;
+  const dias=Number(prompt('Importar mensagens de quantos dias para trás? (1 a 365)','90'));
+  if(!dias||dias<1||dias>365)return;
   const b=$('waimport');
   let pag=1,tot={inseridas:0,ja:0,conv:0},voltas=0;
   try{
-    while(pag&&voltas<40){
+    while(pag&&voltas<200){
       if(b){b.disabled=true;b.textContent='Importando... página '+pag;}
       const r=await waFn('wa-evolution-importar',{conta_id:conta.id,dias:dias,simular:false,pagina_inicial:pag,max_paginas:3});
       tot.inseridas+=r.inseridas||0;tot.ja+=r.ja_existiam||0;tot.conv+=r.conversas_novas||0;
@@ -5621,7 +5621,8 @@ async function waImportar(){
     if(b)b.textContent='Criando leads...';
     try{
       const f=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'finalizar',simular:false});
-      toast(tot.inseridas+' mensagens importadas, '+(f.leads_criados||0)+' leads criados.');
+      toast(tot.inseridas+' mensagens importadas, '+(f.leads_criados||0)+' leads criados, '+(f.nomes_da_agenda||0)+' nomes da agenda.');
+      if(f.erro_contatos||f.erro_settings)console.warn('finalizar',f.erro_contatos,f.erro_settings);
       if(f.erro_webhook)console.warn('webhook',f.erro_webhook);
       DATA.leads=null;
     }catch(e){toast(waErro(e,'Mensagens importadas, mas os leads não foram criados: '+(e.message||e)));}
