@@ -284,7 +284,7 @@ Se não houver evidência clara de mudança, repita a etapa atual.`;
         messages: [{ role: 'user', content: prompt }] }),
     });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) { console.log(JSON.stringify({ diag: 'sugestao_http', status: r.status, erro: j?.error?.type })); return; }
+    if (!r.ok) { console.log(JSON.stringify({ diag: 'sugestao_http', status: r.status, erro: j?.error?.type, msg: String(j?.error?.message ?? '').slice(0, 240) })); return; }
     const txt: string = (j?.content ?? []).map((x: J) => x?.text ?? '').join('');
     const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
     const et = String(o?.etapa ?? '');
