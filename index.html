@@ -1148,6 +1148,10 @@ body.waFull .stats{display:none}
 .wamic.rec{background:var(--red);color:var(--white);border-color:var(--red);animation:wapulse 1.2s infinite}
 @keyframes wapulse{50%{opacity:.6}}
 .wasendb .ic{display:none}
+.wanomebtn{border:none;background:transparent;color:var(--gray);cursor:pointer;font-size:14px;padding:0 4px;margin-left:4px;line-height:1;vertical-align:middle}
+.wanomebtn:hover{color:var(--blue)}
+.waficha{display:inline-flex;align-items:center;gap:6px;margin-top:6px;color:#128C7E;border-color:#B7E4D6;background:#EFFAF6}
+.waficha svg{width:16px;height:16px}
 .wasug b{font-family:var(--display)}
 .wasug.on{background:var(--red);color:var(--white)}
 .wafcard{border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;margin-bottom:12px;background:var(--white)}
@@ -2888,6 +2892,7 @@ function cardEl(s,st,showStage){
               +(s.ultima_tentativa?'. \u00daltima em '+brDate(s.ultima_tentativa):'')+'">&#8635; '+_t+'x sem retorno</span>';
   }
   c.className='card'+(_pd&&_pd<_hj?' late':'');
+  if(tab==='leads')c.dataset.lead=s.id;
   c.draggable=true;
   const pr=cfg.prios.find(function(p){return p[0]===s[cfg.prioField];})||cfg.prios[1];
   const resp=s.responsavel;
@@ -3308,6 +3313,7 @@ function openModal(id){
         +'<option value="'+esc(v)+'" selected>'+esc(v||'— sem turma —')+'</option></select>';
     }else{
       inner+='<input data-k="'+f.k+'" value="'+esc(v)+'">';
+      if(f.k==='whatsapp'&&s&&v&&WA.disp)inner+='<button type="button" class="btn sm waficha" id="waFichaConv">'+WAICO+'<span>Abrir conversa</span></button>';
     }
     d.innerHTML=inner;
     if(f.k==='motivo_perda')d.id='fPerda';
@@ -3323,6 +3329,11 @@ function openModal(id){
     form.appendChild(d);
     if(f.t==='turmas')fillTurmas(d.querySelector('select'),v);
   });
+  const wfc=$('waFichaConv');
+  if(wfc&&s)wfc.onclick=function(){
+    if(DIRTY&&!confirm('Você tem alterações não salvas na ficha. Sair mesmo assim?'))return;
+    waIrConversa(s.whatsapp||s.telefone,tab==='leads'?s.id:null);
+  };
   form.querySelectorAll('.dtwrap').forEach(function(w){
     const di=w.querySelector('input[type=date]'),hi=w.querySelector('input[type=time]');
     const marca=function(){hi.classList.toggle('need',!!di.value&&!hi.value);};
@@ -4985,6 +4996,7 @@ async function openConversas(){
   await waFila();
   await waCarregar(true);
   waStartPoll();
+  if(WA.alvo)await waAlvoAplicar();
 }
 
 async function waMsgs(id){
@@ -5171,7 +5183,7 @@ function renderThread(sel){
   h+='<div class="wahead">'
     +'<button class="waback" id="wavolta" aria-label="Voltar">&#8592;</button>'
     +'<span class="av" style="background:'+waCor(n)+'">'+esc(waIni(n))+'</span>'
-    +'<div class="who"><b>'+esc(n)+'</b>'
+    +'<div class="who"><b>'+esc(n)+(sel.lead_id&&waPodeEditar()?'<button class="wanomebtn" id="wanome" title="Corrigir o nome do lead" aria-label="Corrigir o nome">&#9998;</button>':'')+'</b>'
     +'<div class="sub">'+esc(waFmtNum(sel.numero_e164||sel.wa_id))
     +(sel.atendente_id?' · com <b class="ag">'+esc(sel.atendente_nome||'')+'</b>':' · <span class="semd">sem dono</span>')
     +(segs.length?' · acompanhando: '+esc(segs.map(function(x){return x.nome;}).join(', ')):'')+'</div></div>'
@@ -5314,6 +5326,7 @@ function waLigar(){
   const sgo=$('wasugok');if(sgo)sgo.onclick=function(){waSugestao(true);};
   const sgn=$('wasugno');if(sgn)sgn.onclick=function(){waSugestao(false);};
   const seg=$('waseguir');if(seg)seg.onclick=waSeguirModal;
+  const nm=$('wanome');if(nm)nm.onclick=waNomeModal;
   const sas=$('wasairseg');if(sas)sas.onclick=function(){waSeguir(WA.sel,WA.eu.usuario_id,false);};
   document.querySelectorAll('[data-mact]').forEach(function(b){b.onclick=function(e){e.stopPropagation();waMsgAcoes(b.dataset.mact);};});
   const clip=$('waclip'),fl=$('wafile');
@@ -5493,7 +5506,7 @@ function waMsgAcoes(id){
     '<div class="wadl" style="margin-top:0">Reagir</div><div class="wareacs">'
     +WAREAC.map(function(e){return '<button class="wareacb'+(e===atual?' on':'')+'" data-reac="'+esc(e)+'">'+e+'</button>';}).join('')
     +(atual?'<button class="walead" data-reac="">Tirar reação</button>':'')+'</div>'
-    +(podeEd?'<div class="wadl">Editar</div><textarea id="waedtxt" rows="3" style="width:100%">'+esc(m.texto||'')+'</textarea>':'')
+    +(podeEd?'<div class="wadl">Editar</div><textarea id="waedtxt" class="nort" rows="3" style="width:100%">'+esc(m.texto||'')+'</textarea>':'')
     +(sai&&!podeEd&&m.tipo==='texto'?'<div class="mut" style="margin-top:10px">O WhatsApp só deixa editar até 15 minutos depois do envio.</div>':''),
     (podeAp?'<button class="btn danger" id="waapag">Apagar para todos</button>':'')+'<span style="flex:1"></span><button class="btn" id="wamx">Fechar</button>'
     +(podeEd?'<button class="btn primary" id="waedok">Salvar edição</button>':''));
@@ -5745,7 +5758,7 @@ function waRespEditar(id){
     '<div class="f"><label>Título</label><input id="wrtit" maxlength="80" value="'+esc(r?r.titulo:'')+'" placeholder="Ex.: Boas-vindas lead novo"></div>'
     +'<div class="f"><label>Atalho (opcional)</label><input id="wrata" maxlength="24" value="'+esc(r?r.atalho||'':'')+'" placeholder="/oi"></div>'
     +'<div class="f"><label>Categoria</label><input id="wrcat" list="wrcats" maxlength="40" value="'+esc(r?r.categoria||'':'Geral')+'"><datalist id="wrcats">'+cats.map(function(c){return '<option value="'+esc(c)+'">';}).join('')+'</datalist></div>'
-    +'<div class="f"><label>Mensagem</label><textarea id="wrcorpo" rows="7" placeholder="Oi {nome}, aqui é {consultor}, do {unidade}!">'+esc(r?r.corpo||'':'')+'</textarea>'
+    +'<div class="f"><label>Mensagem</label><textarea id="wrcorpo" class="nort" rows="7" placeholder="Oi {nome}, aqui é {consultor}, do {unidade}!">'+esc(r?r.corpo||'':'')+'</textarea>'
     +'<div class="wanota" style="margin-top:6px">Variáveis: <b>{nome}</b> primeiro nome do contato · <b>{consultor}</b> quem envia · <b>{unidade}</b> nome da unidade.</div></div>',
     (r?'<button class="btn danger" id="wrdel">Excluir</button>':'')+'<span style="flex:1"></span><button class="btn" id="wrx">Cancelar</button><button class="btn primary" id="wrok">Salvar</button>');
   $('wrx').onclick=uiModalClose;
@@ -5919,6 +5932,92 @@ async function waCriarLead(){
       await goToAlert('leads',novo.id);
     }
   }catch(e){toast('Não foi possível criar o lead: '+(e.message||e));}
+}
+
+/* ---- botão do WhatsApp leva para a conversa no CRM (17/11/2026) ----
+   Unidade com número ligado no CRM: todo link wa.me (card, agenda, Início, ficha) abre a conversa aqui.
+   Sem número ligado: o link segue abrindo o app, como antes. Decisão por dado (crm_wa_contas), nunca por unidade. */
+WA.disp=undefined;WA.alvo=null;
+function waChaveJs(v){
+  let d=String(v||'').replace(/\D/g,'');
+  if(d.length>=12&&d.slice(0,2)==='55')d=d.slice(2);
+  if(d.length<10)return null;
+  return d.slice(0,2)+d.slice(-8);
+}
+async function waDispCarregar(){
+  if(!currentUser||!sessTok()||!podeVer('conversas')){WA.disp=false;return;}
+  try{await waPainel();WA.disp=WA.contas.length>0;}catch(e){WA.disp=false;}
+}
+setInterval(function(){if(currentUser&&WA.disp===undefined)waDispCarregar();},4000);
+function waIrConversa(numero,leadId){
+  if(!waChaveJs(numero)){toast('Número de WhatsApp inválido.');return;}
+  WA.alvo={numero:numero,lead:leadId||null};
+  if(typeof closeModal==='function'&&$('ov').classList.contains('open'))closeModal();
+  if(tab==='conversas')waAlvoAplicar();else setTab('conversas');
+}
+document.addEventListener('click',function(e){
+  const a=e.target.closest&&e.target.closest('a.wa,a.itwa');
+  if(!a||!WA.disp)return;
+  const href=a.getAttribute('href')||'';
+  if(href.indexOf('wa.me/')<0)return;
+  e.preventDefault();e.stopPropagation();
+  const row=a.closest('[data-lead],[data-id]');
+  waIrConversa(href.split('wa.me/')[1],row&&(row.dataset.lead||null));
+},true);
+async function waAlvoAplicar(){
+  const al=WA.alvo;WA.alvo=null;if(!al)return;
+  const k=waChaveJs(al.numero);
+  const acha=function(){return WA.conversas.find(function(c){return (al.lead&&c.lead_id===al.lead)||(k&&c.wa_chave===k);});};
+  let c=acha();
+  if(!c&&(WA.agente||WA.contaSel)){WA.agente='';WA.contaSel=null;await waCarregar(false);c=acha();}
+  if(c){
+    if(!waFiltradas().some(function(x){return x.id===c.id;})){WA.status='todas';WA.busca='';}
+    await waAbrir(c.id);
+    return;
+  }
+  /* ainda não existe conversa com esse número: a primeira mensagem abre a conversa */
+  const lead=al.lead&&(DATA.leads||[]).find(function(x){return x.id===al.lead;});
+  const quem=lead?lead.nome:waFmtNum(al.numero);
+  uiModal('Nova conversa',quem+' · '+waFmtNum(al.numero),
+    '<div class="mut" style="margin-bottom:8px">Ainda não há conversa com este número no CRM. Escreva a primeira mensagem: ela sai pelo número da unidade e a conversa fica com você.</div>'
+    +'<textarea id="wanovotxt" class="nort" rows="4" style="width:100%"></textarea>',
+    '<button class="btn" id="wanovox">Cancelar</button><button class="btn primary" id="wanovook">Enviar</button>');
+  $('wanovox').onclick=uiModalClose;
+  $('wanovook').onclick=async function(){
+    const t=$('wanovotxt').value.trim();if(!t){toast('Escreva a mensagem.');return;}
+    const b=$('wanovook');b.disabled=true;b.textContent='Enviando...';
+    try{
+      const r=await waFn('wa-send',{numero:al.numero,texto:t});
+      uiModalClose();await waCarregar(false);
+      if(r&&r.conversa_id)await waAbrir(r.conversa_id);else renderConversas();
+    }catch(e){
+      toast(waErro(e,'Não foi possível enviar: '+(e.message||e)));b.disabled=false;b.textContent='Enviar';
+    }
+  };
+}
+/* corrigir o nome do lead pela conversa: vira nome manual (o automático não troca mais) */
+function waNomeModal(){
+  const c=WA.conversas.find(function(x){return x.id===WA.sel;});if(!c||!c.lead_id)return;
+  const atual=(c.lead&&c.lead.nome)||'';
+  uiModal('Nome do lead',waFmtNum(c.numero_e164||c.wa_id),
+    '<div class="f"><label>Nome</label><input id="wanomein" maxlength="120" value="'+esc(atual)+'"></div>'
+    +(c.nome_perfil&&c.nome_perfil!==atual?'<div class="mut" style="margin-top:6px">Nome no perfil do WhatsApp: '+esc(c.nome_perfil)+'</div>':''),
+    '<button class="btn" id="wanomex">Cancelar</button><button class="btn primary" id="wanomeok">Salvar</button>');
+  const inp=$('wanomein');inp.focus();inp.select();
+  $('wanomex').onclick=uiModalClose;
+  const salvar=async function(){
+    const v=inp.value.trim().replace(/\s+/g,' ');
+    if(v.length<2){toast('Digite o nome.');return;}
+    const b=$('wanomeok');b.disabled=true;b.textContent='Salvando...';
+    try{
+      await api('/crm_leads?id=eq.'+encodeURIComponent(c.lead_id),{method:'PATCH',body:JSON.stringify({nome:v})});
+      if(c.lead)c.lead.nome=v;
+      const dl=(DATA.leads||[]).find(function(x){return x.id===c.lead_id;});if(dl)dl.nome=v;
+      uiModalClose();toast('Nome atualizado.');renderConversas();
+    }catch(e){toast('Não foi possível salvar: '+(e.message||e));b.disabled=false;b.textContent='Salvar';}
+  };
+  $('wanomeok').onclick=salvar;
+  inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();salvar();}};
 }
 
 /* mantém o contador da aba vivo mesmo fora das Conversas */
