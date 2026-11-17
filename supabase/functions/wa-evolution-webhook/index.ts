@@ -1,4 +1,4 @@
-// wa-evolution-webhook v4 · recebe eventos da Evolution API (WhatsApp não oficial, fase 1).
+// wa-evolution-webhook v6 · recebe eventos da Evolution API (WhatsApp não oficial, fase 1).
 // Decisões: 2026-10-03-whatsapp-api-nao-oficial-fase-1 (Evolution escolhida em 05/10/2026).
 // Spec: 10-cna/sistemas/whatsapp-multinumero.md
 //
@@ -24,6 +24,9 @@
 //   até alguém editar: crm_wa_lead_nome_sync). Eventos contacts.upsert/contacts.update gravam o nome da
 //   agenda em crm_wa_conversas.nome_contato. A IA da sugestão também lê o nome que o cliente disser
 //   ("meu nome é...", assinatura) e grava em nome_ia. Número de sistema (ex.: 0@s.whatsapp.net) é ignorado.
+// v6 (17/11/2026, W7): etiquetas. labels.edit e labels.association (assinar LABELS_EDIT e
+//   LABELS_ASSOCIATION). A etiqueta de consultor decide o dono da conversa e o responsável do lead
+//   (crm_wa_etiqueta_aplicar, no banco). O CRM nunca escreve etiqueta no WhatsApp.
 // Regras: falha FECHADO (conta sem token configurado não recebe nada); lead procurado só na
 // unidade da conta; grupo, status e canal ignorados; reentrega deduplicada pelo id da mensagem;
 // o apikey que a Evolution manda no corpo nunca é gravado (o trigger do banco também remove).
@@ -333,6 +336,92 @@ async function atualizacao(data: J) {
   await db.from('crm_wa_mensagens').update({ status: novo }).eq('id', atual.id);
 }
 
+// ---- W7 (17/11/2026): etiquetas do WhatsApp Business decidem o dono --------------------------
+// O CRM só LÊ etiqueta; nunca cria, tira ou troca etiqueta no WhatsApp.
+// labels.edit -> crm_wa_etiquetas (nome/cor; o consultor dono da etiqueta é configurado no banco).
+// labels.association -> estado por LID em crm_wa_lid_etiquetas; o LID é ligado à conversa do CRM
+// (crm_wa_lids) e o banco aplica o dono (crm_wa_etiqueta_aplicar): uma etiqueta de consultor = dono.
+const EVO_URL = (Deno.env.get('EVO_URL') ?? 'https://evo.cnataquara.com.br').replace(/\/+$/, '');
+
+async function etiquetaEdit(conta: Conta, d: J) {
+  const id = String(d?.id ?? d?.labelId ?? '');
+  if (!id) return;
+  await db.from('crm_wa_etiquetas').upsert({
+    conta_id: conta.id, label_id: id, nome: d?.name ?? null, cor: Number.isFinite(Number(d?.color)) ? Number(d.color) : null,
+    apagada: !!d?.deleted, atualizado_em: new Date().toISOString(), unidade: conta.unidade,
+  }, { onConflict: 'conta_id,label_id', ignoreDuplicates: false });
+}
+
+async function lidParaConversa(conta: Conta, instancia: string, tk: string, jid: string): Promise<{ conversa: string | null; numero: string | null; origem: string }> {
+  // 1) jid já é número
+  if (jid.endsWith('@s.whatsapp.net')) {
+    const numero = jid.split('@')[0].replace(/\D/g, '');
+    const { data: c } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
+    return { conversa: c?.id ?? null, numero, origem: 'numero' };
+  }
+  const h = { apikey: tk, 'Content-Type': 'application/json' };
+  const inst = encodeURIComponent(instancia);
+  // 2) mensagens desse LID na Evolution: o id da mensagem é o mesmo que o CRM gravou
+  try {
+    const r = await fetch(`${EVO_URL}/chat/findMessages/${inst}`, { method: 'POST', headers: h,
+      body: JSON.stringify({ where: { key: { remoteJid: jid } }, page: 1, offset: 50 }) });
+    const resp = r.ok ? await r.json().catch(() => ({})) : {};
+    const regs: J[] = resp?.messages?.records ?? [];
+    for (const m of regs) {
+      const alt = String(m?.key?.remoteJidAlt ?? m?.key?.senderPn ?? '');
+      if (alt.endsWith('@s.whatsapp.net')) {
+        const numero = alt.split('@')[0].replace(/\D/g, '');
+        const { data: c } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
+        if (c) return { conversa: c.id, numero, origem: 'alt' };
+      }
+    }
+    const ids = regs.map((m) => m?.key?.id).filter(Boolean);
+    if (ids.length) {
+      const { data: ms } = await db.from('crm_wa_mensagens').select('conversa_id, crm_wa_conversas!inner(conta_id, wa_id)')
+        .in('wa_message_id', ids).eq('crm_wa_conversas.conta_id', conta.id).limit(1);
+      // deno-lint-ignore no-explicit-any
+      const m0: any = ms?.[0];
+      if (m0) return { conversa: m0.conversa_id, numero: m0.crm_wa_conversas?.wa_id ?? null, origem: 'mensagem' };
+    }
+    // 3) cadastro do chat na Evolution: a última mensagem às vezes traz o número (remoteJidAlt)
+    const rc = await fetch(`${EVO_URL}/chat/findChats/${inst}`, { method: 'POST', headers: h,
+      body: JSON.stringify({ where: { remoteJid: jid } }) });
+    const chats = rc.ok ? await rc.json().catch(() => []) : [];
+    for (const c of Array.isArray(chats) ? chats : []) {
+      if (c?.remoteJid !== jid) continue;
+      const alt = String(c?.lastMessage?.key?.remoteJidAlt ?? '');
+      if (alt.endsWith('@s.whatsapp.net')) {
+        const numero = alt.split('@')[0].replace(/\D/g, '');
+        const { data: cv } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
+        return { conversa: cv?.id ?? null, numero, origem: cv ? 'chat' : 'chat_sem_conversa' };
+      }
+    }
+  } catch (_) { /* sem resolução agora: fica pendente */ }
+  return { conversa: null, numero: null, origem: 'pendente' };
+}
+
+async function etiquetaAssociacao(conta: Conta, instancia: string, tk: string, d: J): Promise<string> {
+  const jid = String(d?.chatId ?? d?.jid ?? '');
+  const label = String(d?.labelId ?? d?.label_id ?? '');
+  if (!jid || !label || jid.endsWith('@g.us')) return 'ignorado:etiqueta';
+  const lid = jid.split('@')[0];
+  if (d?.type === 'remove') {
+    await db.from('crm_wa_lid_etiquetas').delete().eq('conta_id', conta.id).eq('lid', lid).eq('label_id', label);
+    return 'etiqueta_removida'; // tirar etiqueta não troca o dono
+  }
+  await db.from('crm_wa_lid_etiquetas').upsert({ conta_id: conta.id, lid, label_id: label, em: new Date().toISOString(), unidade: conta.unidade },
+    { onConflict: 'conta_id,lid,label_id', ignoreDuplicates: true });
+  const { data: ja } = await db.from('crm_wa_lids').select('conversa_id').eq('conta_id', conta.id).eq('lid', lid).maybeSingle();
+  if (!ja?.conversa_id) {
+    const r = await lidParaConversa(conta, instancia, tk, jid);
+    await db.from('crm_wa_lids').upsert({ conta_id: conta.id, lid, conversa_id: r.conversa, numero: r.numero, origem: r.origem,
+      atualizado_em: new Date().toISOString(), unidade: conta.unidade }, { onConflict: 'conta_id,lid' });
+    if (!r.conversa) return 'etiqueta_pendente';
+  }
+  const { data: res } = await db.rpc('crm_wa_etiqueta_aplicar', { p_conta: conta.id, p_lid: lid });
+  return 'etiqueta:' + String(res ?? '');
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
 
@@ -386,6 +475,14 @@ Deno.serve(async (req) => {
       }
     } else if (evento === 'contacts.upsert' || evento === 'contacts.update') {
       await contatos(conta, Array.isArray(body.data) ? body.data : [body.data]);
+    } else if (evento === 'labels.edit') {
+      const itens = Array.isArray(body.data) ? body.data : [body.data];
+      for (const d of itens) await etiquetaEdit(conta, d);
+    } else if (evento === 'labels.association') {
+      const itens = Array.isArray(body.data) ? body.data : [body.data];
+      const notas: string[] = [];
+      for (const d of itens) notas.push(await etiquetaAssociacao(conta, instancia, segredo, d));
+      nota = notas.join(',');
     } else if (evento === 'messages.update') {
       const itens = Array.isArray(body.data) ? body.data : [body.data];
       for (const d of itens) await atualizacao(d);
