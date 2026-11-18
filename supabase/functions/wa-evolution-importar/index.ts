@@ -1,4 +1,4 @@
-// wa-evolution-importar v4 · importa o histórico de uma instância da Evolution para o CRM (uso pontual).
+// wa-evolution-importar v6 · importa o histórico de uma instância da Evolution para o CRM (uso pontual).
 // 16/11/2026: Jardim América, últimos 30 dias (decisão do Pedro), sem grupos, status e canais.
 // Autenticação: token de sessão do CRM (no corpo) com visão da unidade inteira (crm_wa_ve_tudo) e
 // unidade da sessão igual à da conta. Falha fechado.
@@ -20,6 +20,12 @@
 //   e o banco atualiza o nome dos leads automáticos), assina CONTACTS_UPSERT/CONTACTS_UPDATE e liga
 //   syncFullHistory na instância (vale na próxima conexão por QR: é o que traz o histórico completo).
 //   Número de sistema (menos de 10 dígitos, ex.: 0@s.whatsapp.net) é ignorado.
+// v6 (18/11/2026, W7): WhatsApp entrega conversa antiga com código interno (@lid) no lugar do número.
+//   { acao: 'mapear' } varre as mensagens da Evolution e guarda LID -> número (remoteJidAlt/senderPn)
+//   em crm_wa_lids. A importação usa esse mapa; LID sem número é contado e pulado (entra quando a
+//   pessoa mandar mensagem nova). O dono vem da etiqueta do WhatsApp (crm_wa_etiqueta_aplicar, no
+//   banco); rodízio só para conversa sem etiqueta de consultor. 'etiquetas' agora reaplica pelo banco.
+//   O CRM nunca escreve etiqueta no WhatsApp.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -222,25 +228,75 @@ Deno.serve(async (req) => {
     return json(out);
   }
 
-  if (b.acao === 'etiquetas') {
-    let et;
-    try { et = await lerEtiquetas(conta, tk, agentes); } catch (e) { return json({ erro: String((e as Error).message) }, 502); }
-    let aplicadas = 0, ja_certas = 0, manuais = 0, fora_do_crm = 0;
-    for (const [numero, ag] of et.porNumero) {
-      const { data: c } = await db.from('crm_wa_conversas').select('id, atendente_id, atribuicao').eq('conta_id', conta.id).eq('wa_id', numero).maybeSingle();
-      if (!c) { fora_do_crm++; continue; }
-      if (c.atendente_id === ag.usuario_id) { ja_certas++; continue; }
-      if (c.atribuicao === 'manual') { manuais++; continue; }
-      if (!simular) await db.from('crm_wa_conversas').update({ atendente_id: ag.usuario_id, atribuicao: 'etiqueta', atribuida_em: new Date().toISOString() }).eq('id', c.id);
-      aplicadas++;
+  // liga LIDs com número às conversas já existentes (o trigger do banco aplica o dono da etiqueta)
+  async function ligarLids(): Promise<number> {
+    const { data: soltos } = await db.from('crm_wa_lids').select('lid, numero').eq('conta_id', conta.id).is('conversa_id', null).not('numero', 'is', null);
+    let n = 0;
+    for (const l of soltos ?? []) {
+      const { data: c } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', l.numero).maybeSingle();
+      if (!c) continue;
+      if (!simular) await db.from('crm_wa_lids').update({ conversa_id: c.id, atualizado_em: new Date().toISOString() }).eq('conta_id', conta.id).eq('lid', l.lid);
+      n++;
     }
-    return json({ ok: true, simular, acao: 'etiquetas', etiquetas: et.resumo, conversas_com_dono_pela_etiqueta: et.porNumero.size,
-      aplicadas, ja_certas, mantidas_por_transferencia_manual: manuais, ainda_nao_estao_no_crm: fora_do_crm,
-      ambiguas: et.ambiguas, sem_numero: et.semNumero, total_chats: et.total_chats });
+    return n;
   }
 
-  let mapaEtiqueta = new Map<string, Agente>();
-  try { mapaEtiqueta = (await lerEtiquetas(conta, tk, agentes)).porNumero; } catch (_) { /* sem etiquetas: segue pelo rodízio */ }
+  if (b.acao === 'etiquetas') {
+    const ligadas = await ligarLids();
+    const { data: lids } = await db.from('crm_wa_lids').select('lid').eq('conta_id', conta.id).not('conversa_id', 'is', null);
+    const res: J = {};
+    for (const l of lids ?? []) {
+      if (simular) { res.simulado = (res.simulado ?? 0) + 1; continue; }
+      const { data: r } = await db.rpc('crm_wa_etiqueta_aplicar', { p_conta: conta.id, p_lid: l.lid });
+      res[String(r)] = (res[String(r)] ?? 0) + 1;
+    }
+    return json({ ok: true, simular, acao: 'etiquetas', lids_ligados_agora: ligadas, resultado: res });
+  }
+
+  if (b.acao === 'mapear') {
+    // varre páginas da Evolution e guarda LID -> número
+    const novos = new Map<string, string>();
+    let paginas = 0, total = null as number | null, proxima: number | null = null;
+    for (let p = pagIni; p < pagIni + maxPag; p++) {
+      const r = await fetch(`${EVO_URL}/chat/findMessages/${encodeURIComponent(conta.evolution_instancia)}`, {
+        method: 'POST', headers: { apikey: tk, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ where: {}, page: p, offset: 500 }) });
+      const resp = await r.json().catch(() => ({}));
+      if (!r.ok) return json({ erro: `evolution_http_${r.status}` }, 502);
+      const regs: J[] = resp?.messages?.records ?? [];
+      total = resp?.messages?.total ?? total;
+      paginas++;
+      for (const m of regs) {
+        const jid = String(m?.key?.remoteJid ?? '');
+        const alt = String(m?.key?.remoteJidAlt ?? m?.key?.senderPn ?? '');
+        if (jid.endsWith('@lid') && alt.endsWith('@s.whatsapp.net')) {
+          const n = alt.split('@')[0].replace(/\D/g, '');
+          if (n.length >= 10) novos.set(jid.split('@')[0], n);
+        }
+      }
+      proxima = regs.length < 500 ? null : p + 1;
+      if (!regs.length || proxima === null) { proxima = null; break; }
+    }
+    let gravados = 0;
+    if (!simular && novos.size) {
+      const { data: ja } = await db.from('crm_wa_lids').select('lid, numero').eq('conta_id', conta.id).in('lid', [...novos.keys()]);
+      const tem = new Map((ja ?? []).map((x: J) => [x.lid, x.numero]));
+      const linhas = [...novos].filter(([l, n]) => tem.get(l) !== n).map(([l, n]) => ({
+        conta_id: conta.id, lid: l, numero: n, origem: 'alt', atualizado_em: new Date().toISOString(), unidade: conta.unidade }));
+      if (linhas.length) {
+        const { error } = await db.from('crm_wa_lids').upsert(linhas, { onConflict: 'conta_id,lid', ignoreDuplicates: false });
+        if (error) return json({ erro: error.message }, 500);
+        gravados = linhas.length;
+      }
+    }
+    const ligadas = await ligarLids();
+    return json({ ok: true, simular, acao: 'mapear', paginas, total_evolution: total, lids_com_numero_nesta_volta: novos.size, gravados, lids_ligados_agora: ligadas, proxima_pagina: proxima });
+  }
+
+  // mapa LID -> número já conhecido
+  const lidNum = new Map<string, string>();
+  { const { data: ls } = await db.from('crm_wa_lids').select('lid, numero').eq('conta_id', conta.id).not('numero', 'is', null);
+    for (const l of ls ?? []) lidNum.set(l.lid, l.numero); }
 
   const cont: J = { paginas: 0, total_evolution: null, lidas: 0, no_periodo: 0, fora_do_periodo: 0, ignoradas: {}, ja_existiam: 0, inseridas: 0, conversas_novas: 0, erros: [] as string[] };
   const convCache = new Map<string, string>();
@@ -275,7 +331,11 @@ Deno.serve(async (req) => {
       todasVelhas = false;
       cont.no_periodo++;
       const key = rg.key ?? {};
-      const { numero, ignorar } = numeroDoJid(key, rg);
+      let { numero, ignorar } = numeroDoJid(key, rg);
+      if (!numero && ignorar === 'sem_numero' && String(key.remoteJid ?? '').endsWith('@lid')) {
+        const n = lidNum.get(String(key.remoteJid).split('@')[0]);
+        if (n) { numero = n; ignorar = null; } else ignorar = 'lid_sem_numero';
+      }
       if (ignorar || !numero) { cont.ignoradas[ignorar ?? 'sem_numero'] = (cont.ignoradas[ignorar ?? 'sem_numero'] ?? 0) + 1; continue; }
       const info = extrair(rg.message);
       if (!info) { cont.ignoradas.sem_conteudo = (cont.ignoradas.sem_conteudo ?? 0) + 1; continue; }
@@ -297,7 +357,6 @@ Deno.serve(async (req) => {
             const { data: nova, error } = await db.from('crm_wa_conversas').insert({
               conta_id: conta.id, wa_id: numero, numero_e164: '+' + numero, wa_chave: k,
               nome_perfil: key.fromMe ? null : (rg.pushName ?? null), lead_id: leadId, lead_ambiguo: amb,
-              ...(mapaEtiqueta.has(numero) ? { atendente_id: mapaEtiqueta.get(numero)!.usuario_id, atribuicao: 'etiqueta', atribuida_em: new Date().toISOString() } : {}),
             }).select('id').single();
             if (error?.code === '23505') {
               const { data: o } = await db.from('crm_wa_conversas').select('id').eq('conta_id', conta.id).eq('wa_id', numero).single();
@@ -324,6 +383,9 @@ Deno.serve(async (req) => {
     if (todasVelhas) { parouPorIdade = true; proxima = null; break; }
     if (regs.length < 500) { proxima = null; break; }
   }
+
+  // conversa nova ganha o dono da etiqueta (trigger em crm_wa_lids)
+  cont.lids_ligados = await ligarLids();
 
   // histórico não vira "não lida"
   if (!simular && tocadas.size) {

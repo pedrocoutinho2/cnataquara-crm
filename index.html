@@ -5616,19 +5616,28 @@ async function waDistribuir(){
 async function waImportar(){
   const conta=WA.contas.find(function(c){return c.provider==='evolution'&&(!WA.contaSel||c.id===WA.contaSel);});
   if(!conta){toast('Nenhum número da Evolution nesta unidade.');return;}
-  const dias=Number(prompt('Importar mensagens de quantos dias para trás? (1 a 365)','90'));
+  const dias=Number(prompt('Importar mensagens de quantos dias para trás? (1 a 365)','365'));
   if(!dias||dias<1||dias>365)return;
   const b=$('waimport');
-  let pag=1,tot={inseridas:0,ja:0,conv:0},voltas=0;
+  let pag=1,tot={inseridas:0,ja:0,conv:0,lidSem:0},voltas=0;
   try{
+    /* 1) WhatsApp manda conversa antiga com código interno no lugar do número: mapeia antes */
+    let mp=1,mv=0;
+    while(mp&&mv<40){
+      if(b){b.disabled=true;b.textContent='Mapeando contatos... página '+mp;}
+      const m=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'mapear',simular:false,pagina_inicial:mp,max_paginas:10});
+      mp=m.proxima_pagina||0;mv++;
+    }
     while(pag&&voltas<200){
       if(b){b.disabled=true;b.textContent='Importando... página '+pag;}
       const r=await waFn('wa-evolution-importar',{conta_id:conta.id,dias:dias,simular:false,pagina_inicial:pag,max_paginas:3});
       tot.inseridas+=r.inseridas||0;tot.ja+=r.ja_existiam||0;tot.conv+=r.conversas_novas||0;
+      tot.lidSem+=(r.ignoradas&&r.ignoradas.lid_sem_numero)||0;
       if(r.erros&&r.erros.length)console.warn('importar',r.erros);
       pag=r.proxima_pagina||0;voltas++;
     }
     toast(tot.inseridas+' mensagens importadas em '+tot.conv+' conversas novas.');
+    if(tot.lidSem)console.info('importar: '+tot.lidSem+' mensagens de contatos sem número conhecido (entram quando a pessoa escrever de novo)');
     /* etiquetas do WhatsApp com o nome do consultor prevalecem sobre o rodízio */
     try{await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:false});}catch(_){}
     /* conversa sem lead vira lead; edição e exclusão do celular passam a chegar */
@@ -5649,34 +5658,14 @@ async function waImportar(){
 async function waEtiquetas(){
   const conta=WA.contas.find(function(c){return c.provider==='evolution'&&(!WA.contaSel||c.id===WA.contaSel);});
   if(!conta){toast('Nenhum número da Evolution nesta unidade.');return;}
-  const b=$('waetiq');if(b){b.disabled=true;b.textContent='Lendo etiquetas...';}
-  let r=null;
-  try{r=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:true});}
-  catch(e){toast(waErro(e,'Não foi possível ler as etiquetas: '+(e.message||e)));}
+  const b=$('waetiq');if(b){b.disabled=true;b.textContent='Aplicando etiquetas...';}
+  try{
+    const r=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:false});
+    const x=r.resultado||{};
+    toast((x.aplicada||0)+' conversas mudaram para o dono da etiqueta · '+(x.ja_certa||0)+' já certas'+(x.ambigua?' · '+x.ambigua+' com duas etiquetas de consultor (ficaram como estão)':''));
+    await waCarregar(true);
+  }catch(e){toast(waErro(e,'Não foi possível aplicar as etiquetas: '+(e.message||e)));}
   if(b){b.disabled=false;b.textContent='Dono pelas etiquetas do WhatsApp';}
-  if(!r)return;
-  const linhas=(r.etiquetas||[]).map(function(x){
-    return '<tr><td>'+esc(x.etiqueta)+'</td><td>'+(x.agente?'<b>'+esc(x.agente)+'</b>':'<span class="semd">não casa com ninguém</span>')+'</td><td style="text-align:right">'+Number(x.conversas||0)+'</td></tr>';
-  }).join('');
-  uiModal('Dono pelas etiquetas do WhatsApp','Etiquetas do WhatsApp Business deste número',
-    '<p style="margin:0 0 10px">Etiqueta com o nome do consultor passa a definir o dono da conversa. Conversa que você transferiu à mão não muda.</p>'
-    +'<table class="rtab" style="width:100%"><thead><tr><th>Etiqueta</th><th>Consultor</th><th style="text-align:right">Conversas</th></tr></thead><tbody>'
-    +(linhas||'<tr><td colspan="3">Nenhuma etiqueta encontrada no WhatsApp deste número.</td></tr>')+'</tbody></table>'
-    +'<p style="margin:12px 0 0">Vão mudar de dono agora: <b>'+Number(r.aplicadas||0)+'</b> · já certas: '+Number(r.ja_certas||0)
-    +' · mantidas por transferência manual: '+Number(r.mantidas_por_transferencia_manual||0)
-    +' · ainda não estão no CRM (entram na importação): '+Number(r.ainda_nao_estao_no_crm||0)
-    +(r.ambiguas?' · com etiqueta de mais de um consultor (ficam como estão): '+r.ambiguas:'')+'</p>',
-    Number(r.aplicadas)?'<button class="btn" id="waetiqx">Cancelar</button><button class="btn primary" id="waetiqok">Aplicar</button>':'<button class="btn" id="waetiqx">Fechar</button>');
-  $('waetiqx').onclick=uiModalClose;
-  const ok=$('waetiqok');
-  if(ok)ok.onclick=async function(){
-    ok.disabled=true;ok.textContent='Aplicando...';
-    try{
-      const f=await waFn('wa-evolution-importar',{conta_id:conta.id,acao:'etiquetas',simular:false});
-      uiModalClose();toast((f.aplicadas||0)+' conversas com o dono da etiqueta.');
-      await waCarregar(true);
-    }catch(e){toast(waErro(e,'Não foi possível aplicar.'));ok.disabled=false;ok.textContent='Aplicar';}
-  };
 }
 
 /* ---- etapa do lead direto da conversa ----
