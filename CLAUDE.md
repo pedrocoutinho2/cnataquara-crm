@@ -437,6 +437,16 @@ Business"). Sem nome bom, fica "WhatsApp (DDD) número". Qualquer edição de no
 `nome_auto` (trigger `a05_leads_nome_manual`, GUC `crm.nome_auto`): correção humana nunca é sobrescrita.
 Número com menos de 10 dígitos (ex.: `0@s.whatsapp.net`, conta oficial do WhatsApp) é ignorado.
 
+**W7 (17-18/11/2026, `20261117215641_wa_w7_*` e `20261117221117_wa_w7b_*`): etiqueta do WhatsApp decide o dono.**
+O CRM só LÊ etiqueta; nunca cria, tira ou troca etiqueta no WhatsApp. Eventos `labels.edit` e `labels.association`
+(assinar LABELS_EDIT e LABELS_ASSOCIATION no webhook ANTES da primeira leitura do QR, senão o estado inicial se perde).
+Os eventos vêm com o código interno do WhatsApp (`@lid`), não com o número: `crm_wa_lids` liga LID → conversa/número,
+`crm_wa_etiquetas` guarda as etiquetas da conta e qual consultor cada uma representa (`usuario_id`, configurado no banco),
+`crm_wa_lid_etiquetas` o estado atual. `crm_wa_etiqueta_aplicar` (trigger `z_wa_lids_aplicar`): exatamente uma etiqueta
+de consultor = dono da conversa e responsável do lead; nenhuma ou duas = não mexe; tirar etiqueta não troca o dono.
+Histórico: a Evolution 2.3.7 não guarda o mapa LID → telefone; só ~100 de ~440 conversas antigas de JA têm número
+recuperável (`wa-evolution-importar` v6, `acao:'mapear'`). As outras entram quando a pessoa escreve de novo.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
