@@ -447,6 +447,11 @@ de consultor = dono da conversa e responsável do lead; nenhuma ou duas = não m
 Histórico: a Evolution 2.3.7 não guarda o mapa LID → telefone; só ~100 de ~440 conversas antigas de JA têm número
 recuperável (`wa-evolution-importar` v6, `acao:'mapear'`). As outras entram quando a pessoa escreve de novo.
 
+**W8 (18/11/2026, `20261118234340_wa_w8_rodizio_por_horario`):** o rodízio só entrega conversa nova a quem está
+no horário agora (`crm_usuarios.hora_inicio/hora_fim`, hora de Brasília, `crm_wa_no_horario`); fora do expediente de
+todos, rodízio entre todos. Sem horário cadastrado = sempre disponível. Lead com responsável continua indo para o
+responsável, a qualquer hora. Quem não atende WhatsApp fica com `crm_usuario_unidades.wa_rodizio = false`.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
