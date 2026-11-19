@@ -647,6 +647,10 @@ table.tmap td.thr,table.tmap th.thr{width:112px;min-width:112px;max-width:112px;
 .tcell .ce .btn{padding:2px 7px;font-size:10px}
 .tcell.dim{opacity:.22}
 .tcell.empty{background:#FCFCFD}
+.tcell.tadd{cursor:pointer;align-items:center;justify-content:center;min-height:56px}
+.tcell.tadd span{font-size:11px;font-weight:600;color:#C4C4CC}
+.tcell.tadd:hover,.tcell.tadd:focus-visible{background:var(--pastelRed);outline:1px dashed var(--red);outline-offset:-4px}
+.tcell.tadd:hover span,.tcell.tadd:focus-visible span{color:var(--red)}
 .tviews{display:flex;gap:6px;margin-left:auto}
 .tviews .tchip{padding:5px 12px}
 .tsems{display:flex;gap:6px;flex-wrap:wrap}
@@ -11589,6 +11593,37 @@ var tView='grade';
    T_SALAS_OPC = o que o select de edicao oferece. */
 var T_SALAS=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','SALA 7','GARDEN','AUDITÓRIO'];
 var T_SALAS_OPC=['SALA 1','SALA 2','SALA 3','SALA 4','SALA 5','SALA 6','SALA 7','GARDEN'];
+/* Salas fixas por unidade: crm_configs.turmas_salas (JSON, ex.: ["GARDEN","SALA 2","SALA 3","SALA 4"]).
+   Com a config, a grade mostra essas salas nessa ordem mesmo sem turma (celula vazia cadastra
+   turma ali) e o select de sala oferece so elas. Sem a config, comportamento antigo: so as
+   salas com turma, na ordem de T_SALAS. Sala gravada fora da lista entra no fim, nunca some. */
+function tSalasUn(){
+  try{
+    var a=JSON.parse(UNCFG.turmas_salas||'null');
+    if(Array.isArray(a)){
+      a=a.map(function(x){return String(x||'').trim();}).filter(Boolean);
+      if(a.length)return a;
+    }
+  }catch(e){}
+  return null;
+}
+function tSalasDia(turmasDia){
+  var fix=tSalasUn();
+  var salas=fix?fix.slice():T_SALAS.filter(function(sl){return turmasDia.some(function(t){return t.sala===sl;});});
+  turmasDia.forEach(function(t){if(t.sala&&salas.indexOf(t.sala)<0)salas.push(t.sala);});
+  return salas;
+}
+function tFiltroAtivo(){return !!(tBusca.trim()||tFiltroProf||tSoVaga);}
+/* grade com salas fixas e sem filtro de busca/professor/vaga: mostra dia vazio para cadastrar */
+function tGradeCheia(){return tView==='grade'&&!!tSalasUn()&&!tFiltroAtivo();}
+/* nova turma, opcionalmente ja com sala/dias/horario (clique na celula vazia da grade) */
+function tNova(p){
+  p=p||{};
+  TURMAS=TURMAS.filter(function(t){return !t.__nova;});
+  TURMAS.unshift({id:'__nova__',semestre:tSemestre,dias:p.dias||tFiltroDia||'SEG/QUA',horario:p.horario||'',sala:p.sala||'',
+    curso:'',codigo:'',professor:'',alunos:0,capacidade:16,sem_vaga:false,obs:'',ativa:true,__nova:true});
+  tOpenEdit('__nova__');
+}
 /* Niveis na grafia do mapa (CNA Box). A ordem final sai de nivelOrd(). */
 var T_NIVEIS=['GARDEN 1','GARDEN 2','GARDEN 3','GARDEN 4',
   'YOUNG KIDS 1/FUN 1','YOUNG KIDS 2/FUN 2','YOUNG KIDS 3/FUN 3','YOUNG KIDS 4/FUN 4',
@@ -11706,7 +11741,7 @@ function renderTurmas(){
   }
   h+='<div class="tsum"><b>'+lista.length+'</b> turmas · <b>'+totAl+'</b> alunos · <b>'+comVaga+'</b> turmas com vaga (<b>'+vagasTot+'</b> vagas livres)</div>';
 
-  if(!lista.length){
+  if(!lista.length&&!tGradeCheia()){
     h+='<div class="empty">Nenhuma turma encontrada com esses filtros.</div>';
   }else if(tView==='grade'){
     h+=tGrade(lista,adm);
@@ -11724,17 +11759,15 @@ function tGrade(lista,adm){
   T_DIAS.forEach(function(d){
     /* usa TODAS as turmas do dia para montar a moldura, e marca as
        filtradas como atenuadas — assim a grade nao "pula" com filtro */
+    if(tFiltroDia&&d!==tFiltroDia)return;
     var todas=TURMAS.filter(function(t){return t.semestre===tSemestre&&t.dias===d&&!t.__nova;});
-    if(!todas.length)return;
     var ids={};lista.forEach(function(t){ids[t.id]=1;});
-    if(!todas.some(function(t){return ids[t.id];}))return;
+    if(!todas.some(function(t){return ids[t.id];})&&!tGradeCheia())return;
 
-    var salas=T_SALAS.filter(function(sl){
-      return todas.some(function(t){return t.sala===sl;});
-    });
-    todas.forEach(function(t){if(salas.indexOf(t.sala)<0)salas.push(t.sala);});
+    var salas=tSalasDia(todas);
 
     var faixas=tFaixas(todas);
+    if(!faixas.length)faixas=[{horarios:[]}];
     var nDia=todas.filter(function(t){return ids[t.id];}).length;
 
     h+='<div class="tcap">'+esc(d)+' <span>'+nDia+' turma'+(nDia>1?'s':'')+'</span></div>';
@@ -11743,12 +11776,16 @@ function tGrade(lista,adm){
     h+='</tr></thead><tbody>';
 
     faixas.forEach(function(f){
-      h+='<tr><td class="thr">'+f.horarios.map(esc).join('<br>')+'</td>';
+      h+='<tr><td class="thr">'+(f.horarios.length?f.horarios.map(esc).join('<br>'):'Sem turma')+'</td>';
       salas.forEach(function(sl){
         var nesta=todas.filter(function(t){
           return t.sala===sl && f.horarios.indexOf(t.horario)>-1;
         });
-        if(!nesta.length){h+='<td><div class="tcell empty"></div></td>';return;}
+        if(!nesta.length){
+          if(adm)h+='<td><div class="tcell empty tadd" role="button" tabindex="0" data-add-sala="'+esc(sl)+'" data-add-dias="'+esc(d)+'" data-add-hr="'+esc(f.horarios[0]||'')+'" title="Nova turma: '+esc(sl)+' · '+esc(d)+(f.horarios[0]?' · '+esc(f.horarios[0]):'')+'"><span>+ turma</span></div></td>';
+          else h+='<td><div class="tcell empty"></div></td>';
+          return;
+        }
         h+='<td>';
         nesta.forEach(function(t){h+=tCelula(t,adm,!ids[t.id]);});
         h+='</td>';
@@ -11842,7 +11879,7 @@ function tFormHTML(t){
   var h='';
   h+=tSel('curso','Nível',tNiveisOpc(),t.curso,'— selecione o nível —');
   h+=tInp(t,'codigo','Código');
-  h+=tSel('sala','Sala',T_SALAS_OPC,t.sala,'— selecione a sala —');
+  h+=tSel('sala','Sala',tSalasUn()||T_SALAS_OPC,t.sala,'— selecione a sala —');
   h+=tSel('professor','Professor',tProfsOpc(),t.professor,'— sem professor —');
   h+=tInp(t,'alunos','Qtd alunos','number');
   h+=tInp(t,'capacidade','Capacidade','number');
@@ -11896,8 +11933,7 @@ function tPrintTabela(lista){
   T_DIAS.forEach(function(d){
     var doDia=lista.filter(function(t){return t.dias===d&&!t.__nova;});
     if(!doDia.length)return;
-    var salas=T_SALAS.filter(function(sl){return doDia.some(function(t){return t.sala===sl;});});
-    doDia.forEach(function(t){if(salas.indexOf(t.sala)<0)salas.push(t.sala);});
+    var salas=tSalasDia(doDia);
     var faixas=tFaixas(doDia);
     var al=0,vgs=0;
     doDia.forEach(function(t){al+=(t.alunos||0);vgs+=tVagas(t);});
@@ -12006,11 +12042,12 @@ function tBind(){
     b.onclick=function(){tFiltroDia=b.dataset.dia;renderTurmas();};
   });
   var nv=$('tnova');
-  if(nv)nv.onclick=function(){
-    TURMAS=TURMAS.filter(function(t){return !t.__nova;});
-    TURMAS.unshift({id:'__nova__',semestre:tSemestre,dias:'SEG/QUA',horario:'',sala:'',curso:'',codigo:'',professor:'',alunos:0,capacidade:16,sem_vaga:false,obs:'',ativa:true,__nova:true});
-    tOpenEdit('__nova__');
-  };
+  if(nv)nv.onclick=function(){tNova();};
+  document.querySelectorAll('[data-add-sala]').forEach(function(c){
+    var go=function(){tNova({sala:c.dataset.addSala,dias:c.dataset.addDias,horario:c.dataset.addHr});};
+    c.onclick=go;
+    c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
+  });
   document.querySelectorAll('[data-ed]').forEach(function(b){
     b.onclick=function(){tOpenEdit(b.dataset.ed);};
   });
