@@ -9347,7 +9347,10 @@ async function uniRepLoad(){
 }
 function iniVista(){
   if(!veTodaEquipe())return 'meu';
-  return safeGet('crmIniVista')==='meu'?'meu':'unidade';
+  /* gestao abre sempre na unidade; "Meu dia" vale so ate fechar a aba (19/11/2026) */
+  safeDel('crmIniVista');
+  var v=null;try{v=sessionStorage.getItem('crmIniVista');}catch(e){}
+  return v==='meu'?'meu':'unidade';
 }
 async function openUnidade(silencioso){
   $('stats').innerHTML='';
@@ -9375,7 +9378,7 @@ function iniToggle(){
 function bindIniToggle(){
   document.querySelectorAll('#ivista button').forEach(function(b){
     b.onclick=function(){
-      try{localStorage.setItem('crmIniVista',b.dataset.iv);}catch(e){}
+      try{sessionStorage.setItem('crmIniVista',b.dataset.iv);}catch(e){}
       openInicio();
     };
   });
