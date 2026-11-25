@@ -1,7 +1,7 @@
-// wa-send v4 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
+// wa-send v5 · envia mensagem de WhatsApp pela conta da unidade da sessão do CRM.
 // Spec: 10-cna/sistemas/whatsapp-multinumero.md (W2). Dívida nº 3 fechada aqui:
 //   - exige o token de sessão do CRM (crm_wa_sessao, nível 2 em 'conversas'); a chave anon sozinha não envia
-//   - conversa e conta sempre da unidade da sessão; número avulso usa conta_id da unidade (ou a única ativa)
+//   - conversa e conta sempre da unidade da sessão; número avulso usa o número principal da unidade (v5)
 //   - autor_id vem da sessão, nunca do cliente
 //   - token do provedor lido do secret apontado por crm_wa_contas.token_ref (WA_TOKEN_* ou EVO_TOKEN_*)
 //   - opt-out respeitado no ato (crm_wa_optout por unidade + wa_chave)
@@ -12,6 +12,8 @@
 //   · { acao: 'apagar', mensagem_id } (apaga para todos; no CRM a mensagem fica marcada, o texto não some)
 //   · { acao: 'midia', conversa_id, base64, mime, nome?, legenda? } (imagem, vídeo, documento; áudio vai como nota de voz).
 //   Editar e apagar só em mensagem enviada pela escola.
+// v5 (25/11/2026): conversa NOVA (por número) sai sempre pelo número principal da unidade
+//   (crm_wa_contas.principal); conta_id do cliente é ignorado. Os outros números só continuam conversas existentes.
 // Transporte por conta: 'cloud' (Meta Cloud API, janela de 24h e template) ou 'evolution' (sessão por QR).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -246,12 +248,11 @@ Deno.serve(async (req) => {
       const { data: c } = await db.from('crm_wa_contas').select('*').eq('id', data.conta_id).eq('unidade', unidade).maybeSingle();
       conta = c;
     } else if (b.wa_id || b.numero) {
-      let q = db.from('crm_wa_contas').select('*').eq('unidade', unidade).eq('ativa', true);
-      if (b.conta_id) q = q.eq('id', b.conta_id);
-      const { data: contas } = await q;
+      const { data: contas } = await db.from('crm_wa_contas').select('*').eq('unidade', unidade).eq('ativa', true);
       if (!contas?.length) return json({ erro: 'sem_conta', detalhe: 'Nenhum número de WhatsApp ativo nesta unidade.' }, 400);
-      if (contas.length > 1) return json({ erro: 'escolha_conta', detalhe: 'Esta unidade tem mais de um número. Escolha por qual enviar.' }, 400);
-      conta = contas[0];
+      const principal = contas.find((c: J) => c.principal) ?? (contas.length === 1 ? contas[0] : null);
+      if (!principal) return json({ erro: 'sem_principal', detalhe: 'Esta unidade não tem número principal ativo para começar conversa.' }, 409);
+      conta = principal;
       let waId = String(b.wa_id ?? b.numero).replace(/\D/g, '');
       if (!waId.startsWith('55')) waId = '55' + waId;
       if (waId.length < 12) return json({ erro: 'numero_invalido', detalhe: 'Número de WhatsApp inválido.' }, 400);

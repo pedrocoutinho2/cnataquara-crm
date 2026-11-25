@@ -460,8 +460,11 @@ Mencionado sem acesso vira seguidor da conversa. As menções saem do texto (`wa
 menções pendentes (`crm_wa_mencoes_pendentes`); abrir a conversa marca como lidas. No compositor, aba
 "Nota interna" ou `/nota` no início da mensagem. Teste: `qa/notas-internas.test.mjs`.
 
-**Nova conversa (25/11/2026, só front):** botão "+ Nova conversa" no topo da lista (`waNovaConversa`, quem tem
-nível ≥ editar em Conversas). Número + mensagem (+ nome opcional); unidade com 2+ números exige escolher a conta.
+**Nova conversa (25/11/2026):** botão "+ Nova conversa" no topo da lista (`waNovaConversa`, quem tem
+nível ≥ editar em Conversas). Número + mensagem (+ nome opcional). Conversa nova sai **sempre pelo número principal** da unidade
+(`crm_wa_contas.principal`, uma por unidade, `20261125185257_wa_conta_principal` + `20261125185300_wa_painel_principal`; `wa-send` v5 ignora `conta_id`); os
+outros números só continuam conversas já existentes. Marcados em 25/11: JA (único), Taquara escola (Roberta),
+Queimados (único cadastrado, inativo).
 Número que já tem conversa visível oferece abrir em vez de enviar. Envia pelo `wa-send` (conversa fica com quem
 envia) e depois `waLeadDaConversa`: liga ao lead do mesmo `wa_chave` na unidade ou cria a ficha (etapa
 `contato_feito`, origem WhatsApp, responsável = quem enviou, próximo atendimento no dia útil seguinte 10h,

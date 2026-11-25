@@ -6034,7 +6034,7 @@ async function waAlvoAplicar(){
 }
 
 /* ---- nova conversa pela tela de Conversas (25/11/2026) ----
-   Número + primeira mensagem (+ nome opcional). A conversa fica com quem envia (wa-send).
+   Número + primeira mensagem (+ nome opcional). Sai pelo número principal; a conversa fica com quem envia (wa-send v5).
    Depois do envio: se a conversa não tem lead, liga ao lead do mesmo wa_chave na unidade
    ou cria a ficha no funil (contatado, próximo atendimento no dia útil seguinte às 10h).
    Sem nome digitado, o lead nasce com nome automático e a automação do W6 troca por um melhor. */
@@ -6098,11 +6098,11 @@ function waNovaConversa(o){
       +'<div class="f"><label>Nome</label><input id="wanovonome" maxlength="120" placeholder="Opcional"></div>'
       +'<div class="mut" id="wanovoaviso" style="margin:-2px 0 8px;min-height:16px">Sem ficha no funil, o lead é criado no envio.</div>';
   }
-  if(contas.length>1){
-    body+='<div class="f"><label>Enviar pelo número *</label><select id="wanovoconta"><option value="">Escolha</option>'
-      +contas.map(function(c){return '<option value="'+esc(c.id)+'"'+(WA.contaSel===c.id?' selected':'')+'>'+esc(c.rotulo||waFmtNum(c.numero_e164))+'</option>';}).join('')
-      +'</select></div>';
-  }
+  /* conversa nova sai sempre pelo número principal (crm_wa_contas.principal, decisão de 25/11/2026);
+     os outros números só continuam conversas já existentes. Quem escolhe é o wa-send v5. */
+  const princ=contas.find(function(c){return c.principal;})||(contas.length===1?contas[0]:null);
+  if(!princ){toast('Esta unidade não tem número principal para começar conversa.');return;}
+  if(contas.length>1)body+='<div class="mut" style="margin:0 0 8px">Sai pelo número principal: <b>'+esc(princ.rotulo||waFmtNum(princ.numero_e164))+'</b></div>';
   body+='<div class="f"><label>Mensagem *</label><textarea id="wanovotxt" class="nort" rows="4" style="width:100%"></textarea></div>';
   uiModal('Nova conversa',sub,body,
     '<button class="btn" id="wanovox">Cancelar</button><button class="btn primary" id="wanovook">Enviar</button>');
@@ -6132,16 +6132,12 @@ function waNovaConversa(o){
   $('wanovook').onclick=async function(){
     const num=fixo?waDigitosEnvio(o.numero):waDigitosEnvio(numIn.value);
     if(!num){toast('Número de WhatsApp inválido. Use DDD + número.');return;}
-    const cs=$('wanovoconta');
-    if(cs&&!cs.value){toast('Escolha por qual número enviar.');return;}
     const t=$('wanovotxt').value.trim();if(!t){toast('Escreva a mensagem.');return;}
     const nome=(!fixo&&$('wanovonome').value.trim().replace(/\s+/g,' '))||'';
     const b=$('wanovook');b.disabled=true;b.textContent='Enviando...';
     let r;
     try{
-      const corpo={numero:num,texto:t};
-      if(cs)corpo.conta_id=cs.value;else if(contas.length===1)corpo.conta_id=contas[0].id;
-      r=await waFn('wa-send',corpo);
+      r=await waFn('wa-send',{numero:num,texto:t});
     }catch(e){
       const m=e&&e.codigo==='conversa_de_outro_agente'?'Este número já tem conversa com outro consultor. Peça a transferência à gestão.':waErro(e,'Não foi possível enviar: '+(e.message||e));
       toast(m);b.disabled=false;b.textContent='Enviar';return;

@@ -23,7 +23,7 @@ async function abrir(cfg = {}) {
     window.QA = { rpc: [], send: [], api: [], conv: [{ id: 'c1', conta_id: 'k1', conta_provider: 'evolution', numero_e164: '+5521999990000',
       wa_id: '5521999990000', wa_chave: '2199990000', nome_perfil: 'Maria', atendente_id: 'u1', atendente_nome: 'Pedro', status: 'aberta',
       nao_lidas: 0, ultima_mensagem_em: agora, ultima_previa: 'oi', lead: null, lead_id: null, seguidores: [] }] };
-    const contas = [{ id: 'k1', provider: 'evolution', rotulo: 'Principal', numero_e164: '5521900000000' }];
+    const contas = [{ id: 'k1', provider: 'evolution', rotulo: 'Principal', numero_e164: '5521900000000', principal: true }];
     if (cfg.duasContas) contas.push({ id: 'k2', provider: 'evolution', rotulo: 'Patrick', numero_e164: '5521900000001' });
     window.waRpc = async function (nome, args) {
       QA.rpc.push([nome, args]);
@@ -37,7 +37,7 @@ async function abrir(cfg = {}) {
     window.waFn = async function (nome, body) {
       QA.send.push(body);
       const id = 'c' + (QA.conv.length + 1);
-      QA.conv.push({ id, conta_id: body.conta_id, conta_provider: 'evolution', numero_e164: '+' + body.numero, wa_id: body.numero,
+      QA.conv.push({ id, conta_id: 'k1', conta_provider: 'evolution', numero_e164: '+' + body.numero, wa_id: body.numero,
         wa_chave: body.numero.slice(2, 4) + body.numero.slice(-8), atendente_id: 'u1', atendente_nome: 'Pedro', status: 'aberta',
         nao_lidas: 0, ultima_mensagem_em: new Date().toISOString(), ultima_previa: body.texto,
         lead: null, lead_id: cfg.leadExistente ? null : null, seguidores: [] });
@@ -79,7 +79,7 @@ test('número novo: envia e cria a ficha no funil com o nome digitado', async ()
     await page.click('#wanovook');
     await page.waitForFunction(() => QA.rpc.some(r => r[0] === 'crm_wa_conversa_vincular_lead'));
     const q = await page.evaluate(() => QA);
-    assert.deepEqual(q.send[0], { numero: '5521988887777', texto: 'Olá Ana!', conta_id: 'k1' });
+    assert.deepEqual(q.send[0], { numero: '5521988887777', texto: 'Olá Ana!' });
     const post = q.api.find(a => a[0] === '/crm_leads' && a[1] === 'POST');
     assert.ok(post, 'POST do lead');
     assert.equal(post[2].nome, 'Ana Souza');
@@ -130,17 +130,15 @@ test('número que já tem conversa: oferece abrir, sem enviar', async () => {
   } finally { await browser.close(); }
 });
 
-test('unidade com dois números: exige escolher por qual enviar', async () => {
+test('unidade com dois números: sai sempre pelo principal, sem escolha', async () => {
   const { browser, page } = await abrir({ duasContas: true });
   try {
     await preencher(page, '21966665555', '', 'Oi');
-    await page.click('#wanovook');
-    await page.waitForTimeout(150);
-    assert.equal(await page.evaluate(() => QA.send.length), 0);
-    await page.selectOption('#wanovoconta', 'k2');
+    assert.equal(await page.locator('#wanovoconta').count(), 0, 'sem seletor de número');
+    assert.match(await page.locator('#wanovotxt').locator('xpath=ancestor::*[contains(@class,"mbody")][1]').textContent(), /Sai pelo número principal: Principal/);
     await page.click('#wanovook');
     await page.waitForFunction(() => QA.send.length === 1);
-    assert.equal(await page.evaluate(() => QA.send[0].conta_id), 'k2');
+    assert.equal(await page.evaluate(() => QA.send[0].conta_id), undefined);
   } finally { await browser.close(); }
 });
 
