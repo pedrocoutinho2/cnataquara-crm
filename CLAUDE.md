@@ -460,6 +460,14 @@ Mencionado sem acesso vira seguidor da conversa. As menções saem do texto (`wa
 menções pendentes (`crm_wa_mencoes_pendentes`); abrir a conversa marca como lidas. No compositor, aba
 "Nota interna" ou `/nota` no início da mensagem. Teste: `qa/notas-internas.test.mjs`.
 
+**Nova conversa (25/11/2026, só front):** botão "+ Nova conversa" no topo da lista (`waNovaConversa`, quem tem
+nível ≥ editar em Conversas). Número + mensagem (+ nome opcional); unidade com 2+ números exige escolher a conta.
+Número que já tem conversa visível oferece abrir em vez de enviar. Envia pelo `wa-send` (conversa fica com quem
+envia) e depois `waLeadDaConversa`: liga ao lead do mesmo `wa_chave` na unidade ou cria a ficha (etapa
+`contato_feito`, origem WhatsApp, responsável = quem enviou, próximo atendimento no dia útil seguinte 10h,
+`nome_auto` quando não digitaram nome). O atalho do botão WhatsApp do lead usa o mesmo modal. Não registra
+interação no funil (não enfileira no CNA Box). Teste: `qa/nova-conversa.test.mjs`.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud

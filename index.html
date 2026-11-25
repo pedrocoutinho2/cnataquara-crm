@@ -994,6 +994,8 @@ body.waFull .stats{display:none}
 .wanota{font-size:11.5px;color:var(--gray);line-height:1.4}
 .walhead{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;flex:none}
 .walhead .wat{font-family:var(--display);font-weight:700;font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.walhead .wanova{flex:none;border:0;background:var(--red);color:var(--white);font:600 12px var(--body,inherit);border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.walhead .wanova:hover{background:var(--redDark,#A30E2A)}
 .waagsel{display:none;border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 8px;font:inherit;font-size:12px;max-width:50%}
 .wabusca{padding:4px 12px 8px;flex:none}
 .wabusca input{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:8px 11px;font:inherit;font-size:13px;background:var(--surface)}
@@ -5150,6 +5152,7 @@ function renderLista(lista){
   let titulo=vt?(WA.agente==='__sem__'?'Sem dono':(WA.agente?waAgNome(WA.agente):'Todas da unidade')):'Minhas conversas';
   let h='<div class="wacol lista">';
   h+='<div class="walhead"><div class="wat">'+esc(titulo)+'</div>'
+    +(podeEditar('conversas')&&WA.contas.length?'<button class="wanova" id="wanova" title="Começar conversa com um número">+ Nova conversa</button>':'')
     +(vt?'<select class="waagsel" id="waagsel" aria-label="Agente"><option value="">Todas</option><option value="__sem__"'+(WA.agente==='__sem__'?' selected':'')+'>Sem dono</option>'
       +WA.agentes.map(function(a){return '<option value="'+esc(a.usuario_id)+'"'+(WA.agente===a.usuario_id?' selected':'')+'>'+esc(a.nome)+'</option>';}).join('')+'</select>':'')
     +'</div>';
@@ -5426,6 +5429,7 @@ function waLigar(){
   const rs=$('waresolver');if(rs)rs.onclick=function(){waStatus(WA.sel,'resolvida');};
   const ra=$('wareabrir');if(ra)ra.onclick=function(){waStatus(WA.sel,'aberta');};
   const pt=$('wapaineltg');if(pt)pt.onclick=function(){WA.painel=!WA.painel;renderConversas();};
+  const nv=$('wanova');if(nv)nv.onclick=function(){waNovaConversa({});};
   const ds=$('wadistr');if(ds)ds.onclick=waDistribuir;
   const im=$('waimport');if(im)im.onclick=waImportar;
   const et=$('waetiq');if(et)et.onclick=function(){waEtiquetas();};
@@ -6026,25 +6030,134 @@ async function waAlvoAplicar(){
     return;
   }
   /* ainda não existe conversa com esse número: a primeira mensagem abre a conversa */
-  const lead=al.lead&&(DATA.leads||[]).find(function(x){return x.id===al.lead;});
-  const quem=lead?lead.nome:waFmtNum(al.numero);
-  uiModal('Nova conversa',quem+' · '+waFmtNum(al.numero),
-    '<div class="mut" style="margin-bottom:8px">Ainda não há conversa com este número no CRM. Escreva a primeira mensagem: ela sai pelo número da unidade e a conversa fica com você.</div>'
-    +'<textarea id="wanovotxt" class="nort" rows="4" style="width:100%"></textarea>',
+  waNovaConversa({numero:al.numero,lead:al.lead||null});
+}
+
+/* ---- nova conversa pela tela de Conversas (25/11/2026) ----
+   Número + primeira mensagem (+ nome opcional). A conversa fica com quem envia (wa-send).
+   Depois do envio: se a conversa não tem lead, liga ao lead do mesmo wa_chave na unidade
+   ou cria a ficha no funil (contatado, próximo atendimento no dia útil seguinte às 10h).
+   Sem nome digitado, o lead nasce com nome automático e a automação do W6 troca por um melhor. */
+function waDigitosEnvio(v){
+  let d=String(v||'').replace(/\D/g,'');
+  if(d.length===12||d.length===13){if(d.slice(0,2)!=='55')return null;}
+  else if(d.length===10||d.length===11)d='55'+d;
+  else return null;
+  return d;
+}
+function waProxDiaUtil(){
+  const d=new Date();d.setDate(d.getDate()+1);
+  if(d.getDay()===0)d.setDate(d.getDate()+1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+async function waLeadDaConversa(conversaId,num,nome){
+  /* garante a ficha no funil. Devolve {lead_id, criado} ou null se não deu */
+  await waCarregar(false);
+  const c=WA.conversas.find(function(x){return x.id===conversaId;});
+  if(c&&c.lead_id)return {lead_id:c.lead_id,criado:false};
+  let leadId=null,criado=false;
+  const ch=await api('/rpc/crm_wa_chave',{method:'POST',body:JSON.stringify({p_num:num})});
+  if(ch){
+    const ex=await api('/crm_leads?wa_chave=eq.'+encodeURIComponent(ch)+'&select=id&order=created_at.desc&limit=1');
+    if(ex&&ex[0])leadId=ex[0].id;
+  }
+  if(!leadId){
+    const stg=CFG.leads.stages;
+    const et=(stg.find(function(x){return x.id==='contato_feito';})||stg[0]).id;
+    const fmt=waFmtNum(num);
+    const r=await api('/crm_leads',{method:'POST',body:JSON.stringify({
+      nome:nome||('WhatsApp '+fmt),
+      nome_auto:!nome,
+      whatsapp:fmt,
+      etapa:et,
+      origem:'WhatsApp',
+      responsavel:currentUser,
+      proximo_atendimento:waProxDiaUtil(),
+      proximo_atendimento_hora:'10:00',
+      proximo_canal:'whatsapp'
+    })});
+    leadId=r&&r[0]&&r[0].id;criado=!!leadId;
+  }
+  if(!leadId)return null;
+  await waRpc('crm_wa_conversa_vincular_lead',{p_conversa_id:conversaId,p_lead_id:leadId});
+  DATA.leads=null;
+  return {lead_id:leadId,criado:criado};
+}
+function waNovaConversa(o){
+  o=o||{};
+  const contas=WA.contas.filter(function(c){return c.ativa!==false;});
+  if(!contas.length){toast('Nenhum número de WhatsApp ativo nesta unidade.');return;}
+  const lead=o.lead&&(DATA.leads||[]).find(function(x){return x.id===o.lead;});
+  const fixo=!!o.numero;
+  const sub=fixo?((lead?lead.nome+' · ':'')+waFmtNum(o.numero)):'A conversa fica com você';
+  let body='';
+  if(fixo){
+    body+='<div class="mut" style="margin-bottom:8px">Ainda não há conversa com este número no CRM. Escreva a primeira mensagem: ela sai pelo número da unidade e a conversa fica com você.</div>';
+  }else{
+    body+='<div class="f"><label>WhatsApp *</label><input id="wanovonum" inputmode="tel" placeholder="(21) 99999-9999" maxlength="20"></div>'
+      +'<div class="f"><label>Nome</label><input id="wanovonome" maxlength="120" placeholder="Opcional"></div>'
+      +'<div class="mut" id="wanovoaviso" style="margin:-2px 0 8px;min-height:16px">Sem ficha no funil, o lead é criado no envio.</div>';
+  }
+  if(contas.length>1){
+    body+='<div class="f"><label>Enviar pelo número *</label><select id="wanovoconta"><option value="">Escolha</option>'
+      +contas.map(function(c){return '<option value="'+esc(c.id)+'"'+(WA.contaSel===c.id?' selected':'')+'>'+esc(c.rotulo||waFmtNum(c.numero_e164))+'</option>';}).join('')
+      +'</select></div>';
+  }
+  body+='<div class="f"><label>Mensagem *</label><textarea id="wanovotxt" class="nort" rows="4" style="width:100%"></textarea></div>';
+  uiModal('Nova conversa',sub,body,
     '<button class="btn" id="wanovox">Cancelar</button><button class="btn primary" id="wanovook">Enviar</button>');
   $('wanovox').onclick=uiModalClose;
+  const numIn=$('wanovonum');
+  if(numIn){
+    numIn.focus();
+    numIn.onblur=async function(){
+      const av=$('wanovoaviso');if(!av)return;
+      const d=waDigitosEnvio(numIn.value);
+      if(!d){av.textContent=numIn.value.trim()?'Número inválido. Use DDD + número.':'Sem ficha no funil, o lead é criado no envio.';return;}
+      numIn.value=waFmtNum(d);
+      const k=waChaveJs(d);
+      const conv=WA.conversas.find(function(c){return c.wa_chave===k;});
+      if(conv){av.innerHTML='Já existe conversa com este número. <a href="#" id="wanovoabre">Abrir conversa</a>';
+        $('wanovoabre').onclick=function(e){e.preventDefault();uiModalClose();if(!waFiltradas().some(function(x){return x.id===conv.id;})){WA.status='todas';WA.busca='';}waAbrir(conv.id);};
+        return;}
+      try{
+        const ch=await api('/rpc/crm_wa_chave',{method:'POST',body:JSON.stringify({p_num:d})});
+        const ex=ch?await api('/crm_leads?wa_chave=eq.'+encodeURIComponent(ch)+'&select=id,nome,responsavel&order=created_at.desc&limit=1'):null;
+        if(!$('wanovoaviso'))return;
+        if(ex&&ex[0])av.textContent='Já é lead: '+ex[0].nome+(ex[0].responsavel?' (responsável: '+ex[0].responsavel+')':'')+'. A conversa será ligada a essa ficha.';
+        else av.textContent='Número sem ficha no funil: o lead é criado no envio.';
+      }catch(_){}
+    };
+  }else $('wanovotxt').focus();
   $('wanovook').onclick=async function(){
+    const num=fixo?waDigitosEnvio(o.numero):waDigitosEnvio(numIn.value);
+    if(!num){toast('Número de WhatsApp inválido. Use DDD + número.');return;}
+    const cs=$('wanovoconta');
+    if(cs&&!cs.value){toast('Escolha por qual número enviar.');return;}
     const t=$('wanovotxt').value.trim();if(!t){toast('Escreva a mensagem.');return;}
+    const nome=(!fixo&&$('wanovonome').value.trim().replace(/\s+/g,' '))||'';
     const b=$('wanovook');b.disabled=true;b.textContent='Enviando...';
+    let r;
     try{
-      const r=await waFn('wa-send',{numero:al.numero,texto:t});
-      uiModalClose();await waCarregar(false);
-      if(r&&r.conversa_id)await waAbrir(r.conversa_id);else renderConversas();
+      const corpo={numero:num,texto:t};
+      if(cs)corpo.conta_id=cs.value;else if(contas.length===1)corpo.conta_id=contas[0].id;
+      r=await waFn('wa-send',corpo);
     }catch(e){
-      toast(waErro(e,'Não foi possível enviar: '+(e.message||e)));b.disabled=false;b.textContent='Enviar';
+      const m=e&&e.codigo==='conversa_de_outro_agente'?'Este número já tem conversa com outro consultor. Peça a transferência à gestão.':waErro(e,'Não foi possível enviar: '+(e.message||e));
+      toast(m);b.disabled=false;b.textContent='Enviar';return;
     }
+    uiModalClose();
+    let ld=null;
+    if(r&&r.conversa_id){
+      try{ld=await waLeadDaConversa(r.conversa_id,num,nome);}
+      catch(e){toast('Mensagem enviada, mas não foi possível criar a ficha: '+(e.message||e)+'. Use "Criar lead" na conversa.');}
+      await waCarregar(false);
+      await waAbrir(r.conversa_id);
+      if(ld)toast(ld.criado?'Mensagem enviada. Lead criado no funil.':'Mensagem enviada.');
+    }else{await waCarregar(false);renderConversas();toast('Mensagem enviada.');}
   };
 }
+
 /* corrigir o nome do lead pela conversa: vira nome manual (o automático não troca mais) */
 function waNomeModal(){
   const c=WA.conversas.find(function(x){return x.id===WA.sel;});if(!c||!c.lead_id)return;
