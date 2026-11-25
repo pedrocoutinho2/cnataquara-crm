@@ -1064,6 +1064,35 @@ body.waFull .stats{display:none}
 .wacomp textarea{flex:1;min-width:120px;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:13.5px;resize:none;max-height:160px;min-height:42px;background:var(--surface)}
 .wacomp textarea:focus{background:var(--white);outline:none;border-color:var(--blue)}
 .wacomp .btn{border-radius:20px;height:42px}
+/* notas internas (25/11/2026): só a equipe vê, nunca vai para o contato */
+.wani{align-self:center;width:min(78%,560px);background:var(--warnBg);border:1px dashed var(--warn);border-radius:var(--r-md);padding:7px 11px 5px;font-size:13px;line-height:1.45;color:var(--ink);white-space:pre-wrap;word-wrap:break-word}
+.wani .nh{font-size:11px;font-weight:700;color:var(--warn);display:flex;gap:6px;align-items:center;white-space:normal}
+.wani .nh b{color:var(--ink)}
+.wani .ment{color:var(--blue);font-weight:700}
+.wani .meta{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:8px;justify-content:flex-end;align-items:center;white-space:normal}
+.wani .meta button{border:none;background:none;color:var(--warn);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.wani .meta button:hover{text-decoration:underline}
+.wani.apag{opacity:.7}
+.wani.apag .tx{color:var(--muted);font-style:italic}
+.wani.paramim{border-style:solid;box-shadow:0 0 0 2px var(--warnBg)}
+.wamodo{display:flex;gap:4px;padding:8px 14px 0;background:var(--white);border-top:1px solid var(--line);flex:none}
+.wamodo button{border:1px solid var(--line);background:var(--white);border-radius:var(--r-pill);padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray)}
+.wamodo button.on{background:var(--pastelBlue);border-color:var(--blue);color:var(--blue)}
+.wamodo button.nt.on{background:var(--warnBg);border-color:var(--warn);color:var(--warn)}
+.wamodo+.wacomp,.wamodo+.wafechada{border-top:none}
+.wacomp.nota{background:var(--warnBg)}
+.wacomp.nota textarea{background:var(--white);border-color:var(--warn)}
+.wacomp.nota .wasendb{background:var(--warn);border-color:var(--warn)}
+.wamentwrap{position:relative;flex:1;min-width:120px;display:flex}
+.wamentwrap textarea{flex:1}
+.wamentpop{display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:min(300px,80vw);max-height:240px;overflow-y:auto;background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-2);z-index:30}
+.wamentpop.open{display:block}
+.wamentpop div{padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line)}
+.wamentpop div.on,.wamentpop div:hover{background:var(--pastelBlue)}
+.wamented{width:100%;min-height:110px;border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;font:inherit;font-size:13.5px;resize:vertical}
+.wamenttop .wamentpop{bottom:auto;top:calc(100% + 4px)}
+.watag.ment{background:var(--warnBg);color:var(--warn);border-color:transparent;font-weight:700}
+.wasug.wament{background:var(--warnBg);color:var(--warn);border-color:var(--warn)}
 .warespwrap{position:relative;flex:none}
 .warespbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--white);font-size:17px;cursor:pointer;color:var(--warn)}
 .warespbtn:hover{background:var(--warnBg)}
@@ -4917,6 +4946,8 @@ function waErro(e,padrao){
   if(t.indexOf('sessao_invalida')>-1)return 'Sua sessão expirou. Saia e entre de novo.';
   if(t.indexOf('sem_permissao')>-1)return 'Seu acesso a Conversas não permite esta ação.';
   if(t.indexOf('optout')>-1)return 'Este contato pediu para não receber mensagens.';
+  if(t.indexOf('mencao_invalida')>-1)return 'Essa pessoa não tem acesso às conversas desta unidade.';
+  if(t.indexOf('texto_vazio')>-1)return 'Escreva a nota antes de salvar.';
   return padrao;
 }
 function waEvo(c){return !!c&&c.conta_provider==='evolution';}
@@ -4969,6 +5000,7 @@ const WASTATUS={pendente:'enviando...',enviado:'enviado',entregue:'entregue',lid
    Consultor vê só as conversas dele. Gestão (eu.ve_tudo) vê a unidade inteira, filtra por agente,
    transfere, distribui as sem dono e liga/desliga o rodízio por pessoa. Tudo por RPC com token. */
 WA.eu=null;WA.agentes=[];WA.semDono=0;WA.agente='';WA.busca='';WA.status='abertas';WA.painel=true;WA.transfMim=0;
+WA.notas=[];WA.modo='msg';WA.pessoas=null;WA.mencoes=[];WA.mentAberto=false;
 
 function waVeTudo(){return !!(WA.eu&&WA.eu.ve_tudo);}
 function waPodeEditar(){return !!(WA.eu&&Number(WA.eu.nivel)>=2);}
@@ -5004,6 +5036,8 @@ async function waMsgs(id){
   try{
     WA.msgs=(await waRpc('crm_wa_mensagens_listar',{p_conversa_id:id,p_limite:400}))||[];
   }catch(e){WA.msgs=[];}
+  try{WA.notas=(await waRpc('crm_wa_notas_listar',{p_conversa_id:id}))||[];}
+  catch(e){WA.notas=[];}
 }
 
 function waStartPoll(){
@@ -5013,7 +5047,7 @@ function waStartPoll(){
     /* não redesenha com um seletor aberto (transferir, agente, número) */
     const ae=document.activeElement;
     if(ae&&ae.tagName==='SELECT'&&$('board').contains(ae))return;
-    if(WA.respAberto||WA.gravando||(typeof GMODAL==='object'&&GMODAL.aberto))return;
+    if(WA.respAberto||WA.mentAberto||WA.gravando||(typeof GMODAL==='object'&&GMODAL.aberto))return;
     waCarregar();
   },10000);
 }
@@ -5047,11 +5081,12 @@ async function waCarregar(render){
     if(render)$('board').innerHTML='<div class="pane"><div class="loading">Não foi possível carregar as conversas.</div></div>';
     return;
   }
+  await waMencoes();
   waBadge();
   await waFila();
   if(WA.sel&&WA.sel!=='__fila__'){
     const atual=WA.conversas.find(function(x){return x.id===WA.sel;});
-    if(atual)await waMsgs(WA.sel);
+    if(atual){await waMsgs(WA.sel);waMencoesLer(WA.sel);}
   }
   if(render!==false)renderConversas();
 }
@@ -5061,7 +5096,7 @@ function waBadge(){
   const n=WA.conversas.reduce(function(a,c){
     return a+((c.atendente_id===eu||(!c.atendente_id&&waVeTudo()))?(c.nao_lidas||0):0);
   },0);
-  setNavBadge(n+WA.transfMim);
+  setNavBadge(n+WA.transfMim+WA.mencoes.length);
 }
 
 function waFiltradas(){
@@ -5072,6 +5107,7 @@ function waFiltradas(){
     if(WA.status==='resolvidas'&&c.status!=='resolvida')return false;
     if(WA.status==='transf'&&!(c.transf_para&&WA.eu&&c.transf_para===WA.eu.usuario_id))return false;
     if(WA.status==='acomp'&&!c.acompanho)return false;
+    if(WA.status==='ment'&&!waTemMencao(c.id))return false;
     if(q){
       const nome=waNome(c).toLowerCase();
       const num=String(c.numero_e164||c.wa_id||'').replace(/\D/g,'');
@@ -5124,6 +5160,11 @@ function renderLista(lista){
     h+='<div class="wasug watr'+(WA.status==='transf'?' on':'')+'" id="watrbar"><b>'+nTr+'</b> '
       +(nTr===1?'conversa sendo passada para você. Aceite ou recuse.':'conversas sendo passadas para você. Aceite ou recuse.')+'</div>';
   }
+  const nMe=waContagem(function(c){return waTemMencao(c.id);});
+  if(nMe){
+    h+='<div class="wasug wament'+(WA.status==='ment'?' on':'')+'" id="wamentbar"><b>@</b> '
+      +(nMe===1?'Você foi mencionado em 1 conversa.':'Você foi mencionado em '+nMe+' conversas.')+'</div>';
+  }
   if(WA.fila.length){
     h+='<div class="wasug'+(WA.sel==='__fila__'?' on':'')+'" id="wasugbar"><b>'+WA.fila.length+'</b> '
       +(WA.fila.length===1?'sugestão de mensagem esperando você':'sugestões de mensagem esperando você')+'</div>';
@@ -5133,6 +5174,7 @@ function renderLista(lista){
              ['resolvidas','Resolvidas',null],['todas','Todas',null]];
   const nAc=waContagem(function(c){return c.acompanho;});
   if(nAc||WA.status==='acomp')ops.splice(2,0,['acomp','Acompanhando',nAc]);
+  if(nMe||WA.status==='ment')ops.splice(2,0,['ment','Menções',nMe]);
   h+='<div class="wafiltros">'+ops.map(function(o){
       return '<button data-f="'+o[0]+'"'+(WA.status===o[0]?' class="on"':'')+'>'+o[1]+(o[2]?' <i>'+o[2]+'</i>':'')+'</button>';
     }).join('')
@@ -5154,6 +5196,7 @@ function renderLista(lista){
         +'<span class="row3">'
         +(c.lead?'<span class="watag lead">'+esc(waEtapaNome(c.lead.etapa))+'</span>':'<span class="watag">sem lead</span>')
         +(vt?(c.atendente_id?'<span class="watag ag" style="--ac:'+waCor(c.atendente_nome||'')+'">'+esc(c.atendente_nome||'')+'</span>':'<span class="watag sem">sem dono</span>'):'')
+        +(waTemMencao(c.id)?'<span class="watag ment">@ você</span>':'')
         +(c.acompanho?'<span class="watag acomp">acompanhando</span>':'')
         +(c.transf_para?(c.transf_para===eu?'<span class="watag tr">para você</span>':'<span class="watag tr">aguardando '+esc(c.transf_para_nome||'')+'</span>'):'')
         +(waSugPend(c)?'<span class="watag sug">&#10022; sugestão</span>':'')
@@ -5219,10 +5262,11 @@ function renderThread(sel){
   }
   h+='<div class="wamsgs" id="wamsgs">';
   let ultimoDia='';
-  if(!WA.msgs.length)h+='<div class="wavazio">Carregando mensagens...</div>';
-  WA.msgs.forEach(function(m){
+  if(!WA.msgs.length&&!WA.notas.length)h+='<div class="wavazio">Carregando mensagens...</div>';
+  waLinhaTempo().forEach(function(m){
     const d=waDia(m.wa_timestamp||m.created_at);
     if(d!==ultimoDia){h+='<div class="wadia">'+esc(d)+'</div>';ultimoDia=d;}
+    if(m._nota){h+=waNotaHTML(m);return;}
     const sai=m.direcao==='saida';
     h+='<div class="wam '+(sai?'sai':'ent')+(m.status==='falhou'?' falhou':'')+(m.apagada?' apag':'')+'" data-m="'+esc(m.id)+'">';
     if(waPodeAgir(sel,m))h+='<button class="wamact" data-mact="'+esc(m.id)+'" aria-label="Ações da mensagem">&#8964;</button>';
@@ -5243,13 +5287,21 @@ function renderThread(sel){
   });
   h+='</div>';
   const podeResp=waPodeResp(sel);
-  if(!podeResp){
+  if(!podeResp&&WA.modo!=='nota')WA.modo='nota';
+  h+='<div class="wamodo">'
+    +(podeResp?'<button data-modo="msg"'+(WA.modo==='msg'?' class="on"':'')+'>Responder ao contato</button>':'')
+    +'<button class="nt'+(WA.modo==='nota'?' on':'')+'" data-modo="nota" title="Só a equipe vê. Use @ para chamar alguém.">&#128274; Nota interna</button></div>';
+  if(WA.modo==='nota'){
+    h+='<div class="wacomp nota">'
+      +'<div class="wamentwrap"><textarea id="wantxt" rows="1" placeholder="Nota para a equipe (@ chama alguém)" title="Só a equipe vê. Enter salva, Shift+Enter quebra a linha."></textarea><div class="wamentpop" id="wamentpop"></div></div>'
+      +'<button class="btn primary wasendb" id="wanotasend" aria-label="Salvar nota"><span class="lb">Salvar nota</span><span class="ic">&#10148;</span></button></div>';
+  }else if(!podeResp){
     h+='<div class="wafechada">Você pode ler esta conversa, mas não responder por ela.</div>';
   }else if(j.aberta){
     h+='<div class="wacomp">'
       +'<div class="warespwrap"><button class="warespbtn" id="warespbtn" title="Mensagens salvas (ou digite / no início)">&#9889;</button><div class="waresppop" id="waresppop"></div></div>'
       +(j.evo?'<button class="warespbtn waclip" id="waclip" title="Enviar foto, vídeo ou documento">&#128206;</button><input type="file" id="wafile" hidden accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">':'')
-      +'<textarea id="watxt" rows="1" placeholder="Mensagem" title="Digite / no início para usar uma mensagem salva. Enter envia."></textarea>'
+      +'<textarea id="watxt" rows="1" placeholder="Mensagem" title="Digite / no início para usar uma mensagem salva, ou /nota para escrever uma nota interna. Enter envia."></textarea>'
       +(j.evo?'<button class="warespbtn wamic'+(WA.gravando?' rec':'')+'" id="wamic" title="Gravar áudio">'+(WA.gravando?'&#9632;':'&#127908;')+'</button>':'')
       +'<button class="btn primary wasendb" id="wasend" aria-label="Enviar"><span class="lb">Enviar</span><span class="ic">&#10148;</span></button></div>';
   }else{
@@ -5301,6 +5353,7 @@ function renderConversas(){
   const ae=document.activeElement,buscaFoco=ae&&ae.id==='wabusca',cursor=buscaFoco?ae.selectionStart:0;
   const lst=$('walista'),scl=lst?lst.scrollTop:0;
   const txtAtual=$('watxt')?$('watxt').value:null;
+  const nt=$('wantxt'),notaAtual=nt?nt.value:null,notaFoco=nt&&ae===nt,notaCur=notaFoco?nt.selectionStart:0;
   let h='<div class="wawrap'+(waVeTudo()?' gestao':'')+((sel||verFila)?' thread':'')+(sel&&WA.painel?' comdet':'')+'">';
   h+=renderAgentes();
   h+=renderLista(lista);
@@ -5313,6 +5366,7 @@ function renderConversas(){
   if($('walista'))$('walista').scrollTop=scl;
   if(buscaFoco&&$('wabusca')){$('wabusca').focus();try{$('wabusca').setSelectionRange(cursor,cursor);}catch(_){}}
   if(txtAtual!==null&&$('watxt')){$('watxt').value=txtAtual;}
+  if(notaAtual!==null&&$('wantxt')){$('wantxt').value=notaAtual;if(notaFoco){$('wantxt').focus();try{$('wantxt').setSelectionRange(notaCur,notaCur);}catch(_){}}}
   const box=$('wamsgs');
   if(box)box.scrollTop=box.scrollHeight;
   waMidiaAuto();
@@ -5335,6 +5389,9 @@ function waLigar(){
   const mic=$('wamic');if(mic)mic.onclick=waGravar;
   const sug=$('wasugbar');
   if(sug)sug.onclick=function(){WA.sel='__fila__';WA.msgs=[];renderConversas();};
+  const mb=$('wamentbar');
+  if(mb)mb.onclick=function(){WA.status=WA.status==='ment'?'abertas':'ment';renderConversas();};
+  waLigarNotas();
   waLigarFila();
   const wc=$('waconta');
   if(wc)wc.onchange=function(){WA.contaSel=wc.value||null;WA.sel=null;WA.msgs=[];waCarregar(true);};
@@ -5376,10 +5433,11 @@ function waLigar(){
   if(send)send.onclick=function(){waEnviar();};
   const txt=$('watxt');
   if(txt){
-    if(!$('wabusca')||document.activeElement!==$('wabusca'))txt.focus();
+    if((!$('wabusca')||document.activeElement!==$('wabusca'))&&document.activeElement!==$('wantxt'))txt.focus();
     txt.oninput=function(){
       txt.style.height='auto';txt.style.height=Math.min(160,txt.scrollHeight)+'px';
       const v=txt.value;
+      if(/^\/nota(\s|$)/i.test(v)){waRespFechar();waModoNota(v.replace(/^\/nota\s?/i,''));return;}
       if(v.charAt(0)==='/'&&v.indexOf('\n')<0)waRespAbrir(v.slice(1));else waRespFechar();
     };
     txt.onkeydown=function(e){
@@ -5414,9 +5472,11 @@ function waTrocaAgente(v){
 }
 
 async function waAbrir(id){
-  WA.sel=id;WA.msgs=[];
+  if(WA.sel!==id)WA.modo='msg';
+  WA.sel=id;WA.msgs=[];WA.notas=[];
   renderConversas();
   await waMsgs(id);
+  waMencoesLer(id);
   const c=WA.conversas.find(function(x){return x.id===id;});
   if(c&&c.nao_lidas&&WA.eu&&(c.atendente_id===WA.eu.usuario_id||!c.atendente_id)){
     c.nao_lidas=0;
@@ -6010,11 +6070,187 @@ function waNomeModal(){
   inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();salvar();}};
 }
 
+/* ---- notas internas com menção (25/11/2026) ----
+   Nota não é mensagem: mora em crm_wa_notas, nunca passa pelo wa-send nem mexe no funil.
+   Só o autor edita ou apaga. Mencionado sem acesso vira seguidor da conversa (no banco). */
+function waTemMencao(cid){return WA.mencoes.some(function(m){return m.conversa_id===cid;});}
+async function waMencoes(){
+  try{WA.mencoes=(await waRpc('crm_wa_mencoes_pendentes'))||[];}catch(e){WA.mencoes=[];}
+}
+function waMencoesLer(cid){
+  if(!waTemMencao(cid))return;
+  WA.mencoes=WA.mencoes.filter(function(m){return m.conversa_id!==cid;});
+  waBadge();
+  waRpc('crm_wa_mencoes_marcar_lidas',{p_conversa_id:cid}).catch(function(){});
+}
+function waLinhaTempo(){
+  const l=WA.msgs.slice();
+  WA.notas.forEach(function(n){l.push(Object.assign({_nota:true},n));});
+  l.sort(function(a,b){
+    return new Date(a.wa_timestamp||a.created_at).getTime()-new Date(b.wa_timestamp||b.created_at).getTime();
+  });
+  return l;
+}
+function waNotaTexto(n){
+  let h=esc(n.texto||'');
+  (n.mencoes||[]).slice().sort(function(a,b){return String(b.nome||'').length-String(a.nome||'').length;})
+    .forEach(function(m){
+      if(!m.nome)return;
+      const alvo=esc('@'+m.nome);
+      h=h.split(alvo).join('<span class="ment">'+alvo+'</span>');
+    });
+  return h;
+}
+function waNotaHTML(n){
+  const eu=WA.eu&&WA.eu.usuario_id;
+  const minha=n.autor_id===eu;
+  const pm=(n.mencoes||[]).some(function(m){return m.usuario_id===eu;});
+  let h='<div class="wani'+(n.apagada?' apag':'')+(pm?' paramim':'')+'" data-n="'+esc(n.id)+'">'
+    +'<div class="nh">&#128274; Nota interna · <b>'+esc(n.autor_nome||'')+'</b></div>';
+  h+='<div class="tx">'+(n.apagada?'Nota apagada':waNotaTexto(n))+'</div>';
+  h+='<div class="meta">'
+    +(n.editada_em&&!n.apagada?'<span title="Editada em '+esc(waDia(n.editada_em))+' '+esc(waHora(n.editada_em))+'">editada</span>':'')
+    +'<span>'+esc(waHora(n.created_at))+'</span>'
+    +(minha&&!n.apagada?'<button data-nedit="'+esc(n.id)+'">Editar</button><button data-ndel="'+esc(n.id)+'">Apagar</button>':'')
+    +'</div></div>';
+  return h;
+}
+async function waPessoas(){
+  if(WA.pessoas)return WA.pessoas;
+  try{WA.pessoas=(await waRpc('crm_wa_notas_pessoas'))||[];}catch(e){WA.pessoas=[];}
+  return WA.pessoas;
+}
+/* menções saem do próprio texto: quem aparece como @Nome é mencionado */
+function waMencoesDoTexto(txt){
+  const eu=WA.eu&&WA.eu.usuario_id,ids=[];
+  (WA.pessoas||[]).slice().sort(function(a,b){return b.nome.length-a.nome.length;}).forEach(function(p){
+    if(p.usuario_id===eu)return;
+    if(txt.indexOf('@'+p.nome)>-1&&ids.indexOf(p.usuario_id)<0)ids.push(p.usuario_id);
+  });
+  return ids;
+}
+/* autocomplete do @ num textarea qualquer; Enter/Tab escolhe, setas navegam, Esc fecha */
+function waMentLigar(ta,pop,aoEnter){
+  let lista=[],idx=0,ini=-1;
+  function fechar(){pop.classList.remove('open');pop.innerHTML='';WA.mentAberto=false;ini=-1;}
+  function usar(p){
+    const v=ta.value,cur=ta.selectionStart;
+    const novo=v.slice(0,ini)+'@'+p.nome+' '+v.slice(cur);
+    ta.value=novo;const pos=ini+p.nome.length+2;
+    fechar();ta.focus();try{ta.setSelectionRange(pos,pos);}catch(_){}
+  }
+  function desenhar(){
+    pop.innerHTML=lista.map(function(p,i){return '<div data-i="'+i+'"'+(i===idx?' class="on"':'')+'>@'+esc(p.nome)+'</div>';}).join('');
+    pop.classList.toggle('open',lista.length>0);WA.mentAberto=lista.length>0;
+    pop.querySelectorAll('[data-i]').forEach(function(d){d.onmousedown=function(e){e.preventDefault();usar(lista[+d.dataset.i]);};});
+  }
+  ta.addEventListener('input',function(){
+    ta.style.height='auto';ta.style.height=Math.min(160,ta.scrollHeight)+'px';
+    const v=ta.value.slice(0,ta.selectionStart);
+    const m=v.match(/(^|\s)@([^\s@]{0,30})$/);
+    if(!m){fechar();return;}
+    ini=v.length-m[2].length-1;
+    const q=m[2].toLowerCase(),eu=WA.eu&&WA.eu.usuario_id;
+    waPessoas().then(function(ps){
+      lista=ps.filter(function(p){return p.usuario_id!==eu&&p.nome.toLowerCase().indexOf(q)>-1;}).slice(0,8);
+      idx=0;desenhar();
+    });
+  });
+  ta.addEventListener('keydown',function(e){
+    if(pop.classList.contains('open')){
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();idx=(idx+(e.key==='ArrowDown'?1:-1)+lista.length)%lista.length;desenhar();return;}
+      if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();usar(lista[idx]);return;}
+      if(e.key==='Escape'){e.preventDefault();fechar();return;}
+    }
+    if(aoEnter&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();aoEnter();}
+  });
+  ta.addEventListener('blur',function(){setTimeout(fechar,150);});
+}
+function waModoNota(texto){
+  WA.modo='nota';
+  renderConversas();
+  const t=$('wantxt');
+  if(t){if(texto)t.value=texto;t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(_){}}
+  const w=$('watxt');if(w)w.value='';
+}
+function waLigarNotas(){
+  document.querySelectorAll('.wamodo [data-modo]').forEach(function(b){
+    b.onclick=function(){
+      if(WA.modo===b.dataset.modo)return;
+      WA.modo=b.dataset.modo;renderConversas();
+      const f=$(WA.modo==='nota'?'wantxt':'watxt');if(f)f.focus();
+    };
+  });
+  const nt=$('wantxt');
+  if(nt){
+    waPessoas();
+    waMentLigar(nt,$('wamentpop'),waNotaSalvar);
+    if(document.activeElement!==$('wabusca'))nt.focus();
+  }
+  const ns=$('wanotasend');if(ns)ns.onclick=waNotaSalvar;
+  document.querySelectorAll('[data-nedit]').forEach(function(b){b.onclick=function(){waNotaEditar(b.dataset.nedit);};});
+  document.querySelectorAll('[data-ndel]').forEach(function(b){b.onclick=function(){waNotaApagar(b.dataset.ndel);};});
+}
+async function waNotaSalvar(){
+  if(WA.enviando)return;
+  const t=$('wantxt'),c=WA.conversas.find(function(x){return x.id===WA.sel;});
+  if(!t||!c)return;
+  const v=t.value.trim();
+  if(!v){toast('Escreva a nota antes de salvar.');return;}
+  WA.enviando=true;
+  const b=$('wanotasend');if(b){b.disabled=true;}
+  try{
+    await waPessoas();
+    const r=await waRpc('crm_wa_nota_criar',{p_conversa_id:c.id,p_texto:v,p_mencoes:waMencoesDoTexto(v)});
+    t.value='';
+    const nm=(r&&r.mencoes||[]).length;
+    toast(nm?('Nota salva. '+(nm===1?'1 pessoa avisada.':nm+' pessoas avisadas.')):'Nota salva.');
+    await waMsgs(c.id);
+    renderConversas();
+    const t2=$('wantxt');if(t2)t2.focus();
+  }catch(e){toast(waErro(e,'Não foi possível salvar a nota: '+(e.message||e)));if(b)b.disabled=false;}
+  finally{WA.enviando=false;}
+}
+async function waNotaEditar(id){
+  const n=WA.notas.find(function(x){return x.id===id;});if(!n)return;
+  await waPessoas();
+  uiModal('Editar nota interna','Só a equipe vê. Quem você mencionar com @ é avisado.',
+    '<div class="wamentwrap wamenttop"><textarea id="wanted" class="wamented"></textarea><div class="wamentpop" id="wanedpop"></div></div>',
+    '<button class="btn" id="wanedx">Cancelar</button><button class="btn primary" id="wanedok">Salvar</button>');
+  const ta=$('wanted');ta.value=n.texto||'';ta.focus();
+  waMentLigar(ta,$('wanedpop'),null);
+  $('wanedx').onclick=uiModalClose;
+  $('wanedok').onclick=async function(){
+    const v=ta.value.trim();
+    if(!v){toast('Escreva a nota antes de salvar.');return;}
+    const b=$('wanedok');b.disabled=true;b.textContent='Salvando...';
+    try{
+      await waRpc('crm_wa_nota_editar',{p_nota_id:id,p_texto:v,p_mencoes:waMencoesDoTexto(v)});
+      uiModalClose();toast('Nota atualizada.');
+      await waMsgs(WA.sel);renderConversas();
+    }catch(e){toast(waErro(e,'Não foi possível salvar: '+(e.message||e)));b.disabled=false;b.textContent='Salvar';}
+  };
+}
+function waNotaApagar(id){
+  uiModal('Apagar nota interna','A nota some para a equipe e fica marcada como apagada.','',
+    '<button class="btn" id="wandx">Cancelar</button><button class="btn primary" id="wandok">Apagar</button>');
+  $('wandx').onclick=uiModalClose;
+  $('wandok').onclick=async function(){
+    const b=$('wandok');b.disabled=true;
+    try{
+      await waRpc('crm_wa_nota_apagar',{p_nota_id:id});
+      uiModalClose();toast('Nota apagada.');
+      await waMsgs(WA.sel);renderConversas();
+    }catch(e){toast(waErro(e,'Não foi possível apagar: '+(e.message||e)));b.disabled=false;}
+  };
+}
+
 /* mantém o contador da aba vivo mesmo fora das Conversas */
 setInterval(function(){
   if(!currentUser||tab==='conversas'||document.hidden)return;
   if(!sessTok())return;
-  waRpc('crm_wa_nao_lidas').then(function(n){setNavBadge(Number(n)||0);}).catch(function(){});
+  Promise.all([waRpc('crm_wa_nao_lidas'),waRpc('crm_wa_mencoes_pendentes').catch(function(){return [];})])
+    .then(function(r){WA.mencoes=r[1]||[];setNavBadge((Number(r[0])||0)+WA.mencoes.length);}).catch(function(){});
 },60000);
 
 
@@ -14097,7 +14333,7 @@ async function acExcluir(){
    Quem le o campo para exibir usa rtView(); quem exporta (CSV, PDF, WhatsApp)
    usa rtTxt(), que devolve texto puro. Campo que nao pode receber HTML entra
    em RTSKIP. */
-var RTSKIP={watxt:1,c_txt:1,c_tpl:1,imp_txt:1,rev_dec:1,rev_pend:1,ata_txt:1};
+var RTSKIP={watxt:1,wantxt:1,wanted:1,c_txt:1,c_tpl:1,imp_txt:1,rev_dec:1,rev_pend:1,ata_txt:1};
 var RTOK={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,UL:1,OL:1,LI:1,BR:1,P:1,DIV:1,SPAN:1,A:1};
 var RTFORA={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,LINK:1,META:1,FORM:1,INPUT:1,SVG:1};
 

@@ -452,6 +452,14 @@ no horário agora (`crm_usuarios.hora_inicio/hora_fim`, hora de Brasília, `crm_
 todos, rodízio entre todos. Sem horário cadastrado = sempre disponível. Lead com responsável continua indo para o
 responsável, a qualquer hora. Quem não entra no rodízio fica com `crm_usuario_unidades.wa_rodizio = false`; quem nem aparece como atendente (lista, transferência) fica com `wa_atende = false` (W8b, `20261118235135`).
 
+**Notas internas (25/11/2026, `20261125153046_wa_notas_internas` e `20261125154409_wa_notas_editar`):**
+nota da equipe dentro da conversa, com menção por `@Nome`. Mora em `crm_wa_notas` e `crm_wa_notas_mencoes`
+(RLS sem policy, só RPC com token), **nunca** em `crm_wa_mensagens`: não passa pelo `wa-send`, não mexe no funil,
+na prévia nem em `nao_lidas`. Quem abre a conversa (nível ≥ ver) escreve; só o autor edita ou apaga (exclusão lógica).
+Mencionado sem acesso vira seguidor da conversa. As menções saem do texto (`waMencoesDoTexto`). Badge da aba soma as
+menções pendentes (`crm_wa_mencoes_pendentes`); abrir a conversa marca como lidas. No compositor, aba
+"Nota interna" ou `/nota` no início da mensagem. Teste: `qa/notas-internas.test.mjs`.
+
 | `box-prospect-sync` | **false** | front (`bxRodar`, gestão) e agendamento; checagem própria: token de sessão com nível total em `leads`, ou header `x-box-cron` = segredo `crm_box_cron` do Vault. Falha fechada (401). Simula por padrão; só envia com `enviar:true` |
 
 `wa-webhook` **não pode ser renomeada**: a URL está registrada na Meta Cloud
