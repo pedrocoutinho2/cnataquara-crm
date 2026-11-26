@@ -2519,7 +2519,7 @@ const CFG={
       }},
       /* vinculo com parceiro (26/11/2026): aluno, trabalha ou mora num parceiro da aba Parcerias.
          Lista vem de parceiros_opcoes (unidade da sessao). FK composta impede parceiro de outra unidade. */
-      {k:'parceiro_vinculo',l:'Vínculo com parceiro',t:'select',opts:PARCVINC},
+      {k:'parceiro_vinculo',l:'Vínculo com parceiro',t:'select',opts:function(){return PARCVINC;}},
       {k:'parceiro_id',l:'Qual parceiro',t:'select',opts:parcOpcoesFicha},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
