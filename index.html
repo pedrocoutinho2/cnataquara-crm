@@ -1066,6 +1066,10 @@ body.waFull .stats{display:none}
 .wam .tx{margin-top:2px}
 .wam a.mdbtn{display:inline-block;text-decoration:none;color:var(--ink)}
 .wadia{align-self:center;background:var(--white);color:var(--gray);font-size:11px;padding:3px 12px;border-radius:var(--r-pill);margin:6px 0;box-shadow:var(--shadow-1)}
+/* aviso de novas mensagens (26/11/2026): a conversa nao rouba mais o scroll de quem le o historico */
+.wanovas{position:sticky;bottom:2px;align-self:center;z-index:3;border:0;background:var(--ink);color:var(--white);font:600 12px var(--body);border-radius:var(--r-pill);padding:7px 14px;cursor:pointer;box-shadow:var(--shadow-3)}
+.wanovas:hover{background:var(--blue)}
+.wanovas[hidden]{display:none}
 .wacomp{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;flex:none;background:var(--white)}
 .wacomp textarea{flex:1;min-width:120px;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:13.5px;resize:none;max-height:160px;min-height:42px;background:var(--surface)}
 .wacomp textarea:focus{background:var(--white);outline:none;border-color:var(--blue)}
@@ -4927,9 +4931,13 @@ $('bxov').onclick=function(e){if(e.target===$('bxov'))closeBox();};
 $('boxbtn').onclick=openBox;
 
 function FUNCS(){return SUPA_URL+'/functions/v1';}
-const WA={contas:[],contaSel:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false};
+const WA={contas:[],contaSel:null,conversas:[],sel:null,msgs:[],templates:[],fila:[],filtro:'todas',poll:null,enviando:false,
+  /* scroll da conversa: scConv = conversa cujo scroll ja esta na tela, scFim = forcar o fim,
+     scNovas = aviso de mensagem nova com o usuario lendo mais acima, scMsg/html = o que ja foi desenhado */
+  scConv:null,scFim:false,scNovas:false,scMsg:'',html:''};
 
 function waFn(nome,body){
+  if(nome==='wa-send')WA.scFim=true;   /* mensagem nossa: a conversa volta ao fim */
   return fetch(FUNCS()+'/'+nome,{
     method:'POST',
     headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
@@ -5292,6 +5300,7 @@ function renderThread(sel){
     if(m.status==='falhou'&&m.erro_msg)h+='<div class="meta" style="justify-content:flex-start">'+esc(m.erro_msg)+'</div>';
     h+='</div>';
   });
+  h+='<button class="wanovas" id="wanovas" hidden>&#8595; Novas mensagens</button>';
   h+='</div>';
   const podeResp=waPodeResp(sel);
   if(!podeResp&&WA.modo!=='nota')WA.modo='nota';
@@ -5352,6 +5361,15 @@ function renderDetalhe(sel){
   return h;
 }
 
+/* assinatura do que esta desenhado na conversa: pega mensagem ou nota nova, ignora so troca de status */
+function waMsgSig(){
+  const m=WA.msgs||[],n=WA.notas||[];
+  return m.length+':'+(m.length?m[m.length-1].id:'')+'|'+n.length+':'+(n.length?n[n.length-1].id:'');
+}
+function waNovasFechar(){
+  WA.scNovas=false;
+  const b=$('wanovas');if(b)b.hidden=true;
+}
 function renderConversas(){
   const lista=waFiltradas();
   const verFila=(WA.sel==='__fila__');
@@ -5368,6 +5386,13 @@ function renderConversas(){
   else h+=renderThread(sel);
   h+=renderDetalhe(sel);
   h+='</div>';
+  /* mede a conversa antes de redesenhar: posicao, se estava perto do fim e se mudou de conversa */
+  const bxA=$('wamsgs'),trocouConv=(WA.scConv!==WA.sel),topoA=bxA?bxA.scrollTop:0;
+  const pertoDoFim=bxA?(bxA.scrollHeight-bxA.scrollTop-bxA.clientHeight<80):true;
+  const sigMsg=waMsgSig();
+  /* nada novo para desenhar: nao mexe no DOM (nem no scroll, nem no que esta carregado) */
+  if(h===WA.html&&$('walista')){WA.scConv=WA.sel;WA.scMsg=sigMsg;WA.scFim=false;return;}
+  WA.html=h;
   $('board').innerHTML=h;
   waLigar();
   if($('walista'))$('walista').scrollTop=scl;
@@ -5375,7 +5400,17 @@ function renderConversas(){
   if(txtAtual!==null&&$('watxt')){$('watxt').value=txtAtual;}
   if(notaAtual!==null&&$('wantxt')){$('wantxt').value=notaAtual;if(notaFoco){$('wantxt').focus();try{$('wantxt').setSelectionRange(notaCur,notaCur);}catch(_){}}}
   const box=$('wamsgs');
-  if(box)box.scrollTop=box.scrollHeight;
+  if(box){
+    /* fim so na abertura/troca de conversa, em mensagem nossa ou se o usuario ja estava no fim */
+    if(trocouConv||WA.scFim||!bxA||pertoDoFim){box.scrollTop=box.scrollHeight;WA.scNovas=false;}
+    else{
+      box.scrollTop=topoA;
+      if(sigMsg!==WA.scMsg)WA.scNovas=true;
+    }
+    const nv=$('wanovas');
+    if(nv)nv.hidden=!WA.scNovas;
+  }
+  WA.scFim=false;WA.scConv=WA.sel;WA.scMsg=sigMsg;
   waMidiaAuto();
 }
 
@@ -5398,6 +5433,10 @@ function waLigar(){
   if(sug)sug.onclick=function(){WA.sel='__fila__';WA.msgs=[];renderConversas();};
   const mb=$('wamentbar');
   if(mb)mb.onclick=function(){WA.status=WA.status==='ment'?'abertas':'ment';renderConversas();};
+  const bxm=$('wamsgs');
+  if(bxm)bxm.onscroll=function(){if(bxm.scrollHeight-bxm.scrollTop-bxm.clientHeight<80)waNovasFechar();};
+  const nvb=$('wanovas');
+  if(nvb)nvb.onclick=function(){const b=$('wamsgs');if(b)b.scrollTop=b.scrollHeight;waNovasFechar();};
   waLigarNotas();
   waLigarFila();
   const wc=$('waconta');
@@ -6319,6 +6358,7 @@ async function waNotaSalvar(){
     const nm=(r&&r.mencoes||[]).length;
     toast(nm?('Nota salva. '+(nm===1?'1 pessoa avisada.':nm+' pessoas avisadas.')):'Nota salva.');
     await waMsgs(c.id);
+    WA.scFim=true;   /* nota nossa: volta ao fim */
     renderConversas();
     const t2=$('wantxt');if(t2)t2.focus();
   }catch(e){toast(waErro(e,'Não foi possível salvar a nota: '+(e.message||e)));if(b)b.disabled=false;}
