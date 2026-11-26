@@ -11836,6 +11836,8 @@ function tSel(k,l,opcoes,valor,vazio,full){
   return h+'</select></div>';
 }
 
+/* Situação, início e fim vêm do CNA Box e aparecem só no modal, nunca no card do mapa (decisão de 26/11/2026). */
+var T_SITUACOES=['Em formação','Em andamento','Encerrada','Fechada','Cancelada'];
 function tFormHTML(t){
   var h='';
   h+=tSel('curso','Nível',tNiveisOpc(),t.curso,'— selecione o nível —');
@@ -11849,6 +11851,9 @@ function tFormHTML(t){
     +'<option value="true"'+(t.sem_vaga?' selected':'')+'>Sem vaga</option></select></div>';
   h+=tSel('dias','Dias',T_DIAS,t.dias);
   h+=tInp(t,'horario','Horário');
+  h+=tSel('situacao','Situação no Box',T_SITUACOES,t.situacao,'— não informada —');
+  h+=tInp(t,'inicio','Início das aulas','date');
+  h+=tInp(t,'fim','Fim das aulas','date');
   h+=tInp(t,'obs','Observação','text',true);
   return h;
 }

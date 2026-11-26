@@ -541,6 +541,14 @@ de barra invertida. Antes de escrever, garanta a contagem esperada
 - Padrão visual compartilhado com adm e ponto: ver `assets/PADRAO.md` no repo
   `cnataquara-ponto`. Este repo é a referência de origem dos tokens.
 
+## Mapa de turmas (26/11/2026)
+
+`crm_turmas` ganhou `situacao`, `inicio` e `fim` (`20261126162834_crm_turmas_situacao_inicio_fim`), vindos do CNA Box.
+Aparecem **só no modal** de edição (`tFormHTML`), nunca no card (`tCelula`, `tCard`) nem na impressão: no semestre
+em formação todas as turmas têm a mesma situação e datas, e no card isso só polui. O `obs` do card fica curto:
+`Rema X/Y` (reservas no Box / alunos da turma de referência em 26.2), `+N novas`, `Turma nova`.
+Carga 27.1 de Taquara: `sql/20261126160000_turmas_2027_1_box_taquara.sql` (só DML).
+
 ## Integração CRM → CNA Box (05/11/2026)
 
 Cada contato registrado no B2C (fora notas) entra em `crm_box_fila` pelo trigger
