@@ -2517,6 +2517,10 @@ const CFG={
         return [['','— escolha a ação —']].concat(l.filter(function(a){return a.status!=='cancelada';})
           .map(function(a){return [a.id,brDate(a.data)+' · '+a.titulo+(a.local_nome?' · '+a.local_nome:'')];}));
       }},
+      /* vinculo com parceiro (26/11/2026): aluno, trabalha ou mora num parceiro da aba Parcerias.
+         Lista vem de parceiros_opcoes (unidade da sessao). FK composta impede parceiro de outra unidade. */
+      {k:'parceiro_vinculo',l:'Vínculo com parceiro',t:'select',opts:PARCVINC},
+      {k:'parceiro_id',l:'Qual parceiro',t:'select',opts:parcOpcoesFicha},
       {k:'responsavel',l:'Responsável pelo contato',t:'select',opts:function(){return RESP.map(function(r){return [r,r];});}},
       {k:'etapa',l:'Etapa do funil',t:'stage'},
       {k:'nome_aluno',l:'Nome do aluno',t:'text',full:true},
@@ -2728,6 +2732,7 @@ async function loadTab(force){
   $('board').innerHTML='<div class="loading">Carregando dados do Supabase...</div>';
   try{
     DATA[tab]=await api('/'+cfg.table+'?select=*&order=nome.asc');
+    if(tab==='leads')await loadParcOpcoes();
     if(tab==='leads')await loadTarefas();
     /* A18: o painel de filtro e' montado antes do load, quando a base ainda esta
        vazia. Sem este redesenho a lista de responsaveis nunca ve quem saiu. */
@@ -3123,6 +3128,7 @@ function pendenciasLead(lead){
   if(!lead.curso)p.push('curso de interesse');
   if(!lead.origem)p.push('origem');
   if(lead.origem==='A\u00e7\u00e3o comercial'&&!lead.acao_id)p.push('a\u00e7\u00e3o comercial de origem');
+  if(lead.parceiro_vinculo&&!lead.parceiro_id)p.push('qual parceiro');
   const _id=parseInt(lead.idade,10);
   if(!isNaN(_id)&&_id<18&&!lead.responsavel_legal)p.push('respons\u00e1vel pelo aluno');
   if(lead.proximo_atendimento&&!lead.proximo_atendimento_hora)p.push('hora do pr\u00f3ximo contato');
@@ -3360,6 +3366,7 @@ function openModal(id){
     if(f.k==='turno_desejado')d.id='fTurno';
     if(f.k==='promo_fechada')d.id='fPromoF';
     if(f.k==='acao_id')d.id='fAcao';
+    if(f.k==='parceiro_id')d.id='fParc';
     if(f.k==='idade')d.id='fIdade';
     if(f.k==='responsavel_legal')d.id='fRespLegal';
     if(f.k==='nivel')d.id='fNivel';
@@ -3402,10 +3409,12 @@ function openModal(id){
   if(inpAl)inpAl.addEventListener('input',syncAluno);
   const selOr=form.querySelector('[data-k=origem]');
   if(selOr)selOr.addEventListener('change',syncAcao);
+  const selPv=form.querySelector('[data-k=parceiro_vinculo]');
+  if(selPv)selPv.addEventListener('change',syncParc);
   /* o responsavel "e' o proprio prospect" acompanha o nome de cima */
   const inpNome=form.querySelector('[data-k=nome]');
   if(inpNome)inpNome.addEventListener('input',function(){syncResp(true);});
-  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();syncAluno();syncAcao();marcaDatasVazias(form);
+  syncResp(true);syncFaixa();syncNivel(true);syncMatricula();syncAluno();syncAcao();syncParc();marcaDatasVazias(form);
   pcInit();
   $('del').style.display=s?'':'none';
   /* A02: fechar o modal do arrasto sem agendar deixava o lead sem caminho de volta.
@@ -3848,6 +3857,34 @@ async function avancaEtapa(id,alvo){
 
 /* Motivo da perda so existe quando a etapa e' "perdido"; fora disso fica nulo */
 /* Campo "de qual acao" so aparece quando a origem do lead e uma acao comercial de rua */
+/* ---- vinculo do lead com parceiro ---- */
+var PARCVINC=[['','— nenhum —'],['aluno','Aluno de parceiro'],['trabalha','Trabalha em parceiro'],['mora','Mora em parceiro']];
+var PARCOPT={tok:null,em:0,lista:[]};
+async function loadParcOpcoes(forca){
+  if(!currentUser||!podeVer('leads'))return;
+  var t=sessTok();
+  if(!forca&&PARCOPT.tok===t&&Date.now()-PARCOPT.em<600000)return;
+  try{PARCOPT.lista=(await parcRpc('parceiros_opcoes'))||[];PARCOPT.tok=t;PARCOPT.em=Date.now();}
+  catch(e){PARCOPT.lista=[];}
+}
+function parcOpcoesFicha(){
+  var cur=editing?(DATA.leads||[]).find(function(x){return x.id===editing;}):null;
+  var atual=cur&&cur.parceiro_id;
+  var l=PARCOPT.lista.filter(function(p){return p.status==='ativo'||p.id===atual;});
+  if(!l.length)return [['','— nenhum parceiro cadastrado na unidade —']];
+  return [['','— escolha o parceiro —']].concat(l.map(function(p){
+    return [p.id,parcLab(PARCTIPOS,p.tipo)+' · '+p.nome+(p.status==='ativo'?'':' (inativo)')];
+  }));
+}
+function syncParc(){
+  const w=$('fParc');
+  if(!w)return;
+  const sv=document.querySelector('#form [data-k=parceiro_vinculo]');
+  const on=!!sv&&!!sv.value;
+  w.style.display=on?'':'none';
+  const sp=w.querySelector('[data-k=parceiro_id]');
+  if(sp&&!on)sp.value='';
+}
 function syncAcao(){
   const w=$('fAcao');
   if(!w)return;
@@ -4232,6 +4269,7 @@ $('save').onclick=async function(){
   }
   if(tab==='leads'){
     if(body.origem!=='Ação comercial')body.acao_id=null;
+    if(!body.parceiro_vinculo)body.parceiro_id=null;
     if(body.etapa!=='perdido')body.motivo_perda=null;
     if(body.idade!=null){
       const idn=parseInt(body.idade,10);
@@ -7029,6 +7067,7 @@ async function loadAlerts(){
   bucketAlerts();
   loadDemBadge();
   loadAcoesRef();
+  loadParcOpcoes();
 }
 
 /* Reparte a fila em atrasado / na hora / ainda hoje / proximos, comparando data E hora */
@@ -10649,6 +10688,7 @@ async function parcSalvar(id){
   try{
     await parcRpc('parceiros_salvar',{p:p});
     PARC.lista=(await parcRpc('parceiros_lista'))||[];
+    loadParcOpcoes(true);
     uiModalClose();
     toast('Parceiro salvo.');
     renderParceiros();
